@@ -1,10 +1,6 @@
 language: cpp
 dist: xenial
 
-env:
-  global:
-    secure: EROUAjbfrAVF4dwimkwN5wvrDqQVkFpHKOl2eGHNKR79GDGIVZqtfeAC8O2WlzHSvIuB+8HOdkQV+FQ39pjrfWtLwLDuUd31Qeye0HxFo+h+gnP+6n/I/TGfo2dUcUSVVOH3FsHZ8qfsBSsU+qoTt1TbaUnp7qdjNIT1mE7mX1D9g1bwoZyBDJCbd3+NBUzhyBtKfNDmW7iTzRKFeHN/bWXQ5FT2bkt+QwARL08nNl1BLh+EqhhiLnMusqmmPPtCgG2FqYva0ADFVQ2UK7sm/xL61WsvRMzps2CJoVedGrUKHBj/gOSBpO7yEjk27cECvnP3Xw149e4bofV36wAYY3kC6hvBiHT/+8v1HqJf0jyAK5I3SqQfzspOlc4rYdI5kuRP4gYCWIW8PE+8bADaP/q71DSX54KOdVDgXy2oQAuSiNXoPLP/vNHHfmljavL4krw4uKVXSh7AMfUfKgpT0F1/92OW1z+s/w37wVIxoBFFGCaq7ZQeG0MzN6j/WrJFR9A4iZ6kUd0pl1z78ziZylCzD4+WpAf00ufiUL40gwER0f1wO58IcKj1b8l3JwR0LFAWZOfG/SlN6VkY5AJx16JK33KjknWzl/CCUPl4ee/xDRdIWA6mSeyXN8wzVM0mUUN29+OIul7to2YVlYYwKZObPX0nFUYhjLtkYddMTnM=
-
 cache:
   directories:
     - $HOME/.ccache
@@ -26,11 +22,6 @@ matrix:
 
     - os: linux
       compiler: gcc
-      env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_BUILD_TYPE=Debug"
-      addons: {apt: { packages: [*default_packages, g++-7], sources: [*default_sources]}}
-
-    - os: linux
-      compiler: gcc
       env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && MAKE_TEST=true"
       addons: {apt: { packages: [*default_packages, g++-7], sources: [*default_sources]}}
 
@@ -43,11 +34,6 @@ matrix:
       compiler: clang
       env: MATRIX_EVAL="CC=clang && CXX=clang++ && MAKE_TEST=true"
       addons: {apt: { packages: [*default_packages], sources: [*default_sources]}}
-
-    #- os: osx
-    #  osx_image: xcode10.1
-    #  compiler: clang
-    #  env: MATRIX_EVAL="CXX_ID=clang6 && CC=clang && CXX=clang++"
 
     - os: osx
       osx_image: xcode10.1
@@ -99,28 +85,6 @@ before_install:
     fi
 
 install:
-    #--------- Linux
-  - |
-    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      SWIGHOME=$HOME/deps/swig_3.0.12
-      if [[ -z "$(ls -A $SWIGHOME)" ]]; then
-        cd /tmp/;
-        curl -s -J -O -k -L 'https://sourceforge.net/projects/swig/files/swig/swig-3.0.12/swig-3.0.12.tar.gz/download'
-        tar xf swig-3.0.12.tar.gz > /dev/null 2>&1
-        cd swig-3.0.12 && ./configure --prefix $SWIGHOME
-        make && make install
-        cd $TRAVIS_BUILD_DIR
-      else
-        echo "Already have swig cache"
-      fi
-      export CMAKE_PREFIX_PATH=$SWIGHOME:$CMAKE_PREFIX_PATH
-    fi
-    #--------- OSX
-  - |
-    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew upgrade python cmake
-      brew install ccache swig
-    fi
     #--------- All platforms
   - |
     #           STRIDE_FORCE_NO_BOOST: do not use bjam to build boost (mac+gcc problems)
