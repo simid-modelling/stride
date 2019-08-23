@@ -42,11 +42,8 @@ public:
 
         /// Random immunization.
 		void Random(const util::SegmentedVector<ContactPool>& pools, std::vector<double>& immunityDistribution,
-					double immunityLinkProbability, std::shared_ptr<Population> /*pop*/, const bool /*log_immunity*/);
+					double immunityLinkProbability, std::shared_ptr<Population> pop, const bool log_immunity);
 
-        /// Cocoon immunization.
-        void Cocoon(const util::SegmentedVector<ContactPool>& /*pools*/, std::vector<double>& /*immunityDistribution*/,
-                    double /*immunityLinkProbability*/);
 
 private:
         util::RnMan& m_rn_man; ///< Random number manager.

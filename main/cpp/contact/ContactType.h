@@ -12,6 +12,7 @@
  *
  *  Copyright 2017, Kuylen E, Willem L, Broeckhove J
  *  Copyright 2018, Jan Broeckhove and Bistromatics group.
+ *  Copyright 2019, Willem L, Kuylen E, Broeckhove J
  */
 
 /**

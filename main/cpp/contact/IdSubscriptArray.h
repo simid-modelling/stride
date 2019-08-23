@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2018, Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2019, Willem L, Kuylen E, Broeckhove J
  */
 
 /**
@@ -32,13 +32,13 @@ namespace stride {
 namespace ContactType {
 
 /**
- * An std::array modified to enable subscripting with the constact pool
- * type indentifiers. The bounds checking "at" method, to protevt against
+ * An std::array modified to enable subscripting with the contact pool
+ * type identifiers. The bounds checking "at" method, to protect against
  * a subscript that is static_cast<Id> from an erroneous integer value.
  *
  * We intentionally shadow the direct subscripting of the base array.
  *
- * Writing constructor is somehat weird since std::array has no constructors,
+ * Writing constructor is somewhat weird since std::array has no constructors,
  * only aggregate initialization. But we want some constructors for
  * shorthand expressions.
  *
@@ -48,7 +48,7 @@ template <class T>
 class IdSubscriptArray : public std::array<T, NumOfTypes()>
 {
 public:
-        /// What we 'll use most often and where we can have a default and
+        /// What we will use most often and where we can have a default and
         /// initialize all array elements to the same value.
         /// e.g.    IdSubscriptArray<unsigned int> m(1U);
         explicit IdSubscriptArray(T t)
@@ -66,8 +66,8 @@ public:
         }
 
         /// When we want to use an initializer list the elements is the
-        /// (possibly emty) initializer list are applied to the first
-        /// elements in order; any remaininig elements are default initialized.
+        /// (possibly empty) initializer list are applied to the first
+        /// elements in order; any remaining elements are default initialized.
         ///  e.g.   IdSubscriptArray<unsigned int> mm {1U, 2U, 2U};
         IdSubscriptArray(std::initializer_list<T> l)
         {
@@ -101,13 +101,13 @@ public:
                 return this->std::template array<T, NumOfTypes()>::operator[](ContactType::ToSizeT(id));
         }
 
-        /// Subscripting with pool typ id as argument.
+        /// Subscripting with pool type id as argument.
         typename std::array<T, NumOfTypes()>::const_reference operator[](ContactType::Id id) const
         {
                 return this->std::template array<T, NumOfTypes()>::operator[](ContactType::ToSizeT(id));
         }
 
-        /// Subscripting with pool typ id as argument.
+        /// Subscripting with pool type id as argument.
         typename std::array<T, NumOfTypes()>::reference at(ContactType::Id id)
         {
                 if (ToSizeT(id) >= NumOfTypes()) {
@@ -116,7 +116,7 @@ public:
                 return this->std::template array<T, NumOfTypes()>::operator[](ContactType::ToSizeT(id));
         }
 
-        /// Subscripting with pool typ id as argument.
+        /// Subscripting with pool type id as argument.
         typename std::array<T, NumOfTypes()>::const_reference at(ContactType::Id id) const
         {
                 if (ToSizeT(id) >= NumOfTypes()) {
@@ -127,13 +127,13 @@ public:
 };
 
 /**
- * Specialisation of IdSubscriptArray foor booleans.
+ * Specialization of IdSubscriptArray for booleans.
  */
 template <>
 class IdSubscriptArray<bool> : public std::bitset<NumOfTypes()>
 {
 public:
-        /// What we 'll use most often and where we can have a default and
+        /// What we will use most often and where we can have a default and
         /// initialize all array elements to the same value.
         /// e.g.    IdSubscriptArray<bool> m(true);
         explicit IdSubscriptArray(bool t = bool())
@@ -145,8 +145,8 @@ public:
         }
 
         /// When we want to use an initializer list the elements is the
-        /// (possibly emty) initializer list are applied to the first
-        /// elements in order; any remaininig elements are default initialized.
+        /// (possibly empty) initializer list are applied to the first
+        /// elements in order; any remaining elements are default initialized.
         ///  e.g.   IdSubscriptArray<bool> mm {true, false, true};
         IdSubscriptArray(std::initializer_list<bool> l)
         {
@@ -161,19 +161,19 @@ public:
                 }
         }
 
-        /// Subscripting with pool typ id as argument.
+        /// Subscripting with pool type id as argument.
         typename std::bitset<NumOfTypes()>::reference operator[](ContactType::Id id)
         {
                 return this->std::template bitset<NumOfTypes()>::operator[](ContactType::ToSizeT(id));
         }
 
-        /// Subscripting with pool typ id as argument.
+        /// Subscripting with pool type id as argument.
         bool operator[](ContactType::Id id) const
         {
                 return this->std::template bitset<NumOfTypes()>::operator[](ContactType::ToSizeT(id));
         }
 
-        /// Subscripting with pool typ id as argument.
+        /// Subscripting with pool type id as argument.
         typename bitset<NumOfTypes()>::reference at(ContactType::Id id)
         {
                 if (ToSizeT(id) >= NumOfTypes()) {
@@ -182,7 +182,7 @@ public:
                 return this->std::template bitset<NumOfTypes()>::operator[](ContactType::ToSizeT(id));
         }
 
-        /// Subscripting with pool typ id as argument.
+        /// Subscripting with pool type id as argument.
         bool at(ContactType::Id id) const
         {
                 if (ToSizeT(id) >= NumOfTypes()) {

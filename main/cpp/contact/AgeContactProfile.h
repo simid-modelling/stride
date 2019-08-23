@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2017, Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2019, Willem L, Kuylen E, Broeckhove J
  */
 
 /**
@@ -29,7 +29,7 @@
 namespace stride {
 
 /**
- * Contact rates as a function of age.
+ * Contact rate as a function of age.
  */
 class AgeContactProfile : public std::array<double, MaximumAge() + 1>
 {

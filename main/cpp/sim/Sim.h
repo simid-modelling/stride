@@ -63,8 +63,8 @@ public:
         /// Get the population.
         std::shared_ptr<Population> GetPopulation() { return m_population; }
 
-        /// Get the stored transmission rate.
-        double GetTransmissionRate() const { return m_transmission_profile.GetRate(); }
+        /// Get the stored transmission probability.
+        double GetTransmissionProbability() const { return m_transmission_profile.GetProbability(); }
 
         /// Get the random number manager.
         util::RnMan& RefRnManager() { return m_rn_man; }
@@ -90,7 +90,7 @@ private:
 
         std::shared_ptr<Calendar>   m_calendar;         ///< Management of calendar.
         AgeContactProfiles          m_contact_profiles; ///< Contact profiles w.r.t age.
-        std::vector<ContactHandler> m_handlers;         ///< Contact handlers (rng & rates).
+        std::vector<ContactHandler> m_handlers;         ///< Contact handlers (random numbers & probabilities).
         InfectorExec*               m_infector;         ///< Executes contacts/transmission loops in contact pool.
         std::shared_ptr<Population> m_population;       ///< Pointer to the Population.
         util::RnMan                 m_rn_man;           ///< Random number generation management.

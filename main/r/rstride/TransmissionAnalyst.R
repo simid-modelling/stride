@@ -48,8 +48,8 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   sec_transm <- merge(infection_time,sec_transm,all=T)
   sec_transm$sec_cases[is.na(sec_transm$sec_cases)] <- 0
   
-  # add R0 and transmission rate from the project_summary
-  sec_transm <- merge(sec_transm,project_summary[,c('exp_id','r0','transmission_rate')])
+  # add R0 and transmission probability from the project_summary
+  sec_transm <- merge(sec_transm,project_summary[,c('exp_id','r0','transmission_probability')])
     
   # select index cases
   flag       <- is.na(sec_transm$infection_day)
@@ -58,11 +58,11 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   
   # plot(sec_transm$r0,sec_transm$sec_cases)
   # boxplot(sec_cases ~ r0, data = sec_transm)
-  # boxplot(sec_cases ~ transmission_rate, data = sec_transm)
-  # boxplot(r0 ~ transmission_rate, data = project_summary,add =T ,col=2,border=2)
+  # boxplot(sec_cases ~ transmission_probability, data = sec_transm)
+  # boxplot(r0 ~ transmission_probability, data = project_summary,add =T ,col=2,border=2)
   
   # FIT SECOND ORDER POLYNOMIAL
-  temp <- data.frame(x=sec_transm$transmission_rate, y=sec_transm$sec_cases)
+  temp <- data.frame(x=sec_transm$transmission_probability, y=sec_transm$sec_cases)
   mod <- summary(lm(y ~ 0 + x + I(x^2), data= temp))
   mod
   
@@ -81,7 +81,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
     return(.rstride$no_return_value())
   }
   
-  # check R0 limit: prevent complex roots and transmission rates >1
+  # check R0 limit: prevent complex roots and transmission probability >1
   transmission_limit_fit <- min(1,.rstride$f_poly_transm(floor(R0_limit_fit),fit_b0,fit_b1,fit_b2))
   R0_limit               <- .rstride$f_poly_r0(transmission_limit_fit,fit_b0,fit_b1,fit_b2)
   
@@ -92,7 +92,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   
   poly_input   <- sort(temp$x)
   R0_poly_fit  <- .rstride$f_poly_r0(poly_input,fit_b0,fit_b1,fit_b2)
-  sec_transm$R0_poly_fit <- round(.rstride$f_poly_r0(sec_transm$transmission_rate,fit_b0,fit_b1,fit_b2),digits=1)
+  sec_transm$R0_poly_fit <- round(.rstride$f_poly_r0(sec_transm$transmission_probability,fit_b0,fit_b1,fit_b2),digits=1)
   
   # fix y-axis limits (default: 0-40)
   y_lim <- range(c(0,36,sec_transm$sec_cases))
@@ -100,11 +100,11 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # open pdf stream
   .rstride$create_pdf(project_dir,'fit_r0')
   
-  # plot secundary cases vs transmission rate 
-  boxplot(round(sec_transm$sec_cases,digits=3) ~ round(sec_transm$transmission_rate,digits=2), 
+  # plot secundary cases vs transmission probability 
+  boxplot(round(sec_transm$sec_cases,digits=3) ~ round(sec_transm$transmission_probability,digits=2), 
           xlab='transmission probability',ylab='secundary cases',
-          at=sort(round(unique(sec_transm$transmission_rate),digits=3)),
-          xlim=range(sec_transm$transmission_rate),
+          at=sort(round(unique(sec_transm$transmission_probability),digits=3)),
+          xlim=range(sec_transm$transmission_probability),
           ylim=y_lim,boxwex=0.005)
   
   lines(poly_input,R0_poly_fit,type='l',col=3,lwd=4)

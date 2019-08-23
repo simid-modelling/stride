@@ -85,8 +85,8 @@ void DiseaseSeeder::Vaccinate(const std::string& immunityType, const std::string
                 const auto immunity_min_age = m_config.get<double>("run." + ToLower(immunityType) + "_min_age",0);
                 const auto immunity_max_age = m_config.get<double>("run." + ToLower(immunityType) + "_max_age",100);
 
-                std::cout << " random immunity " << std::endl;
-                std::cout << immunityRate << " - " << immunity_min_age << " - " << immunity_max_age << std::endl;
+//                std::cout << " random immunity " << std::endl;
+//                std::cout << immunityRate << " - " << immunity_min_age << " - " << immunity_max_age << std::endl;
 
                 // Initialize a vector to count the population per age class [0-100].
                 for (unsigned int index_age = 0; index_age < 100; index_age++) {
@@ -109,8 +109,6 @@ void DiseaseSeeder::Vaccinate(const std::string& immunityType, const std::string
                 }
                 immunizer.Random(immunityPools, immunityDistribution, linkProbability, pop, false);
 
-        } else if (immunizationProfile == "Cocoon") {
-                immunizer.Cocoon(immunityPools, immunityDistribution, linkProbability);
         }
 }
 

@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2017, Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2019, Willem L, Kuylen E, Broeckhove J
  */
 
 /**
@@ -69,7 +69,7 @@ class LOG_POLICY<ContactLogMode::Id::All>
 {
 public:
         static void Contact(const std::shared_ptr<spdlog::logger>& logger, const Person* p1, const Person* p2,
-                            ContactType::Id type, unsigned short int sim_day, const double c_rate, const double t_rate)
+                            ContactType::Id type, unsigned short int sim_day, const double cProb, const double tProb)
         {
                 if (p1->IsSurveyParticipant()) {
                         logger->info("[CONT] {} {} {} {} {} {} {} {} {} {} {} {}", p1->GetId(), p1->GetAge(),
@@ -79,7 +79,7 @@ public:
                                      static_cast<unsigned int>(type == ContactType::Id::Workplace),
                                      static_cast<unsigned int>(type == ContactType::Id::PrimaryCommunity),
                                      static_cast<unsigned int>(type == ContactType::Id::SecondaryCommunity), sim_day,
-                                     c_rate, t_rate);
+									 cProb, tProb);
                 }
         }
 
@@ -117,21 +117,23 @@ namespace {
 using namespace stride;
 using namespace stride::ContactType;
 
-inline double GetContactRate(const AgeContactProfile& profile, const Person* p, size_t pool_size)
+inline double GetContactProbability(const AgeContactProfile& profile, const Person* p, size_t pool_size)
 {
         const double reference_num_contacts{profile[EffectiveAge(static_cast<unsigned int>(p->GetAge()))]};
         const double potential_num_contacts{static_cast<double>(pool_size - 1)};
 
-        double individual_contact_rate = reference_num_contacts / potential_num_contacts;
-        if (individual_contact_rate >= 1) {
-                individual_contact_rate = 0.999;
+        double individual_contact_probability = reference_num_contacts / potential_num_contacts;
+        if (individual_contact_probability >= 1) {
+        	individual_contact_probability = 0.999;
         }
-        // Contacts are reciprocal, so one needs to apply only half of the contacts here.
-        individual_contact_rate = individual_contact_rate / 2;
-        // Contacts are bi-directional: contact probability for 1=>2 and 2=>1 = indiv_cnt_rate*indiv_cnt_rate
-        individual_contact_rate += (individual_contact_rate * individual_contact_rate);
 
-        return individual_contact_rate;
+        // Contacts are reciprocal, so we need to half of the contacts here.
+        individual_contact_probability = individual_contact_probability / 2;
+
+        // Contacts are bi-directional: contact probability for 1=>2 and 2=>1 = indiv_cnt_prob*indiv_cnt_prob
+        individual_contact_probability += (individual_contact_probability * individual_contact_probability);
+
+        return individual_contact_probability;
 }
 
 } // namespace
@@ -153,7 +155,7 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
         const auto  pType    = pool.m_pool_type;
         const auto& pMembers = pool.m_members;
         const auto  pSize    = pMembers.size();
-        const auto  tRate    = transProfile.GetRate();
+        const auto  tProb    = transProfile.GetProbability();
 
         // check all contacts
         for (size_t i_person1 = 0; i_person1 < pSize; i_person1++) {
@@ -162,7 +164,7 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                 if (!p1->IsInPool(pType)) {
                         continue;
                 }
-                const double c_rate = GetContactRate(profile, p1, pSize);
+                const double cProb = GetContactProbability(profile, p1, pSize);
                 // loop over possible contacts (contacts can be initiated by each member)
                 for (size_t i_person2 = 0; i_person2 < pSize; i_person2++) {
                         // check if not the same person
@@ -175,14 +177,14 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                                 continue;
                         }
                         // check for contact
-                        if (cHandler.HasContact(c_rate)) {
+                        if (cHandler.HasContact(cProb)) {
                                 // log contact if person 1 is participating in survey
-                                LP::Contact(cLogger, p1, p2, pType, simDay, c_rate, tRate);
+                                LP::Contact(cLogger, p1, p2, pType, simDay, cProb, tProb);
                                 // log contact if person 2 is participating in survey
-                                LP::Contact(cLogger, p2, p1, pType, simDay, c_rate, tRate);
+                                LP::Contact(cLogger, p2, p1, pType, simDay, cProb, tProb);
 
                                 // transmission & infection.
-                                if (cHandler.HasTransmission(tRate)) {
+                                if (cHandler.HasTransmission(tProb)) {
                                         auto& h1 = p1->GetHealth();
                                         auto& h2 = p2->GetHealth();
                                         // No secondary infections with TIC; just mark p2 'recovered'
@@ -224,39 +226,39 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
         }
 
         // set up some stuff
-        const auto  c_type    = pool.m_pool_type;
-        const auto  c_immune  = pool.m_index_immune;
-        const auto& c_members = pool.m_members;
-        const auto  c_size    = c_members.size();
-        const auto  t_rate    = transProfile.GetRate();
+        const auto  pType    = pool.m_pool_type;
+        const auto  pImmune  = pool.m_index_immune;
+        const auto& pMembers = pool.m_members;
+        const auto  pSize    = pMembers.size();
+        const auto  tProb    = transProfile.GetProbability();
 
         // match infectious and susceptible members, skip last part (immune members)
         for (size_t i_infected = 0; i_infected < num_cases; i_infected++) {
                 // check if member is present today
-                const auto p1 = c_members[i_infected];
-                if (!p1->IsInPool(c_type)) {
+                const auto p1 = pMembers[i_infected];
+                if (!p1->IsInPool(pType)) {
                         continue;
                 }
                 auto& h1 = p1->GetHealth();
                 if (h1.IsInfectious()) {
-                        const double c_rate_p1 = GetContactRate(profile, p1, c_size);
+                        const double cProb_p1 = GetContactProbability(profile, p1, pSize);
                         // loop over possible susceptible contacts
-                        for (size_t i_contact = num_cases; i_contact < c_immune; i_contact++) {
+                        for (size_t i_contact = num_cases; i_contact < pImmune; i_contact++) {
                                 // check if member is present today
-                                const auto p2 = c_members[i_contact];
-                                if (!p2->IsInPool(c_type)) {
+                                const auto p2 = pMembers[i_contact];
+                                if (!p2->IsInPool(pType)) {
                                         continue;
                                 }
-                                const double c_rate_p2 = GetContactRate(profile, p2, c_size);
-                                if (cHandler.HasContactAndTransmission(c_rate_p1, t_rate) ||
-                                    cHandler.HasContactAndTransmission(c_rate_p2, t_rate)) {
+                                const double cProb_p2 = GetContactProbability(profile, p2, pSize);
+                                if (cHandler.HasContactAndTransmission(cProb_p1, tProb) ||
+                                    cHandler.HasContactAndTransmission(cProb_p2, tProb)) {
                                         auto& h2 = p2->GetHealth();
                                         if (h1.IsInfectious() && h2.IsSusceptible()) {
                                                 h2.StartInfection(h1.GetIdIndexCase());
                                                 // No secondary infections with TIC; just mark p2 'recovered'
                                                 if (TIC)
                                                         h2.StopInfection();
-                                                LP::Trans(cLogger, p1, p2, c_type, simDay, h1.GetIdIndexCase());
+                                                LP::Trans(cLogger, p1, p2, pType, simDay, h1.GetIdIndexCase());
                                         }
                                 }
                         }

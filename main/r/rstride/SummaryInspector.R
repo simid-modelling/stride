@@ -125,7 +125,7 @@ inspect_summary <- function(project_dir)
 .rstride$get_unique_param_list <- function(project_summary){
   
   col_output <- c('run_time', 'total_time', 'num_cases', 'AR' )
-  col_extra  <- c('rng_seed','output_prefix','transmission_rate','exp_id') 
+  col_extra  <- c('rng_seed','output_prefix','transmission_probability','exp_id') 
   col_input  <- !(names(project_summary) %in% c(col_output,col_extra))
   
   # get unique values per parameter

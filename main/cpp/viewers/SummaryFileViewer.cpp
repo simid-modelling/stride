@@ -10,12 +10,12 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2018, Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2019, Willem L, Kuylen E, Broeckhove J
  */
 
 /**
  * @file
- * Definition of Observer for SimEvents for commandline interface usage.
+ * Definition of Observer for SimEvents for command line interface usage.
  */
 
 #include "SummaryFileViewer.h"
@@ -41,7 +41,7 @@ void SummaryFileViewer::Update(const sim_event::Id id)
                 const auto dur      = duration_cast<milliseconds>(m_runner->GetClock().Get());
                 const auto milli    = static_cast<unsigned int>(dur.count());
                 m_summary_file.Print(configPt, static_cast<unsigned int>(pop->size()), pop->GetInfectedCount(),
-                                     sim->RefTransmissionProfile().GetRate(), milli, milli);
+                                     sim->RefTransmissionProfile().GetProbability(), milli, milli);
                 break;
         }
         default: break;

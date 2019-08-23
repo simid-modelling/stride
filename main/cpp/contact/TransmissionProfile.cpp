@@ -10,12 +10,12 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2017, Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2019, Kuylen E, Willem L, Broeckhove J
  */
 
 /**
  * @file
- * Implemenatation for the TransmissionProfile class.
+ * Implementation for the TransmissionProfile class.
  */
 
 #include "TransmissionProfile.h"
@@ -30,7 +30,7 @@ using namespace boost::property_tree;
 void TransmissionProfile::Initialize(const ptree& configPt, const ptree& diseasePt)
 {
         // Use a quadratic model, fitted to simulation data:
-        // Expected(R0) = (0 + b1*transm_rate + b2*transm_rate^2).
+        // Expected(R0) = (0 + b1*transm_prob + b2*transm_prob^2).
         const auto r0 = configPt.get<double>("run.r0");
         const auto b0 = diseasePt.get<double>("disease.transmission.b0");
         const auto b1 = diseasePt.get<double>("disease.transmission.b1");
@@ -44,7 +44,7 @@ void TransmissionProfile::Initialize(const ptree& configPt, const ptree& disease
         // To obtain a real values (instead of complex)
         if (r0 < (-(b * b) / (4 * a))) {
                 const double determ = (b * b) - 4 * a * c;
-                m_transmission_rate = (-b + sqrt(determ)) / (2 * a);
+                m_transmission_probability = (-b + sqrt(determ)) / (2 * a);
         } else {
                 throw runtime_error("TransmissionProfile::Initialize> Illegal input values.");
         }
