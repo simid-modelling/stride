@@ -56,14 +56,6 @@ endif()
 #============================================================================
 include(CMakeCPP.cmake)
 
-#============================================================================
-# Configuration for Swig & Python.
-#============================================================================
-if(NOT STRIDE_FORCE_NO_PYTHON)
-	find_package(SWIG)
-	find_package(PythonInterp 3)
-	find_package(PythonLibs 3)
-endif()
 
 #============================================================================
 # Configuration for DOC: DOXYGEN

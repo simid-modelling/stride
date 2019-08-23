@@ -57,7 +57,6 @@ include_directories(${CMAKE_SOURCE_DIR}/test/cpp)
 add_executable(${EXEC} ${SRC})
 target_link_libraries(${EXEC} gtest libmyhayai libstride ${CMAKE_THREAD_LIBS_INIT})
 install(TARGETS ${EXEC}  DESTINATION   ${BIN_INSTALL_LOCATION})
-install(DIRECTORY testdata/ DESTINATION ${TESTS_INSTALL_LOCATION}/testdata/)
 
 #============================================================================
 # Define tests.

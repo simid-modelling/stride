@@ -12,7 +12,7 @@
 #  along with the software. If not, see <http://www.gnu.org/licenses/>.
 #  see http://www.gnu.org/licenses/.
 #
-#  Copyright 2017, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 #  Configuration for the CMake itself.
@@ -55,10 +55,6 @@ set(STRIDE_FORCE_NO_BOOST FALSE
 	CACHE BOOL "Do NOT use installed Boost even if available.")
 set(STRIDE_FORCE_NO_OPENMP	FALSE
 	CACHE BOOL "Do NOT use OpenMP even if available.")
-set(STRIDE_FORCE_NO_PYTHON FALSE
-	CACHE BOOL "Force CMake to act as if Python or SWIG had not been found.")
-set(STRIDE_FORCE_NO_PROTOC FALSE
-	CACHE BOOL "Do NOT use installed protobuf compiler even if available.")
 
 #============================================================================
 # Additional CMake modules:

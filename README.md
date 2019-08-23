@@ -2,7 +2,7 @@
 
 The Stride acronym stands for **S**imulate **tr**ansmission of **i**nfectious **d**is**e**ases.
  
-The project is hosted in a GitHub [code repository](https://github.com/broeckho/stride.git) and has a continous integration  
+The project is hosted in a GitHub [code repository](https://github.com/lwillem/stride.git) and has a continous integration  
  cycle [build & test](https://travis-ci.org/broeckho/stride) at Travis CI. The online [reference documentation](https://broeckho.github.io/stride) is automatically  
  generated with each new commit of the code.
 

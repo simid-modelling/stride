@@ -12,7 +12,7 @@
 #  along with the software. If not, see <http://www.gnu.org/licenses/>.
 #  see http://www.gnu.org/licenses/.
 #
-#  Copyright 2017, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 #  Report config info.
@@ -31,8 +31,6 @@ message( STATUS " " )
 message( STATUS "------> STRIDE_INCLUDE_DOC          : ${STRIDE_INCLUDE_DOC} "      )
 message( STATUS "------> STRIDE_FORCE_NO_BOOST       : ${STRIDE_FORCE_NO_BOOST}"    )
 message( STATUS "------> STRIDE_FORCE_NO_OPENMP      : ${STRIDE_FORCE_NO_OPENMP}"   )
-message( STATUS "------> STRIDE_FORCE_NO_PROTOC      : ${STRIDE_FORCE_NO_PROTOC}"   )
-message( STATUS "------> STRIDE_FORCE_NO_PYTHON      : ${STRIDE_FORCE_NO_PYTHON}"   )
 #
 message( STATUS " " )
 message( STATUS "------> CMAKE_SYSTEM                : ${CMAKE_SYSTEM} "           )
@@ -77,29 +75,6 @@ if( NOT STRIDE_FORCE_NO_OPENMP )
 	message( STATUS "------> HAVE_FOUND_OpenMP           : ${HAVE_FOUND_OpenMP}"       )
 	message( STATUS "------> OpenMP_CXX_FLAGS            : ${OpenMP_CXX_FLAGS}"        )
 	message( STATUS "------> OpenMP_CXX_LIBRARIES        : ${OpenMP_CXX_LIBRARIES}"    )
-endif()
-#
-message( STATUS "" )
-if( Protobuf_FOUND)
-	message( STATUS "------> Protobuf_FOUND              : ${Protobuf_FOUND}"          )
-	message( STATUS "------> Protobuf_VERSION            : ${Protobuf_VERSION}"        )
-	message( STATUS "------> Protobuf_INCLUDE_DIRS       : ${Protobuf_INCLUDE_DIRS} "  )
-	message( STATUS "------> Protobuf_LIBRARIES          : ${Protobuf_LIBRARIES} "     )
-else()
-	message( STATUS "------> Protobuf_VERSION            : using included Protobuf source 3.7.0"    )
-endif()
-#
-message( STATUS "" )
-if( NOT STRIDE_FORCE_NO_PYTHON )
-	message( STATUS "------> SWIG_FOUND                  : ${SWIG_FOUND} "                )
-	message( STATUS "------> SWIG_DIR                    : ${SWIG_DIR} "                  )
-	message( STATUS "------> SWIG_VERSION                : ${SWIG_VERSION} "              )
-#
-	message( STATUS "" )
-	message( STATUS "------> PYTHONLIBS_FOUND            : ${PYTHONLIBS_FOUND} "          )
-	message( STATUS "------> Python_INCLUDE_DIRS         : ${PYTHON_INCLUDE_DIRS} "       )
-	message( STATUS "------> Python_LIBRARIES            : ${PYTHON_LIBRARIES} "          )
-	message( STATUS "------> Python version              : ${PYTHONLIBS_VERSION_STRING} " )
 endif()
 #
 message( STATUS "" )

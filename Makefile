@@ -12,7 +12,7 @@
 #  along with the software. If not, see <http://www.gnu.org/licenses/>.
 #  see http://www.gnu.org/licenses/.
 #
-#  Copyright 2017, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 #	Meta makefile calls cmake to do the heavy lifting.
@@ -32,9 +32,8 @@ endif
 #============================================================================
 #   Test related: had to duplicate CMAKE_INSTALL_PREFIX here for gtester
 #============================================================================
-#LABEL=$(shell git rev-list HEAD --count)
-#CMAKE_INSTALL_PREFIX  = $(HOME)/opt/stride-$(LABEL)
-CMAKE_INSTALL_PREFIX  = $(HOME)/opt/stride
+LABEL=$(shell git rev-list HEAD --count)
+CMAKE_INSTALL_PREFIX  = $(HOME)/opt/stride-$(LABEL)
 
 #============================================================================
 # 	CMake command
@@ -68,12 +67,7 @@ endif
 ifneq ($(STRIDE_FORCE_NO_OPENMP),)
 	CMAKE_ARGS += -DSTRIDE_FORCE_NO_OPENMP:BOOL=$(STRIDE_FORCE_NO_OPENMP)
 endif
-ifneq ($(STRIDE_FORCE_NO_PROTOC),)
-	CMAKE_ARGS += -DSTRIDE_FORCE_NO_PROTOC:BOOL=$(STRIDE_FORCE_NO_PROTOC)
-endif
-ifneq ($(STRIDE_FORCE_NO_PYHTON),)
-	CMAKE_ARGS += -DSTRIDE_FORCE_NO_PYTHON:BOOL=$(STRIDE_FORCE_NO_PYTHON)
-endif
+
 
 #============================================================================
 #   Build directory.
@@ -104,8 +98,6 @@ help:
 	@ $(CMAKE) -E echo "   STRIDE_FORCE_NO_BOOST         : " $(STRIDE_FORCE_NO_BOOST)
 	@ $(CMAKE) -E echo "   BOOST_NO_SYSTEM_PATHS         : " $(BOOST_NO_SYSTEM_PATHS)
 	@ $(CMAKE) -E echo "   STRIDE_FORCE_NO_OPENMP        : " $(STRIDE_FORCE_NO_OPENMP)
-	@ $(CMAKE) -E echo "   STRIDE_FORCE_NO_PROTOC        : " $(STRIDE_FORCE_NO_PROTOC)
-	@ $(CMAKE) -E echo "   STRIDE_FORCE_NO_PYTHON        : " $(STRIDE_FORCE_NO_PYTHON)
 	@ $(CMAKE) -E echo " "
 
 cores:

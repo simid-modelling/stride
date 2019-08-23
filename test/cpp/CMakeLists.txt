@@ -28,5 +28,6 @@ add_test(NAME smoke_sim_defaultpop
 #============================================================================
 add_subdirectory(btester)
 add_subdirectory(gtester)
+add_subdirectory(myhayai)
 
 #############################################################################

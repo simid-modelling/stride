@@ -12,7 +12,7 @@
 #  along with the software. If not, see <http://www.gnu.org/licenses/>.
 #  see http://www.gnu.org/licenses/.
 #
-#  Copyright 2017, 2018 Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, 2018 Willem L, Kuylen E & Broeckhove J
 #############################################################################
 
 The project depends on a number of resources. Non-included dependencies need
@@ -33,16 +33,6 @@ Boost headers are REQUIRED, as are libraries filesystem, thread, date_time,
 and system.
 See www.boost.org.
 
------------------------------------------------------------------------------
-    SWIG:
------------------------------------------------------------------------------
-The Simplified Wrapper and Interface Generator (SWIG) is a tool to generate
-wrappers that make it possible to call C++ code from programs built in
-other languages, Python in our case. In case you are installing on a Mac
-using macports, you need to install the swig base and swig-python packages.
-If you do not have SWIG, then the build procedure will skip all steps
-related to building the Stride python environment.
-See www.swig.org
 
 #############################################################################
 #     Included dependencies:

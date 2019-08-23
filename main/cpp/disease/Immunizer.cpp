@@ -91,7 +91,7 @@ void Immunizer::Random(const SegmentedVector<ContactPool>& pools, vector<double>
         	 	auto temp_pop_num = populationBrackets[age];
                 populationBrackets[age] = floor(populationBrackets[age] * immunityDistribution[age]);
                 numImmune += static_cast<unsigned int>(populationBrackets[age]);
-                std::cout << age << " -- " << populationBrackets[age] << " -- " << temp_pop_num << " -- " << immunityDistribution[age] << std::endl;
+                //std::cout << age << " -- " << populationBrackets[age] << " -- " << temp_pop_num << " -- " << immunityDistribution[age] << std::endl;
 
         }
 
@@ -126,18 +126,18 @@ void Immunizer::Random(const SegmentedVector<ContactPool>& pools, vector<double>
                 }
         }
 
-        vector<double> populationBrackets2(100, 0.0);
-               for (auto& c : pools) {
-                               for (const auto& p : c.GetPool()) {
-                                       if (p->GetHealth().IsSusceptible()) {
-                                               populationBrackets2[p->GetAge()]++;
-                                       }
-                               }
-                       }
-               for (unsigned int age = 0; age < 30; age++) {
-                             std::cout << age << " -- " << populationBrackets2[age] << " -- " << immunityDistribution[age] << std::endl;
-
-                               }
+//        vector<double> populationBrackets2(100, 0.0);
+//               for (auto& c : pools) {
+//                               for (const auto& p : c.GetPool()) {
+//                                       if (p->GetHealth().IsSusceptible()) {
+//                                               populationBrackets2[p->GetAge()]++;
+//                                       }
+//                               }
+//                       }
+//               for (unsigned int age = 0; age < 30; age++) {
+//                             std::cout << age << " -- " << populationBrackets2[age] << " -- " << immunityDistribution[age] << std::endl;
+//
+//                               }
 }
 
 //void Immunizer::Random_tmp(const SegmentedVector<ContactPool>& pools, vector<double>& immunityDistribution,
