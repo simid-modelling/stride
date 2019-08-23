@@ -6,7 +6,7 @@ The project is hosted in a GitHub [code repository](https://github.com/lwillem/s
  cycle [build & test](https://travis-ci.org/lwillem/stride) at Travis CI. The online [reference documentation](https://lwillem.github.io/stride) is automatically  
  generated with each new commit of the code.
 
-The current status of the project build is : [![Build Status](https://travis-ci.org/lwillem/stride.svg?branch=master)](https://travis-ci.org/broeckho/stride)
+The current status of the project build is : [![Build Status](https://travis-ci.org/lwillem/stride.svg?branch=master)](https://travis-ci.org/lwillem/stride)
 
 The current release is Stride V2, 1.00.
 
