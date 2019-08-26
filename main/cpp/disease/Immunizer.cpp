@@ -57,10 +57,10 @@ void Immunizer::Random(const SegmentedVector<ContactPool>& pools, vector<double>
         // Calculate the number of "new immune" individuals per age class.
         unsigned int numImmune = 0;
         for (unsigned int age = 0; age < 100; age++) {
-        	 	auto temp_pop_num = populationBrackets[age];
+//        	 	auto temp_pop_num = populationBrackets[age];
                 populationBrackets[age] = floor(populationBrackets[age] * immunityDistribution[age]);
                 numImmune += static_cast<unsigned int>(populationBrackets[age]);
-                //std::cout << age << " -- " << populationBrackets[age] << " -- " << temp_pop_num << " -- " << immunityDistribution[age] << std::endl;
+//                std::cout << age << " -- " << populationBrackets[age] << " -- " << temp_pop_num << " -- " << immunityDistribution[age] << std::endl;
 
         }
 
