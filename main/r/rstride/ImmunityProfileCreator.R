@@ -12,7 +12,7 @@
 #  along with the software. If not, see <http://www.gnu.org/licenses/>.
 #  see http://www.gnu.org/licenses/.
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 # BASED ON DATA FROM:
@@ -24,6 +24,9 @@
 #
 ############################################
 
+# clear workspace
+rm(list=ls())
+
 library(XML)
 
 ############################################
@@ -31,17 +34,19 @@ library(XML)
 ############################################
 
 # load data
-all_data <- read.table('./data/susceptibility_measles_belgium_2013.csv',sep=',')  
-num_age_data <- dim(all_data)[1]
+all_data <- read.table('./data/susceptibility_measles_belgium_2013.csv',sep=',',header=F,skip=1)  
+num_age_data <- nrow(all_data)
+dim(all_data)
 
 # calculate the average susceptibility per age
-susceptiblilty_profile <- rowSums(all_data) / dim(all_data)[2]
+susceptiblilty_profile <- rowSums(all_data) / ncol(all_data)
 
 # newborns have 3 months maternally immunity => 1/4 protected, 3/4 not protected 
 susceptiblilty_profile[1] <- 3/4
 
-# extend to 99 years of age by repeating the last one (from 0 to 99 year = 100 categories)
-num_age <- 100
+# extend to 110 years of age by repeating the last one (from 0 to 110 year = 111 categories)
+max_age <- 110
+num_age <- max_age+1
 susceptiblilty_profile <- c(susceptiblilty_profile,rep(susceptiblilty_profile[num_age_data],num_age-num_age_data))
 
 # get immunity =  1 - suscetibility
@@ -56,7 +61,7 @@ plot(immunity_profile,ylim=0:1,type='l',lwd=7,ylab='immunity',xlab='age')
 ############################################
 
 # add age group as column names
-names(immunity_profile) <- paste0('age',0:99)
+names(immunity_profile) <- paste0('age',0:max_age)
 
 # add info on data source and manipulation
 immunity_data <- unlist(list(data_source = 'susceptibility_measles_belgium_2013.csv',
@@ -73,17 +78,17 @@ immunity_data <- unlist(list(data_source = 'susceptibility_measles_belgium_2013.
 
 age2index <- function(x) return(x+1)
 
-imm_ages <- 0:(num_age-1)
+imm_ages <- 0:max_age
 plot(imm_ages,susceptiblilty_profile,ylim=0:1,type='p',lwd=7,ylab='susceptibility',xlab='age')
 abline(v=12)
 abline(v=20)
 abline(v=29)
 
 time_horizon <- 10
-pred_year <- 2012+(1:time_horizon)
+pred_year <- 2013+(0:time_horizon)
 
-i_year <- 1
-for(i_year in 1:time_horizon){
+i_year <- 0
+for(i_year in 0:time_horizon){
   
   # assemple susceptibility profile
   pred_susceptiblilty_profile <- c( susceptiblilty_profile[age2index(0)],               # age 0
@@ -97,16 +102,16 @@ for(i_year in 1:time_horizon){
   immunity_profile <- 1-pred_susceptiblilty_profile
   
   # add ages
-  names(immunity_profile) <- paste0('age',0:99)
+  names(immunity_profile) <- paste0('age',0:max_age)
   
   # add info on data source and manipulation
   immunity_data <- unlist(list(data_source = 'susceptibility_measles_belgium_2013.csv',
                                data_manipulation = "average by age",
-                               prediction_year  = pred_year[i_year],
+                               prediction_year  = pred_year[i_year+1],
                                round(immunity_profile,digits=4)))
   
   
-  .rstride$save_config_xml(immunity_data,'immunity',paste0('immunity_measles_belgium',pred_year[i_year]))
+  .rstride$save_config_xml(immunity_data,'immunity',paste0('immunity_measles_belgium',pred_year[i_year+1]))
 }
 
 
