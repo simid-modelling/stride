@@ -37,10 +37,6 @@ public:
         explicit Immunizer(util::RnMan& rnManager) : m_rn_man(rnManager) {}
 
         /// Random immunization.
-        void Random_tmp(const util::SegmentedVector<ContactPool>& pools, std::vector<double>& immunityDistribution,
-                    double immunityLinkProbability, std::shared_ptr<Population> pop, const bool log_immunity);
-
-        /// Random immunization.
 		void Random(const util::SegmentedVector<ContactPool>& pools, std::vector<double>& immunityDistribution,
 					double immunityLinkProbability, std::shared_ptr<Population> pop, const bool log_immunity);
 

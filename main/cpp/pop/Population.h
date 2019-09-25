@@ -66,6 +66,9 @@ public:
         /// Get the cumulative number of cases.
         unsigned int GetInfectedCount() const;
 
+        /// Get the maximum age in the population.
+        unsigned int GetMaxAge() const;
+
         /// The ContactPoolSys of the simulator.
         const ContactPoolSys& CRefPoolSys() const { return m_pool_sys; }
 

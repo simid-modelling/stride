@@ -88,7 +88,6 @@ inspect_transmission_data <- function(project_dir)
     plot(range(incidence_days),c(0,1.4),col=0,xlab='day',ylab='relative daily incidence',
          main='transmission context over time',yaxt='n')
     axis(2,seq(0,1,0.2),cex.axis=0.9)
-    
     for(i_loc in 1:ncol(tbl_loc_transm)){
       points(incidence_days, tbl_loc_transm[,i_loc]/incidence_day_total,col=i_loc,lwd=4,pch=19)
     }
@@ -235,7 +234,7 @@ inspect_transmission_data <- function(project_dir)
     
     # cases by age
     names(data_transm)
-    hist(data_transm$part_age,0:99,right = F,
+    hist(data_transm$part_age,unique(data_transm$part_age),right = F,
          freq = F,xlab='age of a case',
          ylim = c(0,0.2),
          main = 'incidence by age')  

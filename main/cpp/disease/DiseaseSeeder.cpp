@@ -80,16 +80,17 @@ void DiseaseSeeder::Vaccinate(const std::string& immunityType, const std::string
         double              linkProbability = 0;
         Immunizer           immunizer(m_rn_man);
 
+        // retrieve the maximum age in the population
+        unsigned int maxAge = pop->GetMaxAge();
+
+
         if (immunizationProfile == "Random") {
                 const auto immunityRate     = m_config.get<double>("run." + ToLower(immunityType) + "_rate");
                 const auto immunity_min_age = m_config.get<double>("run." + ToLower(immunityType) + "_min_age",0);
-                const auto immunity_max_age = m_config.get<double>("run." + ToLower(immunityType) + "_max_age",100);
+                const auto immunity_max_age = m_config.get<double>("run." + ToLower(immunityType) + "_max_age",maxAge);
 
-//                std::cout << " random immunity " << std::endl;
-//                std::cout << immunityRate << " - " << immunity_min_age << " - " << immunity_max_age << std::endl;
-
-                // Initialize a vector to count the population per age class [0-100].
-                for (unsigned int index_age = 0; index_age < 100; index_age++) {
+                // Initialize a vector to count the population per age class [0-maxAge].
+                for (unsigned int index_age = 0; index_age <= maxAge; index_age++) {
                         if(index_age >= immunity_min_age && index_age <= immunity_max_age){
                         	immunityDistribution.push_back(immunityRate);
                         } else{
@@ -103,7 +104,7 @@ void DiseaseSeeder::Vaccinate(const std::string& immunityType, const std::string
 
                 linkProbability = m_config.get<double>("run." + ToLower(immunityType) + "_link_probability");
 
-                for (unsigned int index_age = 0; index_age < 100; index_age++) {
+                for (unsigned int index_age = 0; index_age <= maxAge; index_age++) {
                         auto immunityRate = immunity_pt.get<double>("immunity.age" + std::to_string(index_age));
                         immunityDistribution.push_back(immunityRate);
                 }

@@ -112,4 +112,15 @@ unsigned int Population::GetInfectedCount() const
         return total;
 }
 
+unsigned int Population::GetMaxAge() const
+{
+        unsigned int maxAge{0U};
+        for (const auto& p : *this) {
+                if(p.GetAge() > maxAge){
+                	maxAge = p.GetAge();
+                }
+        }
+        return maxAge;
+}
+
 } // namespace stride
