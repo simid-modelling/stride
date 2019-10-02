@@ -117,21 +117,29 @@ namespace {
 using namespace stride;
 using namespace stride::ContactType;
 
-inline double GetContactProbability(const AgeContactProfile& profile, const Person* p, size_t pool_size)
+inline double GetContactProbability(const AgeContactProfile& profile, const Person* p1,const Person* p2, size_t pool_size)
 {
-        const double reference_num_contacts{profile[EffectiveAge(static_cast<unsigned int>(p->GetAge()))]};
+        const double reference_num_contacts_p1{profile[EffectiveAge(static_cast<unsigned int>(p1->GetAge()))]};
+        const double reference_num_contacts_p2{profile[EffectiveAge(static_cast<unsigned int>(p2->GetAge()))]};
         const double potential_num_contacts{static_cast<double>(pool_size - 1)};
 
-        double individual_contact_probability = reference_num_contacts / potential_num_contacts;
-        if (individual_contact_probability >= 1) {
-        	individual_contact_probability = 0.999;
+        double individual_contact_probability_p1 = reference_num_contacts_p1 / potential_num_contacts;
+        if (individual_contact_probability_p1 >= 1) {
+        	individual_contact_probability_p1 = 0.999;
         }
 
-        // Contacts are reciprocal, so we need to half of the contacts here.
-        individual_contact_probability = individual_contact_probability / 2;
+        double individual_contact_probability_p2 = reference_num_contacts_p2 / potential_num_contacts;
+	    if (individual_contact_probability_p2 >= 1) {
+	    	individual_contact_probability_p2 = 0.999;
+	    }
+
+	    double average_contact_probability = (individual_contact_probability_p1 + individual_contact_probability_p2) / 2;
+
+        // Contacts are reciprocal, so we need half of the contacts here.
+	    double individual_contact_probability = average_contact_probability / 2;
 
         // Contacts are bi-directional: contact probability for 1=>2 and 2=>1 = indiv_cnt_prob*indiv_cnt_prob
-        individual_contact_probability += (individual_contact_probability * individual_contact_probability);
+	    //individual_contact_probability += (individual_contact_probability * individual_contact_probability);
 
         return individual_contact_probability;
 }
@@ -164,7 +172,6 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                 if (!p1->IsInPool(pType)) {
                         continue;
                 }
-                const double cProb = GetContactProbability(profile, p1, pSize);
                 // loop over possible contacts (contacts can be initiated by each member)
                 for (size_t i_person2 = 0; i_person2 < pSize; i_person2++) {
                         // check if not the same person
@@ -177,6 +184,7 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                                 continue;
                         }
                         // check for contact
+                        const double cProb = GetContactProbability(profile, p1, p2, pSize);
                         if (cHandler.HasContact(cProb)) {
                                 // log contact if person 1 is participating in survey
                                 LP::Contact(cLogger, p1, p2, pType, simDay, cProb, tProb);
@@ -241,7 +249,6 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                 }
                 auto& h1 = p1->GetHealth();
                 if (h1.IsInfectious()) {
-                        const double cProb_p1 = GetContactProbability(profile, p1, pSize);
                         // loop over possible susceptible contacts
                         for (size_t i_contact = num_cases; i_contact < pImmune; i_contact++) {
                                 // check if member is present today
@@ -249,7 +256,8 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                                 if (!p2->IsInPool(pType)) {
                                         continue;
                                 }
-                                const double cProb_p2 = GetContactProbability(profile, p2, pSize);
+                                const double cProb_p1 = GetContactProbability(profile, p1, p2, pSize);
+                                const double cProb_p2 = GetContactProbability(profile, p2, p1, pSize);
                                 if (cHandler.HasContactAndTransmission(cProb_p1, tProb) ||
                                     cHandler.HasContactAndTransmission(cProb_p2, tProb)) {
                                         auto& h2 = p2->GetHealth();

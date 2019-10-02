@@ -27,9 +27,10 @@ source('./bin/rstride/misc.R')
 if(0==1) # for debugging
 {
   #setwd('..')
-  exp_summary <- project_summary[1,]
+  project_summary <- .rstride$load_project_summary(project_dir)
+  exp_summary <- project_summary[2,]
   data_dir    <- './data'
-  plot_contacts(exp_summary,data_dir)
+  .rstride$plot_contacts(exp_summary,data_dir)
 }
 
 #############################################################################
@@ -121,33 +122,54 @@ inspect_contact_data <- function(project_dir){
     }
     
     # LOAD SURVEY DATA FROM FLANDERS AND FULLY CONNECTED HOUSEHOLDS
-    #survey_mij_hh         <- read.table(file=paste0(project_dir,'/data/ref_miami_household_gam_mij_rec.csv'),sep=';',dec=',',header=T)
-    survey_mij_hh         <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_household_gam_mij_rec.csv')),sep=';',dec=',',header=T)
-    survey_mij_school     <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_school_conditional_age23_gam_mij_rec_median.csv')),sep=';',dec=',',header=T)
-    survey_mij_work       <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_workplace_conditional_gam_mij_rec_median.csv')),sep=';',dec=',',header=T)
-    survey_mij_community  <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_community_gam_mij_rec.csv')),sep=';',dec=',',header=T)
-    survey_mij_total      <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_gam_mij_rec.csv')),sep=';',dec=',',header=T)
+    survey_data <- xmlToList(file.path(data_dir,exp_summary$age_contact_matrix_file))
+    names(survey_data)
+    
+    get_survey_data <- function(cluster_type){
+      survey_cluster     <- unlist(survey_data[[cluster_type]])
+      flag_rate          <- grepl('contact.rate',names(survey_cluster))
+      survey_mij_cluster <- matrix(as.numeric(survey_cluster[flag_rate]),nrow=110)
+      return(survey_mij_cluster)
+    }
+    
+    survey_mij_hh         <- get_survey_data('household')
+    survey_mij_school     <- get_survey_data('school')
+    survey_mij_work       <- get_survey_data('work')
+    survey_mij_community  <- get_survey_data('secondary_community')
+    survey_mij_total      <- get_survey_data('regular_weekday')
     
     survey_mij_school_weekend     <- survey_mij_school*0
     survey_mij_work_weekend       <- survey_mij_work*0
-    survey_mij_community_weekend  <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_weekend_community_gam_mij_rec.csv')),sep=';',dec=',',header=T)
-    survey_mij_total_weekend      <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_weekend_gam_mij_rec.csv')),sep=';',dec=',',header=T)
+    survey_mij_community_weekend  <- get_survey_data('primary_community')
+    survey_mij_total_weekend      <- get_survey_data('regular_weekend')
     
-    ## SPECIAL CASE: TEACHERS
-    if(grepl('teacher',exp_summary$age_contact_matrix_file)){
-      survey_mij_school     <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_school_conditional_age23_teachers_gam_mij_rec_median.csv')),sep=';',dec=',',header=T)
-    }
     
+    # #survey_mij_hh         <- read.table(file=paste0(project_dir,'/data/ref_miami_household_gam_mij_rec.csv'),sep=';',dec=',',header=T)
+    # survey_mij_hh         <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_household_gam_mij_rec.csv')),sep=';',dec=',',header=T)
+    # survey_mij_school     <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_school_conditional_age23_gam_mij_rec_median.csv')),sep=';',dec=',',header=T)
+    # survey_mij_work       <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_workplace_conditional_gam_mij_rec_median.csv')),sep=';',dec=',',header=T)
+    # survey_mij_community  <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_community_gam_mij_rec.csv')),sep=';',dec=',',header=T)
+    # survey_mij_total      <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_gam_mij_rec.csv')),sep=';',dec=',',header=T)
+    # 
+    # survey_mij_school_weekend     <- survey_mij_school*0
+    # survey_mij_work_weekend       <- survey_mij_work*0
+    # survey_mij_community_weekend  <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_weekend_community_gam_mij_rec.csv')),sep=';',dec=',',header=T)
+    # survey_mij_total_weekend      <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_weekend_gam_mij_rec.csv')),sep=';',dec=',',header=T)
+    # 
+    # ## SPECIAL CASE: TEACHERS
+    # if(grepl('teacher',exp_summary$age_contact_matrix_file)){
+    #   survey_mij_school     <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_school_conditional_age23_teachers_gam_mij_rec_median.csv')),sep=';',dec=',',header=T)
+    # }
     
     ## COMPARE
     par(mfrow=c(2,3))
     
-    plot(rowSums(survey_mij_total),main='total',xlab='age',ylab='contacts',type='l',ylim=c(-0.1,30))
+    plot(rowSums(survey_mij_total),main='total',xlab='age',ylab='contacts',type='l',ylim=c(-0.1,40))
     lines(rowSums(survey_mij_total_weekend),main='total',xlab='age',ylab='contacts',type='l',lty=2)
     points(rowSums(mij_total),col=2)
     legend('topright',c('week','weekend','model'),col=c(1,1,2),lty=c(1,2,0),pch=c(-1,-1,1),cex=0.8,title=ref_data_tag)
     
-    plot(rowSums(survey_mij_hh),main='household',xlab='age',ylab='contacts',type='l')
+    plot(rowSums(survey_mij_hh),main='household',xlab='age',ylab='contacts',type='l',ylim=c(-0.1,5))
     points(rowSums(mij_hh),col=2)
     legend('topright',c('week','weekend','model'),col=c(1,1,2),lty=c(1,2,0),pch=c(-1,-1,1),cex=0.8,title=ref_data_tag)
     

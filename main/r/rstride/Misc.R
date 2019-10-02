@@ -485,10 +485,12 @@ if(!(exists('.rstride'))){
   install_dir              <- system('echo $HOME/opt',intern=T)
   
   # load directory content (non recursive)
-  stride_dirs <- dir(install_dir,pattern = 'stride-')
+  stride_dir_tag  <- 'stride-'
+  stride_dirs     <- dir(install_dir,pattern = stride_dir_tag)
+  stride_dirs_num <- as.numeric(sub(stride_dir_tag,'',stride_dirs))
   
   # select last directory
-  last_stride_dir <- stride_dirs[length(stride_dirs)]
+  last_stride_dir <- stride_dirs[stride_dirs_num == max(stride_dirs_num)]
   
   # set work directory
   setwd(file.path(install_dir,last_stride_dir))

@@ -87,7 +87,7 @@ generate_social_contact_data_file <- function(ref_data_tag,cnt_matrices_lib,post
     # start from contact matrix with all '0'
     survey_mij <- absence_cnt_matrix 
     
-    # add contact data if given tot this function
+    # add contact data if given to this function
     if(!is.na(cnt_matrices_lib[i_context])){
       survey_mij <- read.table(file=cnt_matrices_opt[i_context],sep=';',dec=',',header=T)
     }
