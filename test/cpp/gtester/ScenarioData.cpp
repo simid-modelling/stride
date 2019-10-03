@@ -39,9 +39,9 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
                                             : RunConfigManager::Create("TestsMeasles");
 
         const map<string, unsigned int> targets_default = {
-            {"influenza_a", 550000U}, {"influenza_b", 0U}, {"influenza_c", 5U}, {"measles_16", 275000U},
-            {"measles_26", 600000U},  {"r0_0", 1200U},     {"r0_4", 5000U},     {"r0_8", 20000U},
-            {"r0_12", 50000U},        {"r0_16", 80000U}};
+            {"influenza_a", 535000U}, {"influenza_b", 0U}, {"influenza_c", 5U}, {"measles_16", 275000U},
+            {"measles_26", 600000U},  {"r0_0", 1200U},     {"r0_4", 4500U},     {"r0_8", 18000U},
+            {"r0_12", 45000U},        {"r0_16", 80000U}};
 
         const map<string, double> margins_default = {
             {"influenza_a", 2.0e-03}, {"influenza_b", 0.0}, {"influenza_c", 2.0e-01}, {"measles_16", 8.0e-02},
