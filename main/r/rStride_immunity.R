@@ -41,7 +41,7 @@ dir_postfix <- '_imm'
 #names(xmlToList('./config/run_default.xml'))
 
 # set the number of realisations per configuration set
-num_seeds  <- 8
+num_seeds  <- 40
 
 # add parameters and values to combine in a full-factorial grid
 exp_design <- expand.grid(r0                         = seq(12,12,2),
@@ -53,7 +53,7 @@ exp_design <- expand.grid(r0                         = seq(12,12,2),
                           seeding_rate               = 0.000002,
                           disease_config_file        = 'disease_measles_adaptive_behavior.xml',
                           adaptive_symptomatic_behavior = 'true',
-                          population_file            = 'pop_flanders500_c1000_class_teachers.csv',
+                          population_file            = 'pop_belgium600k_c1k_teachers_censushh.csv',
                           age_contact_matrix_file    = 'contact_matrix_flanders_conditional_teachers.xml',
                           immunity_profile           = 'AgeDependent',                        # 'None', 'Random', 'AgeDependent'
                           immunity_distribution_file = 'data/immunity_measles_belgium.xml',   # to be used with 'AgeDependent'

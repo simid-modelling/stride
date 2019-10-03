@@ -50,13 +50,13 @@ exp_design <- expand.grid(r0                         = 12,
                           num_participants_survey    = 3000,
                           track_index_case           = 'false',
                           contact_log_level          = 'Transmissions',
-                          seeding_rate               = 6e-6,#0.000002,
-                          disease_config_file        = 'disease_measles_constant_behavior.xml',
-                          population_file            = 'pop_flanders1300_c1000_class_teachers.csv',
+                          seeding_rate               = 0.000002,
+                          disease_config_file        = 'disease_measles_adaptive_behavior.xml',
+                          population_file            = 'pop_belgium600k_c1k_teachers_censushh.csv',
                           age_contact_matrix_file    = 'contact_matrix_flanders_conditional_teachers.xml',
                           adaptive_symptomatic_behavior = 'true',
                           immunity_profile              = 'AgeDependent',           # 'None', 'Random', 'AgeDependent'
-                          immunity_distribution_file    = paste0('data/pred_immunity/immunity_measles_belgium',2013:2014,'.xml'),
+                          immunity_distribution_file    = 'data/immunity_measles_belgium.xml',
                           immunity_link_probability     = 0,
                           vaccine_profile               = 'Random',                 # 'None', 'Random', 'AgeDependent'
                           vaccine_rate                  = c(0.0,0.7,0.9),           # to be used with 'Random'
@@ -64,7 +64,6 @@ exp_design <- expand.grid(r0                         = 12,
                           vaccine_max_age               = 29,                       # to be used with 'Random'
                           case_detection_probability    = 0,                        # Enable case finding
                           stringsAsFactors = F)
-dim(exp_design)
 
 # adjust the ages of the target group, according the projected year
 year_prediction <- as.numeric(as.factor(exp_design$immunity_distribution_file)) - 1
