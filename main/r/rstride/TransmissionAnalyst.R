@@ -35,6 +35,11 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # load the transmission output
   data_transm     <- .rstride$load_aggregated_output(project_dir,'data_transmission',project_summary$exp_id)
 
+  if(is.na(data_transm)){
+    .rstride$cli_print('TRANSMISSION OUTPUT MISSING',WARNING = T)
+    return(NA)
+  }
+  
   # count secundary infections
   tbl_infections  <- table(data_transm$infector_id)
   sec_transm      <- data.frame(local_id = as.numeric(names(tbl_infections)),

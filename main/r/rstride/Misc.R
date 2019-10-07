@@ -445,6 +445,36 @@ if(!(exists('.rstride'))){
   
 }
 
+# immunity
+.rstride$valid_seed_infected <- function(design_of_experiment = exp_design){
+  
+  # select unique combinations of population file and seeding rate
+  unique_exp_design <- (design_of_experiment[,c('population_file','seeding_rate')])[1:10,]
+  
+  # add the path to the data folder
+  data_dir <- './data'
+  unique_exp_design$population_file_full <- file.path(data_dir,unique_exp_design$population_file)
+  
+  # count lines
+  unique_exp_design$population_size <- NA
+  for(i_file in 1:nrow(unique_exp_design)){
+    file_connnection                         <- file(unique_exp_design$population_file_full[i_file]) 
+    unique_exp_design$population_size[i_file] <- length(readLines(file_connnection)) - 1              # -1 for header  
+  }
+  
+  # calculate the number of infected seeds
+  unique_exp_design$num_seed_infected <- floor(unique_exp_design$seeding_rate * unique_exp_design$population_size)
+  
+  # check... and print warning if needed
+  if(any(unique_exp_design$num_seed_infected<=0)){
+    .rstride$cli_print('NUMBER OF INFECTED SEEDS == 0 WITH:', paste(unique_exp_design[unique_exp_design$num_seed_infected<=0,1:2], collapse = ' & seeding rate '),WARNING=T)
+    return(FALSE)
+  }
+  
+  # else => return TRUE
+  return(TRUE)
+  
+}
 
 
 

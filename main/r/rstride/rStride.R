@@ -63,11 +63,14 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   if(.rstride$data_files_exist(design_of_experiment) == FALSE ||
      .rstride$log_levels_exist(design_of_experiment) == FALSE ||
      .rstride$valid_r0_values(design_of_experiment)  == FALSE ||
-     .rstride$valid_immunity_profiles(design_of_experiment)  == FALSE ){
+     .rstride$valid_immunity_profiles(design_of_experiment)  == FALSE ||
+     .rstride$valid_seed_infected(design_of_experiment) == FALSE){
     
     .rstride$cli_abort()
     return(.rstride$no_return_value())
   }
+  
+  
   
   ################################
   ## PARALLEL SETUP             ##
