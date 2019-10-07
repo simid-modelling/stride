@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -31,7 +31,7 @@ rm(list=ls())
 source('./bin/rstride/rStride.R')
 
 # set directory postfix (optional)
-dir_postfix <- '_cea_pred'
+dir_postfix <- '_cea'
 
 #################################################
 ## DESIGN OF EXPERIMENTS                       ##
@@ -41,7 +41,7 @@ dir_postfix <- '_cea_pred'
 #names(xmlToList('./config/run_default.xml'))
 
 # set the number of realisations per configuration set
-num_seeds  <- 8
+num_seeds  <- 40
 
 # add parameters and values to combine in a full-factorial grid
 exp_design <- expand.grid(r0                         = 12,
@@ -71,8 +71,8 @@ exp_design$vaccine_min_age <- exp_design$vaccine_min_age + year_prediction
 exp_design$vaccine_max_age <- exp_design$vaccine_max_age + year_prediction
 
 # add a unique seed for each run
-# set.seed(125)
-# exp_design$rng_seed <- sample(1e4,nrow(exp_design))
+set.seed(num_seeds)
+exp_design$rng_seed <- sample(1e4,nrow(exp_design))
 
 
 #################################################

@@ -100,13 +100,16 @@ calculate_cost_effectiveness <- function(project_dir){
   outbreak_summary <- merge(outbreak_summary,infected_seeds)
   
   # add burden of disease data
-  outbreak_summary <- merge(outbreak_summary,data_cases)
+  outbreak_summary                        <- merge(outbreak_summary,data_cases)
+  outbreak_summary$num_sec_cases          <- (outbreak_summary$num_cases - outbreak_summary$num_index_cases) 
+  outbreak_summary$num_sec_cases_outbreak <- outbreak_summary$num_sec_cases / outbreak_summary$num_index_cases 
+  
 
   # intervention tag
   outbreak_summary$intervention_id  <- outbreak_summary$intervention
   outbreak_summary$intervention_tag <- paste0('coverage ',outbreak_summary$vaccine_rate,
                                               ' [',outbreak_summary$vaccine_min_age,
-                                              '-',outbreak_summary$vaccine_max_age,']')
+                                              '-',outbreak_summary$vaccine_max_age,']y')
  
   # adjust number of vaccines => account only 'base_year'
   for(i_intervention in 1:max(outbreak_summary$intervention_id)){
@@ -119,21 +122,21 @@ calculate_cost_effectiveness <- function(project_dir){
   # get aggregated statistics
   outbreak_std_err <- aggregate(. ~ intervention_tag, data=outbreak_summary,std_err)
   outbreak_mean    <- aggregate(. ~ intervention_tag, data=outbreak_summary,mean)
+  outbreak_median  <- aggregate(. ~ intervention_tag, data=outbreak_summary,median)
   
   # set comparator
   flag_mean_current <- outbreak_mean$num_vaccines == 0
   outbreak_mean$intervention_tag[flag_mean_current] <- 'current'
   
   # AVERTED BURDEN
-  outbreak_mean$cases_averted <- outbreak_mean$num_cases[flag_mean_current] - outbreak_mean$num_cases
+  outbreak_mean$cases_averted <- outbreak_mean$num_sec_cases[flag_mean_current] - outbreak_mean$num_sec_cases
   
   # program costs
-  num_vaccines    <- outbreak_mean$num_vaccines
-  cost_program    <- num_vaccines * (cea_param$price_dose+cea_param$price_admin_dose)
+  outbreak_mean$cost_program    <- outbreak_mean$num_vaccines * (cea_param$price_dose+cea_param$price_admin_dose)
   
   # total cost averted
   outbreak_mean$medical_costs_averted <- outbreak_mean$cases_averted * cea_param$saving_per_averted_case
-  outbreak_mean$incr_cost             <- cost_program - outbreak_mean$medical_costs_averted
+  outbreak_mean$incr_cost             <- outbreak_mean$cost_program - outbreak_mean$medical_costs_averted
   
   # total burden averted
   outbreak_mean$qaly_gain <- outbreak_mean$cases_averted * cea_param$QALYgain_per_averted_case
@@ -144,6 +147,7 @@ calculate_cost_effectiveness <- function(project_dir){
   
   pdf(file=file.path(project_dir,paste0(project_summary$run_tag[1],'_ce_plane_icer.pdf')),10,5)
   par(mfrow=1:2)
+  legend_cex <- 0.6
   
   # CEA PLANE
   plot(outbreak_mean$qaly_gain,
@@ -154,7 +158,11 @@ calculate_cost_effectiveness <- function(project_dir){
        pch=16,cex=2)
   abline(h=0,lty=2)
   abline(v=0,lty=2)
-  legend('topleft',paste(outbreak_mean$intervention_tag),fill=outbreak_mean$intervention,cex=0.8)
+  legend('topleft',paste(outbreak_mean$intervention_tag),
+         fill=outbreak_mean$intervention,
+         cex=legend_cex,
+         title='Scenario',
+         bg='white')
   
   ## ICER
   plot(outbreak_mean$num_vaccines,
@@ -163,22 +171,107 @@ calculate_cost_effectiveness <- function(project_dir){
        xlab='number of vaccine doses',
        ylab='icer',
        pch=16,cex=2)
-  legend('topleft',outbreak_mean$intervention_tag[!flag_mean_current],fill=outbreak_mean$intervention_id[!flag_mean_current],cex=0.8)
+  legend('topleft',paste(outbreak_mean$intervention_tag),
+         fill=outbreak_mean$intervention,
+         cex=legend_cex,
+         title='Scenario',
+         bg='white')
+  legend('topleft',outbreak_mean$intervention_tag[!flag_mean_current],
+         fill=outbreak_mean$intervention_id[!flag_mean_current],
+         cex=legend_cex,
+         title='Scenario',
+         bg='white')
   
-  ## DISTRIBUTIONS
-  par(mfrow=c(1,1))
-  num_samples <- 10000
-  hist_breaks <- seq(0,max(outbreak_mean$num_cases)*2,length=100)
-  hist_xlim   <- range(c(0,outbreak_mean$num_cases*2))
-  hist(rnorm(num_samples,outbreak_mean$num_cases[flag_mean_current],outbreak_std_err$num_cases[flag_mean_current]),
-       hist_breaks,freq = F,xlim=hist_xlim,col=1,xlab='Cases (all ages)',main='')
-  for(i_intervention in outbreak_mean$intervention_id[!flag_mean_current]){
-    hist(rnorm(num_samples,outbreak_mean$num_cases[i_intervention],outbreak_std_err$num_cases[i_intervention]),
-      hist_breaks,freq = F,add=T,col=alpha(i_intervention,0.4))
+  
+  ## DISTRIBUTIONS => PREDICTION
+  num_outbreaks <- unique(outbreak_mean$num_index_cases)
+  num_samples <- 5e5
+  df <- foreach(i_intervention = outbreak_mean$intervention_id,
+          .combine='rbind') %do% {
+    df_intervention <- data.frame(scenario = outbreak_mean$intervention_tag[i_intervention],
+                                  sec_cases = rnorm(num_samples,
+                                                outbreak_mean$num_sec_cases[i_intervention],
+                                                outbreak_std_err$num_sec_cases[i_intervention]),
+                                  sec_cases_outbreak = rnorm(num_samples,
+                                                              outbreak_mean$num_sec_cases_outbreak[i_intervention],
+                                                              outbreak_std_err$num_sec_cases_outbreak[i_intervention])
+                                  )
+
+    hist_breaks             <- seq(-10,max(outbreak_mean$num_sec_cases*3),0.5)
+    hist_sec_cases          <- hist(df_intervention$sec_cases, plot = F, breaks=hist_breaks)
+    hist_sec_cases_outbreak <- hist(df_intervention$sec_cases_outbreak, plot = F,breaks=hist_breaks)
+    
+    data.frame(scenario    = outbreak_mean$intervention_tag[i_intervention],
+               sec_cases_x = hist_sec_cases$mids,
+               sec_cases_y = hist_sec_cases$counts/sum(hist_sec_cases$counts),
+               sec_cases_outbreak_x = hist_sec_cases_outbreak$mids,
+               sec_cases_outbreak_y = hist_sec_cases_outbreak$counts/sum(hist_sec_cases_outbreak$counts))
   }
-  legend('topright',outbreak_mean$intervention_tag,fill=outbreak_mean$intervention_id,cex=0.8)
   
+  
+  plot(range(df$sec_cases_x[df$sec_cases_y>0]),range(df$sec_cases_y),col=0,
+       ylab='Probability',
+       xlab=paste('Secondary cases per simulation of ',num_outbreaks,'outbreaks'))
+  for(i_scen in 1:nlevels(df$scenario)){
+    flag <- df$scenario == levels(df$scenario)[i_scen]
+    lines(df$sec_cases_x[flag],df$sec_cases_y[flag],col=i_scen,lwd=3)
+  }
+  legend('topright',rev(levels(df$scenario)),
+         col=rev(1:nlevels(df$scenario)),
+         lwd=2,
+         title='Scenario',
+         cex=legend_cex)
+  
+  plot(range(pretty(df$sec_cases_outbreak_x[df$sec_cases_outbreak_y>0]),n=3),range(pretty(df$sec_cases_outbreak_y)),col=0,
+       ylab='Probability',
+       xlab=paste('Secondary cases per outbreak'))
+  for(i_scen in 1:nlevels(df$scenario)){
+    flag <- df$scenario == levels(df$scenario)[i_scen]
+    lines(df$sec_cases_outbreak_x[flag],df$sec_cases_outbreak_y[flag],col=i_scen,lwd=3,type='l')
+  }
+  legend('topright',rev(levels(df$scenario)),
+         col=rev(1:nlevels(df$scenario)),
+         lwd=2,
+         title='Scenario',
+         cex=legend_cex)
+  
+
+  ## DISTRIBUTIONS => OBSERVATION
+  par(mfrow=c(1,1))
+  outbreak_summary$intervention_tag_boxplot <- sub(' \\[','\n\\[',outbreak_summary$intervention_tag)
+  bxplt <- boxplot(num_sec_cases~ intervention_tag_boxplot, data = outbreak_summary,
+                   xlab='Scenario',ylab='Secondary cases per outbreak')
+  points(1:nrow(outbreak_mean),outbreak_mean$num_sec_cases,col=2,pch=5)
+  legend('topleft','mean',col=2,pch=5)
+  grid()
+  
+  
+  ## RUN SPECIFUC RESULTS => CE PLANE
+  outbreak_summary$cases_averted <- outbreak_mean$num_sec_cases[flag_mean_current] - outbreak_summary$num_sec_cases 
+  outbreak_summary$cost_program  <- outbreak_summary$num_vaccines * (cea_param$price_dose+cea_param$price_admin_dose)
+  
+  # cost averted
+  outbreak_summary$medical_costs_averted <- outbreak_summary$cases_averted * cea_param$saving_per_averted_case
+  outbreak_summary$incr_cost             <- outbreak_summary$cost_program - outbreak_summary$medical_costs_averted
+  
+  # burden averted
+  outbreak_summary$qaly_gain <- outbreak_summary$cases_averted * cea_param$QALYgain_per_averted_case
+  
+  # plot CE plane
+  plot(outbreak_summary$qaly_gain,
+       outbreak_summary$incr_cost,
+       col=alpha(outbreak_summary$intervention,0.6),
+       xlab='QALY gain vs. mean(current)',
+       ylab='Incremental cost vs. mean(current)',
+       pch=16,cex=1)
+  abline(h=0,v=0,lty=2)
+  legend('bottomleft',paste(outbreak_mean$intervention_tag),fill=outbreak_mean$intervention,cex=0.8,title='Scenario')
+  
+  # close pdf stream
   dev.off()
+  
+  # command line message
+  .rstride$cli_print('CEA COMPLETE')
 
 }
 
