@@ -19,12 +19,10 @@
 #
 #############################################################################
 
-# load (xml) help functions
-source('./bin/rstride/misc.R')
-
 if(0==1) # for debugging
 {
-   source('./Misc.R')
+  # load (xml) help functions
+  source('./bin/rstride/Misc.R')
   .rstride$set_wd()
 
     ref_data_tag  <- 'ref_fl2010'

@@ -38,7 +38,7 @@ for(package_i in c('XML','doParallel','ggplot2','gridExtra')){
 }
 
 # load general help functions
-source('./bin/rstride/misc.R')
+source('./bin/rstride/Misc.R')
 
 # load specific functions
 source('./bin/rstride/ContactInspector.R')

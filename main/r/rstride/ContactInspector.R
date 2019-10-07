@@ -13,19 +13,16 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 
-# Load packages
-library(ggplot2,quietly = TRUE)
-library(grid,quietly = TRUE)
-library(gridExtra,quietly = TRUE)
-
-# load help functions
-source('./bin/rstride/misc.R')
 
 if(0==1) # for debugging
 {
+
+  # load help functions
+  source('./bin/rstride/Misc.R')
+  
   #setwd('..')
   project_summary <- .rstride$load_project_summary(project_dir)
   exp_summary <- project_summary[2,]

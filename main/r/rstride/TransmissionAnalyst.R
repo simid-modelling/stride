@@ -220,7 +220,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   config_disease$transmission$b2 <- fit_b2
   
   # add/update meta data
-  num_infected_seeds          <- unique(project_summary$seeding_rate * project_summary$population_size)
+  num_infected_seeds          <- unique(floor(project_summary$seeding_rate * project_summary$population_size))
   par_exp_design              <- .rstride$get_variable_model_param(project_summary) # changing parameters in the exp design
   total_num_index_cases       <- nrow(sec_transm)
   num_rng_seeds               <- length(unique(project_summary$rng_seed))
@@ -233,7 +233,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   }
   
   # add all population, contact, disease, model parameters 
-  config_disease$label <- unlist(list(pathogen           = config_disease$label$pathogen,
+  config_disease$label <- unlist(list(pathogen         = config_disease$label$pathogen,
                                num_infected_seeds      = num_infected_seeds,
                                total_num_index_cases   = total_num_index_cases,
                                num_rng_seeds           = num_rng_seeds,
