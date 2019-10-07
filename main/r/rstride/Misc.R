@@ -23,9 +23,8 @@
 #.rstride$set_wd()  #DEVELOPMENT: to set the work directory as the latest stride install dir 
 #.rstride$load_pd() #DEVELOPMENT: to retrieve the latest project directory (project_dir)
 
-# load R packages
-library(XML,quietly = TRUE)
-library(doParallel,quietly = TRUE)
+# load required R package
+require(doParallel,quietly = TRUE)
 
 if(!(exists('.rstride'))){
   .rstride <- new.env()

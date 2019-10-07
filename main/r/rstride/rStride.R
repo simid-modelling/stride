@@ -20,7 +20,12 @@
 #
 #############################################################################
 
-# load R packages
+# LOAD R PACKAGES
+# 
+# XML         to parse and write XML files
+# doParallel  to use parallel foreach
+# ggplot2     to plot contact matrices
+# gridExtra   to plot contact matrices
 for(package_i in c('XML','doParallel','ggplot2','gridExtra')){
   
   # if not present => install
@@ -31,9 +36,6 @@ for(package_i in c('XML','doParallel','ggplot2','gridExtra')){
   # load package
   library(package_i,character.only=TRUE, quietly = T, verbose = F)
 }
-
-library(XML,quietly = TRUE)
-library(doParallel,quietly = TRUE)
 
 # load general help functions
 source('./bin/rstride/misc.R')

@@ -63,8 +63,7 @@ inspect_contact_data <- function(project_dir){
 #############################################################################
 # FUNCTION TO PLOT SOCIAL CONTACT MATRICES AND COUNTS                      ##
 #############################################################################
-# exp_summary <- project_summary[i_exp,]
-# data_dir <- './data'
+# exp_summary <- project_summary[i_exp,]; data_dir <- './data'
 .rstride$plot_contacts <- function(exp_summary,data_dir)
 {
   
@@ -87,7 +86,7 @@ inspect_contact_data <- function(project_dir){
     data_part$student  <- data_part$school_id != 0
     
     ## SETTINGS 
-    L <- 80
+    L <- max(c(80,data_part$part_age))
     num_days      <- exp_summary$num_days
     
     # open pdf stream  
@@ -128,7 +127,7 @@ inspect_contact_data <- function(project_dir){
     get_survey_data <- function(cluster_type){
       survey_cluster     <- unlist(survey_data[[cluster_type]])
       flag_rate          <- grepl('contact.rate',names(survey_cluster))
-      survey_mij_cluster <- matrix(as.numeric(survey_cluster[flag_rate]),nrow=110)
+      survey_mij_cluster <- matrix(as.numeric(survey_cluster[flag_rate]),nrow=sum(flag_rate))
       return(survey_mij_cluster)
     }
     
@@ -143,54 +142,36 @@ inspect_contact_data <- function(project_dir){
     survey_mij_community_weekend  <- get_survey_data('primary_community')
     survey_mij_total_weekend      <- get_survey_data('regular_weekend')
     
-    
-    # #survey_mij_hh         <- read.table(file=paste0(project_dir,'/data/ref_miami_household_gam_mij_rec.csv'),sep=';',dec=',',header=T)
-    # survey_mij_hh         <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_household_gam_mij_rec.csv')),sep=';',dec=',',header=T)
-    # survey_mij_school     <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_school_conditional_age23_gam_mij_rec_median.csv')),sep=';',dec=',',header=T)
-    # survey_mij_work       <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_workplace_conditional_gam_mij_rec_median.csv')),sep=';',dec=',',header=T)
-    # survey_mij_community  <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_community_gam_mij_rec.csv')),sep=';',dec=',',header=T)
-    # survey_mij_total      <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_gam_mij_rec.csv')),sep=';',dec=',',header=T)
-    # 
-    # survey_mij_school_weekend     <- survey_mij_school*0
-    # survey_mij_work_weekend       <- survey_mij_work*0
-    # survey_mij_community_weekend  <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_weekend_community_gam_mij_rec.csv')),sep=';',dec=',',header=T)
-    # survey_mij_total_weekend      <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_weekend_gam_mij_rec.csv')),sep=';',dec=',',header=T)
-    # 
-    # ## SPECIAL CASE: TEACHERS
-    # if(grepl('teacher',exp_summary$age_contact_matrix_file)){
-    #   survey_mij_school     <- read.table(file=file.path(data_dir,paste0(ref_data_tag,'_regular_weekday_school_conditional_age23_teachers_gam_mij_rec_median.csv')),sep=';',dec=',',header=T)
-    # }
-    
     ## COMPARE
     par(mfrow=c(2,3))
     
     plot(rowSums(survey_mij_total),main='total',xlab='age',ylab='contacts',type='l',ylim=c(-0.1,40))
     lines(rowSums(survey_mij_total_weekend),main='total',xlab='age',ylab='contacts',type='l',lty=2)
-    points(rowSums(mij_total),col=2)
+    points(rowSums(mij_total,na.rm=T),col=2)
     legend('topright',c('week','weekend','model'),col=c(1,1,2),lty=c(1,2,0),pch=c(-1,-1,1),cex=0.8,title=ref_data_tag)
     
     plot(rowSums(survey_mij_hh),main='household',xlab='age',ylab='contacts',type='l',ylim=c(-0.1,5))
-    points(rowSums(mij_hh),col=2)
+    points(rowSums(mij_hh,na.rm=T),col=2)
     legend('topright',c('week','weekend','model'),col=c(1,1,2),lty=c(1,2,0),pch=c(-1,-1,1),cex=0.8,title=ref_data_tag)
     
     plot(rowSums(survey_mij_school),main='school',xlab='age',ylab='contacts',type='l',ylim=c(-0.1,20))
     lines(rowSums(survey_mij_school_weekend),type='l',lty=2)
-    points(rowSums(mij_school),col=2)
+    points(rowSums(mij_school,na.rm=T),col=2)
     legend('topright',c('week','weekend','model'),col=c(1,1,2),lty=c(1,2,0),pch=c(-1,-1,1),cex=0.8,title=ref_data_tag)
     
     plot(rowSums(survey_mij_work),main='work',xlab='age',ylab='contacts',type='l',ylim=c(-0.1,20))
     lines(rowSums(survey_mij_work_weekend),type='l',lty=2)
-    points(rowSums(mij_work),col=2)
+    points(rowSums(mij_work,na.rm=T),col=2)
     legend('topright',c('week','weekend','model'),col=c(1,1,2),lty=c(1,2,0),pch=c(-1,-1,1),cex=0.8,title=ref_data_tag)
     
     plot(rowSums(survey_mij_community),main='primary community',xlab='age',ylab='contacts',type='l',ylim=c(-0.1,25))
     lines(rowSums(survey_mij_community_weekend),type='l',lty=2)
-    points(rowSums(mij_prim_comm),col=2)
+    points(rowSums(mij_prim_comm,na.rm=T),col=2)
     legend('topright',c('week','weekend','model'),col=c(1,1,2),lty=c(1,2,0),pch=c(-1,-1,1),cex=0.8,title=ref_data_tag)
     
     plot(rowSums(survey_mij_community),main='secondary community',xlab='age',ylab='contacts',type='l',ylim=c(-0.1,25))
     lines(rowSums(survey_mij_community_weekend),type='l',lty=2)
-    points(rowSums(mij_sec_comm),col=2)
+    points(rowSums(mij_sec_comm,na.rm=T),col=2)
     legend('topright',c('week','weekend','model'),col=c(1,1,2),lty=c(1,2,0),pch=c(-1,-1,1),cex=0.8,title=ref_data_tag)
     par(mfrow=c(1,1))
     
@@ -223,6 +204,7 @@ inspect_contact_data <- function(project_dir){
 #################################  OTHER HELP FUNCTIONS  #################################
 
 ## HELP FUNCTION: RESHAPE DATA AND PLOT
+#f_data_cnt = data_cnt;f_data_part=data_part;tag='total';L;num_days
 .rstride$plot_cnt_matrix <- function(f_data_cnt,f_data_part,tag,L,num_days)
 {
   
@@ -272,6 +254,11 @@ inspect_contact_data <- function(project_dir){
   # account for multiple days
   mij <- mij/num_days
   
+  # set NA if participant age is not present in provided data
+  #mij[,!ages_present] <- NA
+  mij[!ages_present,] <- NA
+  
+  
   # plot matrix 
   g_matrix <- .rstride$plot_cnt_matrix_ggplot(mij,tag,FALSE)
   
@@ -287,7 +274,7 @@ inspect_contact_data <- function(project_dir){
 .rstride$plot_cnt_matrix_ggplot <- function(mij,title,bool_contour)
 {
   ## remove small numbers
-  mij[mij < quantile(mij,0.1)] <- 0
+  mij[mij < quantile(mij,0.1,na.rm=T)] <- 0
   
   # Function to rescale z according to quantiles
   mij_ecdf <- ecdf(mij)
@@ -300,15 +287,18 @@ inspect_contact_data <- function(project_dir){
   })
   
   
-  z.breaks <- signif(unique(quantile(ggplot_data$z, prob = seq(from = 0, to = 1, length = 5))), digits = 1)
+  z.breaks <- signif(unique(quantile(ggplot_data$z, prob = seq(from = 0, to = 1, length = 5),na.rm=T)), digits = 1)
   z.breaks.rescaled <- mij_ecdf(z.breaks)
   
   # Create the plot
   g <- ggplot(data = ggplot_data, mapping = aes(x = x, y = y, fill = z.rescaled, z = z.rescaled)) +
     geom_raster() +
+    guides(colour=guide_legend("",order = 0),
+           fill = guide_colourbar(order = 1))  +
     scale_fill_distiller(
       palette = "YlOrRd",
-      breaks = z.breaks.rescaled, labels = z.breaks,
+      breaks = z.breaks.rescaled,
+      labels = z.breaks,
       name = 'Rate') +
     labs(x = "Age", y = "Age of contacts") +
     scale_x_continuous(expand = c(0, 0)) +
@@ -316,15 +306,20 @@ inspect_contact_data <- function(project_dir){
     coord_fixed() +
     theme_bw() +
     ggtitle(title) +
+    geom_tile(data = subset(ggplot_data,  is.na(z.rescaled)), aes(colour = 'No data'),
+              linetype = 0, fill = "grey50") +
     theme(legend.justification = c(1, 1),
           legend.position = 'right',
-          legend.text = element_text(size=18),
-          legend.title = element_text(size=18),
-          axis.text=element_text(size=20),
-          axis.title=element_text(size=20),
-          plot.title = element_text(size=40, face="bold",hjust = 0.5)
-    )
+          legend.text     = element_text(size=18),
+          legend.title    = element_text(size=18),
+          axis.text       = element_text(size=20),
+          axis.title      = element_text(size=20),
+          plot.title      = element_text(size=40, face="bold",hjust = 0.5),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank()
+    ) 
   
+
   # Add contour lines?
   if (bool_contour) {
     g + geom_contour(breaks = z.breaks, colour = "black", size = 0.2)
@@ -374,3 +369,6 @@ inspect_contact_data <- function(project_dir){
   return(g_plot)
   
 }
+
+
+
