@@ -55,6 +55,8 @@ set(STRIDE_FORCE_NO_BOOST FALSE
 	CACHE BOOL "Do NOT use installed Boost even if available.")
 set(STRIDE_FORCE_NO_OPENMP	FALSE
 	CACHE BOOL "Do NOT use OpenMP even if available.")
+set(STRIDE_BUILD_TEST_CASES TRUE
+	CACHE BOOL "Build test binaries.")
 
 #============================================================================
 # Additional CMake modules:
