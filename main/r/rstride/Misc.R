@@ -154,7 +154,15 @@ if(!(exists('.rstride'))){
 
 # create experiment tag
 .rstride$create_exp_tag <- function(i_exp){
-  return(paste0('exp',sprintf("%04s", i_exp)))
+  
+  # create experiment tag with leading 0's
+  exp_tag <- paste0('exp',sprintf("%04s", i_exp))
+  
+  # solve issue with spaces instead of 0's on linux (leibniz)
+  exp_tag <- gsub(' ','0',exp_tag)
+  
+  # return
+  return(exp_tag)
 }
 
 
