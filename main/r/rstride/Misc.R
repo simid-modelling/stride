@@ -111,7 +111,7 @@ if(!(exists('.rstride'))){
 ## PROJECT SUMMARY           ##
 ###############################
 
-.rstride$load_project_summary <- function(project_dir){
+.rstride$load_project_summary <- function(project_dir, stringsAsFactors=FALSE){
   
   # check if project_dir exists
   if(.rstride$dir_not_present(project_dir)){
@@ -122,7 +122,7 @@ if(!(exists('.rstride'))){
   project_summary_filename <- file.path(project_dir,dir(project_dir,pattern = 'summary.csv'))
   
   # read the csv file
-  project_summary          <- read.table(project_summary_filename,sep=',',header=T,stringsAsFactors = F)
+  project_summary          <- read.table(project_summary_filename,sep=',',header=T,stringsAsFactors = stringsAsFactors)
   
   # return the data.frame
   return(project_summary)
