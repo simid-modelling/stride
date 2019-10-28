@@ -455,13 +455,13 @@ calculate_cost_effectiveness <- function(project_dir){
   cea_rstride$icer <- cea_rstride$incr_cost / cea_rstride$qaly_gain
   cea_rstride$icer[cea_rstride$qaly_gain == 0] <- NA
 
-  
   pdf(file=file.path(project_dir,paste0(project_summary$run_tag[1],'_cea.pdf')),10,5)
   #par(mfrow=1:2)
   legend_cex <- 0.6
   
-  cea_legend <- data.frame(name = levels(cea_rstride$intervention_tag),
-                           col  = 1:nlevels(cea_rstride$intervention_tag))
+  cea_legend <- get_factor_legend(cea_rstride$intervention_tag)
+  names(cea_legend) <- c('intervention_tag','intervention_color')
+  cea_rstride <- merge(cea_rstride,cea_legend)
   
   cea_legend_pch <- data.frame(name = levels(cea_rstride$burden_exp_tag),
                                pch  = 1:nlevels(cea_rstride$burden_exp_tag))
@@ -469,7 +469,7 @@ calculate_cost_effectiveness <- function(project_dir){
   # CEA PLANE
   plot(cea_rstride$qaly_gain,
        cea_rstride$incr_cost,
-       col=cea_rstride$intervention_tag,
+       col=cea_rstride$intervention_color,
        xlab='QALY gain',
        ylab='Incremental cost',
        #pch=16,
@@ -477,8 +477,8 @@ calculate_cost_effectiveness <- function(project_dir){
        cex=1)
   abline(h=0,v=0,lty=2)
   legend('topright',
-         paste(cea_legend$name),
-         fill = cea_legend$col,
+         paste(cea_legend$intervention_tag),
+         fill = cea_legend$intervention_color,
          cex=legend_cex,
          title='Scenario',
          bg='white')
@@ -505,15 +505,14 @@ calculate_cost_effectiveness <- function(project_dir){
   num_exp                   <- nlevels(as.factor(cea_rstride$cea_id))
   
   # set WTP levels
-  wtp_opt <- seq(0,5e5,2000)
+  wtp_opt <- seq(0,5e5,5000)
   num_wtp <- length(wtp_opt)
   
   # initiate output parameters
   prob_high_net_benefit      <- matrix(NA,num_scenario,num_wtp)  # CEAC
   prob_high_mean_net_benefit <- prob_high_net_benefit            # CEAF
   net_benefit_all            <- array(NA,dim=c(num_wtp,num_scenario,num_exp))
-  net_benefit_fctr           <- cea_rstride$intervention_tag
-  net_benefit_legend         <- get_factor_legend(net_benefit_fctr)
+  net_benefit_legend         <- get_factor_legend(cea_rstride$intervention_tag)
   
   i_wtp <- 3
   for(i_wtp in 1:num_wtp){
@@ -571,12 +570,12 @@ calculate_cost_effectiveness <- function(project_dir){
   # CEAC
   for(i in 1:dim(prob_high_net_benefit)[1])
   {
-    lines(wtp_opt,prob_high_net_benefit[i,],col=alpha(net_benefit_legend$color[i],0.8),lwd=4,pch=20)
+    lines(wtp_opt,prob_high_net_benefit[i,],col=alpha(cea_legend$intervention_color[i],0.8),lwd=4,pch=20)
   }
   # CEAF
   for(i in 1:dim(prob_high_mean_net_benefit)[1])
   {
-    lines( wtp_opt,prob_high_mean_net_benefit[i,],col=net_benefit_legend$color[i],lwd=4) # add line
+    lines( wtp_opt,prob_high_mean_net_benefit[i,],col=cea_legend$intervention_color[i],lwd=4) # add line
     points(wtp_opt,prob_high_mean_net_benefit[i,],col=1,lwd=2,pch=1)
   }
   legend_ncol <- ceiling((length(net_benefit_legend$color)+1)/2)
@@ -624,9 +623,10 @@ get_average_burden_averted <- function(project_summary,
                                        intervention_ref_value = 0){
   
   # retrieve variable model parameters
-  exp_design_opt       <- .rstride$get_variable_model_param(project_summary)
-  exp_design_col_names  <- names(exp_design_opt)
-  exp_disease_col_names <- exp_design_col_names[!exp_design_col_names %in% intervention_col_names]
+  exp_design_opt         <- .rstride$get_variable_model_param(project_summary)
+  exp_design_col_names   <- names(exp_design_opt)
+  vaccine_col_names      <- exp_design_col_names[grepl('vaccine',exp_design_col_names)]
+  exp_disease_col_names  <- exp_design_col_names[!exp_design_col_names %in% exp_scenario_col_names]
   
   # create burden tag 
   if(length(exp_disease_col_names)==1){
@@ -654,7 +654,12 @@ get_average_burden_averted <- function(project_summary,
   # add 'current' strategy and create intervention tags
   flag_c                                   <- project_summary$intervention_value == intervention_ref_value
   project_summary$intervention_tag[flag_c] <- 'current'
+  
+  # get unique levels, and sort (with "current" first)
   intervention_levels                      <- unique(project_summary$intervention_tag)
+  intervention_levels                      <- c('current',sort(intervention_levels[intervention_levels != 'current']))
+  
+  # create factor variable
   project_summary$intervention_tag         <- factor(project_summary$intervention_tag, levels = intervention_levels)
   
   # add infectious seeds

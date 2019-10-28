@@ -250,12 +250,12 @@ if(!(exists('.rstride'))){
   data_type_all <- names(get(load(data_filenames[1])))
   
   # loop over the output data types
-  data_type <- data_type_all[1]
+  data_type <- data_type_all[3]
   for(data_type in data_type_all){
     
   # loop over all experiments, rbind
-  i_exp <- 1
-  data_all <- foreach(i_exp = 1:length(data_filenames),.combine='rbind') %do%
+  i_exp <- 52
+  data_all <- foreach(i_exp = 1:length(data_filenames),.combine='rbind') %dopar%
   {
         # get file name
         exp_file_name <- data_filenames[i_exp]
@@ -263,6 +263,11 @@ if(!(exists('.rstride'))){
         # load output data
         data_exp_all    <- get(load(exp_file_name))
       
+        # check if data type present, if not, next experiment
+        if(!data_type %in% names(data_exp_all)){
+          return(NULL)
+        }
+        
         # select output type
         data_exp        <- data_exp_all[[data_type]]
         
@@ -284,6 +289,7 @@ if(!(exists('.rstride'))){
           # add run index
           data_exp$exp_id <- project_summary$exp_id[i_exp]
         
+          print(names(data_exp))
           # return
           data_exp
         } # end exp_id loop

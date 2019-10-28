@@ -127,7 +127,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   
   lines(poly_input,R0_poly_fit,type='l',col=3,lwd=4)
   leg_text_model   <- paste0(c(paste0('b',0:2,': '),'R^2: '),round(c(fit_b0,fit_b1,fit_b2,mod$r.squared),digits=2))
-  leg_text_fitting <- c(leg_text_model,paste0('R0 max:',R0_limit),paste0('R0 range: ',fit_r0_range))
+  leg_text_fitting <- c(leg_text_model,paste0('R0 max:',round(R0_limit,digits=2)),paste0('R0 range: ',fit_r0_range))
   legend('topleft',legend=leg_text_fitting,cex=0.8,title='b0+b1*x+b2*x^2',ncol=2)
   
   boxplot(sec_transm$sec_cases ~ sec_transm$R0_poly_fit,
