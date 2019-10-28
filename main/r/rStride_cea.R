@@ -72,7 +72,7 @@ exp_design$vaccine_max_age <- exp_design$vaccine_max_age + year_prediction
 
 # add a unique seed for each run
 set.seed(num_seeds)
-exp_design$rng_seed <- sample(1e4,nrow(exp_design))
+exp_design$rng_seed <- sample(nrow(exp_design))
 
 
 #################################################

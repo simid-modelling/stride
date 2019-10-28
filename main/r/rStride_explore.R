@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -59,7 +59,7 @@ exp_design <- expand.grid(r0                            = seq(12,14,2),
 
 # add a unique seed for each run
 set.seed(125)
-exp_design$rng_seed <- sample(1e4,nrow(exp_design))
+exp_design$rng_seed <- sample(nrow(exp_design))
 
 ##################################
 ## RUN rSTRIDE                  ##

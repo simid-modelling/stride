@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -41,10 +41,10 @@ dir_postfix <- '_imm'
 #names(xmlToList('./config/run_default.xml'))
 
 # set the number of realisations per configuration set
-num_seeds  <- 40
+num_seeds  <- 10
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(r0                         = seq(12,12,2),
+exp_design <- expand.grid(r0                         = seq(10,12,2),
                           num_days                   = c(90),
                           rng_seed                   = seq(num_seeds),
                           num_participants_survey    = 3000,
@@ -67,7 +67,7 @@ exp_design <- expand.grid(r0                         = seq(12,12,2),
 
 # add a unique seed for each run
 set.seed(1255)
-exp_design$rng_seed <- sample(1e4,nrow(exp_design))
+exp_design$rng_seed <- sample(nrow(exp_design))
 
 #################################################
 ## RUN rSTRIDE                                 ##

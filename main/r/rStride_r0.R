@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -44,14 +44,16 @@ dir_postfix <- '_r0'
 num_seeds  <- 10
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(r0                            = seq(0,26,3),
+exp_design <- expand.grid(r0                            = seq(7,20,2),
                           num_days                      = c(20),
                           rng_seed                      = seq(num_seeds),
-                          start_date                    = c("2017-01-01"),#,"2017-01-02","2017-01-03","2017-01-04","2017-01-05","2017-01-06","2017-01-07"),
+                          start_date                    = c('2017-01-01'),#,'2017-01-02','2017-01-03','2017-01-04','2017-01-05','2017-01-06','2017-01-07'),
                           track_index_case              = 'true',
-                          contact_log_level             = "Transmissions",
+                          contact_log_level             = 'Transmissions',
                           num_threads                   = 1,
-                          seeding_rate                  = 0.00002,
+                          seeding_rate                  = 1.7e-5,
+                          seeding_age_min               = 4,
+                          seeding_age_max               = 18,
                           disease_config_file           = "disease_measles_adaptive_behavior.xml",
                           population_file               = "pop_belgium600k_c1k_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
@@ -60,7 +62,7 @@ exp_design <- expand.grid(r0                            = seq(0,26,3),
 
 # add a unique seed for each run
 set.seed(125)
-exp_design$rng_seed <- sample(1e4,nrow(exp_design))
+exp_design$rng_seed <- sample(nrow(exp_design))
 
 ##################################
 ## RUN rSTRIDE                  ##

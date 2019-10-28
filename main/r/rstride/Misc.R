@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 # HELP FUNCTIONS FOR rSTRIDE PRE- AND POST-PROCESSING                       
@@ -234,6 +234,78 @@ if(!(exists('.rstride'))){
   return(bool_numeric & bool_not_numeric)
 }
 
+########################################
+## AGGREGATE EXPERIMENT OUTPUT FILES  ##
+########################################
+
+.rstride$aggregate_compressed_output <- function(project_dir){
+  
+  # load project summary
+  project_summary      <- .rstride$load_project_summary(project_dir)
+  
+  # get output files
+  data_filenames <- unique(dir(file.path(project_summary$output_prefix),pattern='.RData',full.names = T))
+  
+  # get output types
+  data_type_all <- names(get(load(data_filenames[1])))
+  
+  # loop over the output data types
+  data_type <- data_type_all[1]
+  for(data_type in data_type_all){
+    
+  # loop over all experiments, rbind
+  i_exp <- 1
+  data_all <- foreach(i_exp = 1:length(data_filenames),.combine='rbind') %do%
+  {
+        # get file name
+        exp_file_name <- data_filenames[i_exp]
+        
+        # load output data
+        data_exp_all    <- get(load(exp_file_name))
+      
+        # select output type
+        data_exp        <- data_exp_all[[data_type]]
+        
+        # for prevalence data, check the number of days
+        if(grepl('prevalence',data_type)){
+
+          # create full-size data frame to include the maximum number of days
+          data_tmp        <- data.frame(matrix(NA,ncol=max(project_summary$num_days)+2)) # +1 for day 0 and +1 for exp_id
+          names(data_tmp) <-  c(paste0('day',0:max(project_summary$num_days)),
+                                  'exp_id')
+
+          # insert the experiment data
+          data_tmp[names(data_exp)] <- data_exp
+
+            # replace the experiment data by the newly constructed data.frame
+            data_exp <- data_tmp
+          }
+          
+          # add run index
+          data_exp$exp_id <- project_summary$exp_id[i_exp]
+        
+          # return
+          data_exp
+        } # end exp_id loop
+            
+    # make id's unique => by adding a exp_id tag with leading zero's
+    names_id_columns  <- names(data_all)[grepl('id',names(data_all)) & names(data_all) != 'exp_id']
+    num_exp_id_digits <- nchar(max(data_all$exp_id))+1
+    
+    if(length(names_id_columns)>0) {
+      for(i_id_column in names_id_columns){
+        row_is_id  <- !is.na(data_all[,i_id_column]) & data_all[,i_id_column] != 0
+        data_all[row_is_id,i_id_column] <- as.numeric(sprintf(paste0('%d%0',num_exp_id_digits,'d'),
+                                                              data_all[row_is_id,i_id_column],
+                                                              data_all$exp_id[row_is_id]))
+      }
+    }
+    
+    # save
+    run_tag <- unique(project_summary$run_tag)
+    save(data_all,file=file.path(project_dir,paste0(run_tag,'_',data_type,'.RData')))
+  } # end data-type loop
+}
 
 ########################################
 ## AGGREGATE EXPERIMENT OUTPUT FILES  ##
@@ -255,7 +327,7 @@ if(!(exists('.rstride'))){
     
     # load all project experiments
     i_exp <- 1
-    data_all <- foreach(i_exp = 1:nrow(project_summary),.combine='rbind') %do%
+    data_all <- foreach(i_exp = 1:nrow(project_summary),.combine='rbind') %dopar%
     {
       # get file name
       exp_file_name <- file.path(project_summary$output_prefix[i_exp],data_type)

@@ -13,7 +13,7 @@
 #  along with the software. If not, see <http://www.gnu.org/licenses/>.
 #  see http://www.gnu.org/licenses/.
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 # 
 # Helpfunction(s) to parse the log file(s)
@@ -50,6 +50,9 @@ parse_contact_logfile <- function(contact_log_filename)
   # experiment output directory
   exp_dir <- dirname(contact_log_filename)
   
+  # initialise output variables
+  rstride_out <- list()
+  
   # Parse log file using the following tags tags: 
   # - PART    participant info
   # - PRIM    seed infection
@@ -82,7 +85,8 @@ parse_contact_logfile <- function(contact_log_filename)
     data_part[,-col_non_numeric] <- data.frame(apply(data_part[,-col_non_numeric], 2, as.double))
     
     # save
-    save(data_part,file=file.path(exp_dir,'data_participants.RData'))
+    # save(data_part,file=file.path(exp_dir,'data_participants.RData'))
+    rstride_out$data_participants = data_part
   }
   
   
@@ -112,7 +116,8 @@ parse_contact_logfile <- function(contact_log_filename)
     data_transm$cnt_location[data_transm$cnt_location == '<NA>'] <- NA
     
     # save
-    save(data_transm,file=file.path(exp_dir,'data_transmission.RData'))
+    # save(data_transm,file=file.path(exp_dir,'data_transmission.RData'))
+    rstride_out$data_transmission = data_transm
   }
   
   ######################
@@ -132,8 +137,8 @@ parse_contact_logfile <- function(contact_log_filename)
     dim(data_cnt)
     
     # save
-    save(data_cnt,file=file.path(exp_dir,'data_contacts.RData'))
-    
+    # save(data_cnt,file=file.path(exp_dir,'data_contacts.RData'))
+    rstride_out$data_contacts = data_cnt
   }
   
   ######################
@@ -152,11 +157,16 @@ parse_contact_logfile <- function(contact_log_filename)
     dim(data_vacc)
     
     # save
-    save(data_vacc,file=file.path(exp_dir,'data_vaccination.RData'))
-    
+    # save(data_vacc,file=file.path(exp_dir,'data_vaccination.RData'))
+    rstride_out$data_vaccination = data_vacc
   }
+  
+  # save list with all results
+  # save(rstride_out,file=file.path(exp_dir,'output_log_parsed.RData'))
   
   # terminal message
   cat("LOG PARSING COMPLETE",fill=TRUE)
   
+  # return
+  return(rstride_out)
 }

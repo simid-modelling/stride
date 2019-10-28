@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 # 
 # R controller for the Stride model
@@ -170,10 +170,13 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                        config_df   <- as.data.frame(config_exp)
                        run_summary <- merge(run_summary,config_df)
                        
+                       # create rstride_out list
+                       rstride_out <- list()
+                       
                        # parse contact_log (if present)
                        contact_log_filename <- file.path(config_exp$output_prefix,'contact_log.txt')
                        if(file.exists(contact_log_filename)){
-                         parse_contact_logfile(contact_log_filename)
+                         rstride_out <- parse_contact_logfile(contact_log_filename)
                        }
                        
                        # convert 'cases' file (if present) => "prevalence"
@@ -182,8 +185,12 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                          data_cases        <- read.table(cases_filename,sep=',')
                          names(data_cases) <- paste0('day',seq(length(data_cases))-1)
                          data_cases$exp_id <- config_exp$exp_id
-                         save(data_cases,file=file.path(config_exp$output_prefix,'data_prevalence.RData'))
+                         #save(data_cases,file=file.path(config_exp$output_prefix,'data_prevalence.RData'))
+                         rstride_out$data_prevalence <- data_cases
                        }
+                       
+                       # save list with all results
+                       save(rstride_out,file=file.path(config_exp$output_prefix,paste0(exp_tag,'_parsed.RData')))
                        
                        # remove experiment output folder
                        if(remove_tmp_output){
@@ -205,7 +212,9 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   ###############################
   ## AGGREGATE OUTPUT          ##
   ###############################
-  .rstride$aggregate_exp_output(project_dir)
+  # .rstride$aggregate_exp_output(project_dir)
+  .rstride$aggregate_compressed_output(project_dir)
+  
   
   # remove project output
   if(remove_tmp_output){
