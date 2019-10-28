@@ -505,7 +505,7 @@ calculate_cost_effectiveness <- function(project_dir){
   num_exp                   <- nlevels(as.factor(cea_rstride$cea_id))
   
   # set WTP levels
-  wtp_opt <- seq(0,100000,2000)
+  wtp_opt <- seq(0,5e5,2000)
   num_wtp <- length(wtp_opt)
   
   # initiate output parameters

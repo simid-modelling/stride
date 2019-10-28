@@ -43,7 +43,7 @@ inspect_contact_data <- function(project_dir){
   .rstride$start_slaves()
   
   # analyse data
-  i_exp <- 1
+  i_exp <- 2
   foreach(i_exp = 1:nrow(project_summary)) %do% 
   {  
     # plot contacts
@@ -303,8 +303,6 @@ inspect_contact_data <- function(project_dir){
     coord_fixed() +
     theme_bw() +
     ggtitle(title) +
-    geom_tile(data = subset(ggplot_data,  is.na(z.rescaled)), aes(colour = 'No data'),
-              linetype = 0, fill = "grey50") +
     theme(legend.justification = c(1, 1),
           legend.position = 'right',
           legend.text     = element_text(size=18),
@@ -316,8 +314,12 @@ inspect_contact_data <- function(project_dir){
           panel.grid.minor = element_blank()
     ) 
   
-
-  # Add contour lines?
+  # add missing ages?
+  if(any(is.na(ggplot_data$z.rescaled))){
+    g + geom_tile(data = subset(ggplot_data,  is.na(z.rescaled)), aes(colour = 'No data'),
+                  linetype = 0, fill = "grey50")
+  }
+    # Add contour lines?
   if (bool_contour) {
     g + geom_contour(breaks = z.breaks, colour = "black", size = 0.2)
   } 

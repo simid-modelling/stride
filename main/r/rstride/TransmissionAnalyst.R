@@ -32,14 +32,17 @@ analyse_transmission_data_for_r0 <- function(project_dir)
 
   project_summary <- .rstride$load_project_summary(project_dir)
   
+  # set the R0 range
+  fit_r0_range <- paste0(range(project_summary$r0),collapse='-')
+  
   # load the transmission output
   data_transm     <- .rstride$load_aggregated_output(project_dir,'data_transmission',project_summary$exp_id)
 
-  if(is.na(data_transm)){
+  if(length(data_transm) == 1 && is.na(data_transm)){
     .rstride$cli_print('TRANSMISSION OUTPUT MISSING',WARNING = T)
     return(NA)
   }
-  
+
   # count secundary infections
   tbl_infections  <- table(data_transm$infector_id)
   sec_transm      <- data.frame(local_id = as.numeric(names(tbl_infections)),
@@ -48,7 +51,8 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # add infection time
   infection_time <- data.frame(local_id      = data_transm$local_id,
                                infection_day = data_transm$sim_day,
-                               exp_id        = data_transm$exp_id)
+                               exp_id        = data_transm$exp_id,
+                               age           = data_transm$part_age)
   
   sec_transm <- merge(infection_time,sec_transm,all=T)
   sec_transm$sec_cases[is.na(sec_transm$sec_cases)] <- 0
@@ -65,19 +69,30 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # boxplot(sec_cases ~ r0, data = sec_transm)
   # boxplot(sec_cases ~ transmission_probability, data = sec_transm)
   # boxplot(r0 ~ transmission_probability, data = project_summary,add =T ,col=2,border=2)
+  # sec_transm$is_adult <- sec_transm$age > 18
+  # boxplot(sec_cases ~ transmission_probability + is_adult, data = sec_transm)
+  # grid()
   
   # FIT SECOND ORDER POLYNOMIAL
   temp <- data.frame(x=sec_transm$transmission_probability, y=sec_transm$sec_cases)
-  mod <- summary(lm(y ~ 0 + x + I(x^2), data= temp))
+  mod <- summary(lm(y ~ x + I(x^2), data = temp))
   mod
   
+  # # logistic model
+  # temp <- data.frame(x=sec_transm$transmission_probability, y=log(sec_transm$sec_cases))
+  # temp$y[is.infinite(temp$y)] <- NA
+  # boxplot(exp(y) ~ x, temp)
+  # boxplot((y) ~ x, temp)
+  # mod <- summary(lm(y ~ x + I(x^2), data = temp))
+  # mod
+  # 
   # Get parameters
-  fit_b0 <- 0
-  fit_b1 <- mod$coefficients[1,1]
-  fit_b2 <- mod$coefficients[2,1]
+  fit_b0 <- mod$coefficients[1,1]
+  fit_b1 <- mod$coefficients[2,1]
+  fit_b2 <- mod$coefficients[3,1]
   
   # check R0 limit: prevent upwards parabola and complex root values                
-  R0_limit_fit           <- -fit_b1^2/(4*fit_b2)
+  R0_limit_fit           <- -fit_b1^2/(4*fit_b2) + fit_b0
   
   # check R0 limit
   if(R0_limit_fit<0){
@@ -87,17 +102,15 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   }
   
   # check R0 limit: prevent complex roots and transmission probability >1
-  transmission_limit_fit <- min(1,.rstride$f_poly_transm(floor(R0_limit_fit),fit_b0,fit_b1,fit_b2))
+  transmission_limit_fit <- min(1,.rstride$f_poly_transm(floor(R0_limit_fit),fit_b0,fit_b1,fit_b2),na.rm = T)
   R0_limit               <- .rstride$f_poly_r0(transmission_limit_fit,fit_b0,fit_b1,fit_b2)
-  
-  
-  
+
   # Reformat fitted values to plot
   R2_poly2 <- round(mod$r.squared,digits=4)
   
   poly_input   <- sort(temp$x)
-  R0_poly_fit  <- .rstride$f_poly_r0(poly_input,fit_b0,fit_b1,fit_b2)
-  sec_transm$R0_poly_fit <- round(.rstride$f_poly_r0(sec_transm$transmission_probability,fit_b0,fit_b1,fit_b2),digits=1)
+  R0_poly_fit  <- (.rstride$f_poly_r0(poly_input,fit_b0,fit_b1,fit_b2))
+  sec_transm$R0_poly_fit <- round((.rstride$f_poly_r0(sec_transm$transmission_probability,fit_b0,fit_b1,fit_b2)),digits=1)
   
   # fix y-axis limits (default: 0-40)
   y_lim <- range(c(0,36,sec_transm$sec_cases))
@@ -107,21 +120,22 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   
   # plot secundary cases vs transmission probability 
   boxplot(round(sec_transm$sec_cases,digits=3) ~ round(sec_transm$transmission_probability,digits=2), 
-          xlab='transmission probability',ylab='secundary cases',
+          xlab='Transmission probability',ylab='Secundary cases',
           at=sort(round(unique(sec_transm$transmission_probability),digits=3)),
           xlim=range(sec_transm$transmission_probability),
           ylim=y_lim,boxwex=0.005)
   
   lines(poly_input,R0_poly_fit,type='l',col=3,lwd=4)
-  leg_text_bis <- paste0(c(paste0('b',0:2,': '),'R^2: ','R0 lim: '),round(c(fit_b0,fit_b1,fit_b2,mod$r.squared,R0_limit),digits=2))
-  legend('topleft',legend=leg_text_bis,cex=0.8,title='b0+b1*x+b2*x^2',fill=3)
+  leg_text_model   <- paste0(c(paste0('b',0:2,': '),'R^2: '),round(c(fit_b0,fit_b1,fit_b2,mod$r.squared),digits=2))
+  leg_text_fitting <- c(leg_text_model,paste0('R0 max:',R0_limit),paste0('R0 range: ',fit_r0_range))
+  legend('topleft',legend=leg_text_fitting,cex=0.8,title='b0+b1*x+b2*x^2',ncol=2)
   
   boxplot(sec_transm$sec_cases ~ sec_transm$R0_poly_fit,
-          xlab='model R0 (using new transmission parameters)',ylab='secundary cases',
+          xlab='Predicted R0 (using updated transmission parameters)',ylab='Secundary cases',
           at=sort(unique(sec_transm$R0_poly_fit)),
           ylim=y_lim,boxwex=0.5)
   abline(0,1,col=2,lwd=2)
-  legend('topleft',legend=leg_text_bis,cex=0.8,title='b0+b1*x+b2*x^2',fill=3)
+  legend('topleft',legend=leg_text_model,cex=0.8,title='b0+b1*x+b2*x^2')
   legend('topright',legend='x=y',cex=0.8,title='reference',col=2,lwd=2)
   
   
@@ -240,6 +254,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
                                dim_exp_design          = dim_exp_design,
                                num_realisations        = num_realisations,
                                fit_r0_limit            = round(R0_limit,digits=2),
+                               fit_r0_range            = fit_r0_range,
                                .rstride$get_unique_param_list(project_summary)
                               ),recursive = F)
   
@@ -278,6 +293,10 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   a = b2
   
   d <- b^2 - (4 * a * c)
+  
+  if(d < 0){
+    return(NA)
+  }
   
   x1 <- (-b + sqrt(d)) / (2*a)
   x2 <- (-b - sqrt(d)) / (2*a)
