@@ -626,7 +626,7 @@ get_average_burden_averted <- function(project_summary,
   exp_design_opt         <- .rstride$get_variable_model_param(project_summary)
   exp_design_col_names   <- names(exp_design_opt)
   vaccine_col_names      <- exp_design_col_names[grepl('vaccine',exp_design_col_names)]
-  exp_disease_col_names  <- exp_design_col_names[!exp_design_col_names %in% exp_scenario_col_names]
+  exp_disease_col_names  <- exp_design_col_names[!exp_design_col_names %in% vaccine_col_names]
   
   # create burden tag 
   if(length(exp_disease_col_names)==1){
