@@ -95,7 +95,7 @@ public:
         /// template <typename... Args>
         /// explicit IdSubscriptArray(Args&&... args) : std::array<T, NumOfTypes()>{{std::forward<Args>(args)...}}{}
 
-        /// Subscripting with pool typ id as argument.
+        /// Subscripting with pool type id as argument.
         typename std::array<T, NumOfTypes()>::reference operator[](ContactType::Id id)
         {
                 return this->std::template array<T, NumOfTypes()>::operator[](ContactType::ToSizeT(id));

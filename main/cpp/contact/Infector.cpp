@@ -91,25 +91,6 @@ public:
         }
 };
 
-/// Specialized LOG_POLICY policy LogMode::Susceptibles.
-template <>
-class LOG_POLICY<ContactLogMode::Id::Susceptibles>
-{
-public:
-        static void Contact(const std::shared_ptr<spdlog::logger>& logger, const Person* p1, const Person* p2,
-                            ContactType::Id, unsigned short int, const double, const double)
-        {
-                if (p1->IsSurveyParticipant() && p1->GetHealth().IsSusceptible() && p2->GetHealth().IsSusceptible()) {
-                        logger->info("[CONT] {} {}", p1->GetId(), p2->GetId());
-                }
-        }
-
-        static void Trans(const std::shared_ptr<spdlog::logger>&, const Person*, const Person*, ContactType::Id,
-                          unsigned short int, unsigned int)
-        {
-        }
-};
-
 } // namespace
 
 namespace {
@@ -117,31 +98,35 @@ namespace {
 using namespace stride;
 using namespace stride::ContactType;
 
-inline double GetContactProbability(const AgeContactProfile& profile, const Person* p1,const Person* p2, size_t pool_size)
+inline double GetContactProbability(const AgeContactProfile& profile, const Person* p1,const Person* p2,
+		size_t pool_size, const ContactType::Id pType)
 {
-        const double reference_num_contacts_p1{profile[EffectiveAge(static_cast<unsigned int>(p1->GetAge()))]};
+        // get the reference number of contacts, given age and age-contact profile
+		const double reference_num_contacts_p1{profile[EffectiveAge(static_cast<unsigned int>(p1->GetAge()))]};
         const double reference_num_contacts_p2{profile[EffectiveAge(static_cast<unsigned int>(p2->GetAge()))]};
         const double potential_num_contacts{static_cast<double>(pool_size - 1)};
 
+        // calculate the contact probability based on the (possible) number of contacts
         double individual_contact_probability_p1 = reference_num_contacts_p1 / potential_num_contacts;
-        if (individual_contact_probability_p1 >= 1) {
-        	individual_contact_probability_p1 = 0.999;
-        }
-
         double individual_contact_probability_p2 = reference_num_contacts_p2 / potential_num_contacts;
-	    if (individual_contact_probability_p2 >= 1) {
-	    	individual_contact_probability_p2 = 0.999;
+
+        // use the minimum of both age-specific probabilities
+        double contact_probability = individual_contact_probability_p1 ;
+		if(individual_contact_probability_p2 < individual_contact_probability_p1){
+			contact_probability = individual_contact_probability_p2;
+		}
+
+		// assume fully connected households
+	    if(pType == Id::Household){
+	    	contact_probability = 0.999;
 	    }
 
-	    double average_contact_probability = (individual_contact_probability_p1 + individual_contact_probability_p2) / 2;
+        // limit probability to 0.999
+        if (contact_probability >= 1) {
+        	contact_probability = 0.999;
+        }
 
-        // Contacts are reciprocal, so we need half of the contacts here.
-	    double individual_contact_probability = average_contact_probability / 2;
-
-        // Contacts are bi-directional: contact probability for 1=>2 and 2=>1 = indiv_cnt_prob*indiv_cnt_prob
-	    //individual_contact_probability += (individual_contact_probability * individual_contact_probability);
-
-        return individual_contact_probability;
+        return contact_probability;
 }
 
 } // namespace
@@ -149,8 +134,8 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
 namespace stride {
 
 //-------------------------------------------------------------------------------------------------
-// Definition for primary template covers the situation for ContactLogMode::None &
-// ContactLogMode::Transmissions, both with track_index_case false and true.
+// Definition for ContactLogMode::Contacts,
+// both with track_index_case false and true.
 //-------------------------------------------------------------------------------------------------
 template <ContactLogMode::Id LL, bool TIC, bool TO>
 void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& profile,
@@ -173,7 +158,7 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                         continue;
                 }
                 // loop over possible contacts (contacts can be initiated by each member)
-                for (size_t i_person2 = 0; i_person2 < pSize; i_person2++) {
+                for (size_t i_person2 = i_person1 + 1; i_person2 < pSize; i_person2++) {
                         // check if not the same person
                         if (i_person1 == i_person2) {
                                 continue;
@@ -184,7 +169,7 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                                 continue;
                         }
                         // check for contact
-                        const double cProb = GetContactProbability(profile, p1, p2, pSize);
+                        const double cProb = GetContactProbability(profile, p1, p2, pSize, pType);
                         if (cHandler.HasContact(cProb)) {
                                 // log contact if person 1 is participating in survey
                                 LP::Contact(cLogger, p1, p2, pType, simDay, cProb, tProb);
@@ -214,8 +199,8 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
 }
 
 //-------------------------------------------------------------------------------------------
-// Time optimized implementation for NoLocalInformationPolicy in
-// combination with None || Transmission logging.
+// Definition for ContactLogMode::None and ContactLogMode::Transmission
+// both with track_index_case false and true.
 //-------------------------------------------------------------------------------------------
 template <ContactLogMode::Id LL, bool TIC>
 void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& profile,
@@ -256,8 +241,9 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                                 if (!p2->IsInPool(pType)) {
                                         continue;
                                 }
-                                const double cProb_p1 = GetContactProbability(profile, p1, p2, pSize);
-                                const double cProb_p2 = GetContactProbability(profile, p2, p1, pSize);
+                                const double cProb_p1 = GetContactProbability(profile, p1, p2, pSize, pType);
+                                //const double cProb_p2 = GetContactProbability(profile, p2, p1, pSize, pType);
+                                const double cProb_p2 = 0.0;
                                 if (cHandler.HasContactAndTransmission(cProb_p1, tProb) ||
                                     cHandler.HasContactAndTransmission(cProb_p2, tProb)) {
                                         auto& h2 = p2->GetHealth();
@@ -283,7 +269,6 @@ template class Infector<ContactLogMode::Id::Transmissions, false>;
 template class Infector<ContactLogMode::Id::Transmissions, true>;
 template class Infector<ContactLogMode::Id::All, false>;
 template class Infector<ContactLogMode::Id::All, true>;
-template class Infector<ContactLogMode::Id::Susceptibles, false>;
-template class Infector<ContactLogMode::Id::Susceptibles, true>;
+
 
 } // namespace stride

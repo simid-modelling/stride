@@ -35,8 +35,7 @@ enum class Id
 {
         None          = 0U,
         Transmissions = 1U,
-        All           = 2U,
-        Susceptibles  = 3U
+        All           = 2U
 };
 
 /// Converts a LogMode value to corresponding name.
