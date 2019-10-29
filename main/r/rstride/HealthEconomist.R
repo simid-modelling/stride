@@ -17,295 +17,8 @@
 #############################################################################
 
 #############################################################################
-# ESTIMATE COST-EFFECTIVENESS  ##
+# ESTIMATE COST-EFFECTIVENESS                                              ##
 #############################################################################
-library(mgcv)
-
-calculate_cost_effectiveness_old <- function(project_dir){
-  
-  # load project output summary
-  project_summary    <- .rstride$load_project_summary(project_dir)
-  
-  # get cost-benefit parameters
-  cea_param <- get_cea_param()
-  
-  # set intervention column
-  col_intervention       <- 'vaccine_rate' # focus on vaccine coverage
-  ref_value_comparator   <- 0
-  
-  # retrieve all variable model parameters
-  input_opt_design                   <- .rstride$get_variable_model_param(project_summary)
-  col_exp_design                     <- colnames(input_opt_design)
-  project_summary$exp_design_opt     <- factor(paste0('e',apply(project_summary[,col_exp_design],1,paste,collapse="_")))
-  
-  # set comparator, per disease config
-  project_summary$comparator <- project_summary[,col_intervention] == ref_value_comparator
-  
-  # set disease-specific experimental design options
-  col_exp_design_disease             <- col_exp_design[col_exp_design != col_intervention]
-  if(length(col_exp_design_disease)==1){
-    project_summary$exp_design_disease <- paste0('d',project_summary[,col_exp_design_disease])
-  } else{
-    project_summary$exp_design_disease <- factor(paste('d',apply(project_summary[,col_exp_design_disease],1,paste,collapse="_")))
-  }
-  
-  
-  # adaptation when simulating multiple years: unify target group
-  row_base_year      <- project_summary$vaccine_min_age == min(project_summary$vaccine_min_age)
-  project_summary$vaccine_min_age <- min(project_summary$vaccine_min_age)
-  project_summary$vaccine_max_age <- min(project_summary$vaccine_max_age)
-  
-  # age-specific data => use "transmission data"
-  data_transmission <- load(file=file.path(project_dir,paste0(project_summary$run_tag[1],'_data_transmission.RData')))
-  data_transmission <- get(data_transmission)
-  
-  # get infected seeds per run
-  infected_seeds <- aggregate(is.na(infector_age) ~ exp_id,data=data_transmission,sum)
-  names(infected_seeds)[2] <- 'num_index_cases'
-  
-  # select secondary cases
-  #data_transmission <- data_transmission[!is.na(data_transmission$infector_id),]
-  
-  # burden of disease: age specific
-  # data_transmission$age_cat   <- cut(data_transmission$part_age,cea_param$age_cat,right=F)
-  # tbl_cases_total_age         <- as.data.frame(table(data_transmission$exp_id,data_transmission$age_cat))
-  # cases_total_age             <- data.frame(matrix(tbl_cases_total_age$Freq,nrow=max(data_transmission$exp_id)))
-  # names(cases_total_age)      <- paste0('cases_age_',levels(data_transmission$age_cat))
-  # cases_total_age$cases_total <- rowSums(cases_total_age)
-  # 
-  data_cases <- as.data.frame(table(data_transmission$exp_id))
-  names(data_cases) <- c('exp_id','num_cases')
-  
-  # burden of disease: per index case
-  # index_cases_matrix <- matrix(rep(infected_seeds$num_index_cases,each=6),ncol=6,byrow = T)
-  # cases_total_age <- cases_total_age / index_cases_matrix
-  
-  # add exp_id
-  # cases_total_age$exp_id      <- 1:nrow(cases_total_age)
-  # 
-  # # reformat column names
-  # names(cases_total_age) <- sub('\\[','',names(cases_total_age))
-  # names(cases_total_age) <- sub('\\)','',names(cases_total_age))
-  # names(cases_total_age) <- sub(',','_',names(cases_total_age))
-  # 
-  # casefinding => use "vaccination data"
-  datafile_intervention <- file.path(project_dir,paste0(project_summary$run_tag[1],'_data_vaccination.RData'))
-  if(file.exists(datafile_intervention)){
-   data_intervention <- load(datafile_intervention)
-   data_intervention <- get(data_intervention)
-  } else{
-    data_intervention <- data.frame(exp_id=0)
-  }
-  
-  data_intervention_table <- data.frame(table(data_intervention$exp_id))
-  names(data_intervention_table) <- c('exp_id','num_vaccines')
-
-  # CREATE SUMMARY STATISTICS PER RUN
-  outbreak_summary <- data.frame(exp_id            = project_summary$exp_id,
-                                 population_size   = project_summary$population_size,
-                                 seeding_rate      = project_summary$seeding_rate,
-                                 vaccine_rate      = project_summary$vaccine_rate,
-                                 vaccine_min_age   = project_summary$vaccine_min_age,
-                                 vaccine_max_age   = project_summary$vaccine_max_age,
-                                 intervention      = as.numeric(as.factor(project_summary[,col_intervention])),
-                                 exp_design_opt    = project_summary$exp_design_opt,
-                                 exp_design_disease = project_summary$exp_design_disease,
-                                 comparator        = project_summary$comparator)
-  
-  # add intervention data
-  outbreak_summary <- merge(outbreak_summary,data_intervention_table,all=T)
-  outbreak_summary$num_vaccines[is.na(outbreak_summary$num_vaccines)] <- 0
-  
-  # add number of infected seeds
-  outbreak_summary <- merge(outbreak_summary,infected_seeds)
-  
-  # add burden of disease data
-  outbreak_summary                        <- merge(outbreak_summary,data_cases)
-  outbreak_summary$num_sec_cases          <- (outbreak_summary$num_cases - outbreak_summary$num_index_cases) 
-  outbreak_summary$num_sec_cases_outbreak <- outbreak_summary$num_sec_cases / outbreak_summary$num_index_cases 
-  
-  # intervention tag
-  outbreak_summary$intervention_id  <- outbreak_summary$intervention
-  outbreak_summary$intervention_tag <- paste0('coverage ',outbreak_summary$vaccine_rate,
-                                              ' [',outbreak_summary$vaccine_min_age,
-                                              '-',outbreak_summary$vaccine_max_age,']y')
-  flag_mean_current                 <- outbreak_summary$num_vaccines == ref_value_comparator
-  outbreak_summary$intervention_tag[flag_mean_current] <- 'current'
-  outbreak_summary$intervention_tag <- factor(outbreak_summary$intervention_tag)
-  outbreak_summary$intervention_id  <- as.numeric(outbreak_summary$intervention_tag)
-  
- 
-  # adjust number of vaccines => account only 'base_year'
-  for(i_intervention in 1:max(outbreak_summary$intervention_id)){
-    flag_intervention <- i_intervention == outbreak_summary$intervention_id
-    flag_base_year    <- row_base_year & flag_intervention
-    # note: use 'mean' to capture small stochastic differences  
-    outbreak_summary$num_vaccines[flag_intervention] <- mean(outbreak_summary$num_vaccines[flag_base_year])
-  }
-  
-  # get aggregated statistics
-  outbreak_std_err <- aggregate(. ~ intervention_tag + exp_design_opt + exp_design_disease, data=outbreak_summary,std_err)
-  outbreak_mean    <- aggregate(. ~ intervention_tag + exp_design_opt + exp_design_disease, data=outbreak_summary,mean)
-  outbreak_median  <- aggregate(. ~ intervention_tag + exp_design_opt + exp_design_disease, data=outbreak_summary,median)
-  
-  # set comparator per disease config
-  outbreak_mean$row_id <- 1:nrow(outbreak_mean)
-  outbreak_mean$comparator_row <- NA
-  exp_design_disease_opt <- unique(outbreak_mean$exp_design_disease)
-  for(i_exp_disease in exp_design_disease_opt){
-    flag_exp_disease            <- outbreak_mean$exp_design_disease == i_exp_disease
-    flag_exp_disease_comparator <- flag_exp_disease & outbreak_mean$comparator
-    
-    outbreak_mean$comparator_row[flag_exp_disease] <- outbreak_mean$row_id[flag_exp_disease_comparator]
-  }
-  
-  # AVERTED BURDEN
-  outbreak_mean$cases_averted <- outbreak_mean$num_sec_cases[outbreak_mean$comparator_row] - outbreak_mean$num_sec_cases
-  
-  # program costs
-  outbreak_mean$cost_program    <- outbreak_mean$num_vaccines * (cea_param$price_dose+cea_param$price_admin_dose)
-  
-  # total cost averted
-  outbreak_mean$medical_costs_averted <- outbreak_mean$cases_averted * cea_param$saving_per_averted_case
-  outbreak_mean$incr_cost             <- outbreak_mean$cost_program - outbreak_mean$medical_costs_averted
-  
-  # total burden averted
-  outbreak_mean$qaly_gain <- outbreak_mean$cases_averted * cea_param$QALYgain_per_averted_case
-  
-  # ICER
-  outbreak_mean$icer <-  NA
-  outbreak_mean$icer[outbreak_mean$comparator == 0] <- outbreak_mean$incr_cost[outbreak_mean$comparator == 0] /  outbreak_mean$qaly_gain[outbreak_mean$comparator == 0]
-  
-  pdf(file=file.path(project_dir,paste0(project_summary$run_tag[1],'_ce_plane_icer.pdf')),10,5)
-  par(mfrow=1:2)
-  legend_cex <- 0.6
-  
-  # CEA PLANE
-  plot(outbreak_mean$qaly_gain,
-       outbreak_mean$incr_cost,
-       col=outbreak_mean$intervention_id,
-       xlab='QALY gain',
-       ylab='Incremental cost',
-       pch=16,cex=2)
-  abline(h=0,lty=2)
-  abline(v=0,lty=2)
-  legend('topleft',levels(outbreak_mean$intervention_tag),
-         fill=outbreak_mean$intervention,
-         cex=legend_cex,
-         title='Scenario',
-         bg='white')
-  
-  ## ICER
-  plot(outbreak_mean$num_vaccines,
-       outbreak_mean$icer,
-       col=outbreak_mean$intervention_id,
-       xlab='number of vaccine doses',
-       ylab='icer',
-       pch=16,cex=2)
-  legend('topleft',levels(outbreak_mean$intervention_tag),
-         fill=outbreak_mean$intervention_id,
-         cex=legend_cex,
-         title='Scenario',
-         bg='white')
-  legend('topleft',outbreak_mean$intervention_tag[!flag_mean_current],
-         fill=outbreak_mean$intervention_id[!flag_mean_current],
-         cex=legend_cex,
-         title='Scenario',
-         bg='white')
-  
-  
-  ## DISTRIBUTIONS => PREDICTION
-  num_outbreaks <- unique(outbreak_mean$num_index_cases)
-  num_samples <- 5e5
-  df <- foreach(i_intervention = outbreak_mean$intervention_id,
-          .combine='rbind') %do% {
-    df_intervention <- data.frame(scenario = outbreak_mean$intervention_tag[i_intervention],
-                                  sec_cases = rnorm(num_samples,
-                                                outbreak_mean$num_sec_cases[i_intervention],
-                                                outbreak_std_err$num_sec_cases[i_intervention]),
-                                  sec_cases_outbreak = rnorm(num_samples,
-                                                              outbreak_mean$num_sec_cases_outbreak[i_intervention],
-                                                              outbreak_std_err$num_sec_cases_outbreak[i_intervention])
-                                  )
-
-    hist_breaks             <- seq(-10,max(outbreak_mean$num_sec_cases*3),0.5)
-    hist_sec_cases          <- hist(df_intervention$sec_cases, plot = F, breaks=hist_breaks)
-    hist_sec_cases_outbreak <- hist(df_intervention$sec_cases_outbreak, plot = F,breaks=hist_breaks)
-    
-    data.frame(scenario    = outbreak_mean$intervention_tag[i_intervention],
-               sec_cases_x = hist_sec_cases$mids,
-               sec_cases_y = hist_sec_cases$counts/sum(hist_sec_cases$counts),
-               sec_cases_outbreak_x = hist_sec_cases_outbreak$mids,
-               sec_cases_outbreak_y = hist_sec_cases_outbreak$counts/sum(hist_sec_cases_outbreak$counts))
-  }
-  
-  
-  plot(range(df$sec_cases_x[df$sec_cases_y>0]),range(df$sec_cases_y),col=0,
-       ylab='Probability',
-       xlab=paste('Secondary cases per simulation of ',num_outbreaks,'outbreaks'))
-  for(i_scen in 1:nlevels(df$scenario)){
-    flag <- df$scenario == levels(df$scenario)[i_scen]
-    lines(df$sec_cases_x[flag],df$sec_cases_y[flag],col=i_scen,lwd=3)
-  }
-  legend('topright',rev(levels(df$scenario)),
-         col=rev(1:nlevels(df$scenario)),
-         lwd=2,
-         title='Scenario',
-         cex=legend_cex)
-  
-  plot(range(pretty(df$sec_cases_outbreak_x[df$sec_cases_outbreak_y>0]),n=3),range(pretty(df$sec_cases_outbreak_y)),col=0,
-       ylab='Probability',
-       xlab=paste('Secondary cases per outbreak'))
-  for(i_scen in 1:nlevels(df$scenario)){
-    flag <- df$scenario == levels(df$scenario)[i_scen]
-    lines(df$sec_cases_outbreak_x[flag],df$sec_cases_outbreak_y[flag],col=i_scen,lwd=3,type='l')
-  }
-  legend('topright',rev(levels(df$scenario)),
-         col=rev(1:nlevels(df$scenario)),
-         lwd=2,
-         title='Scenario',
-         cex=legend_cex)
-  
-
-  ## DISTRIBUTIONS => OBSERVATION
-  par(mfrow=c(1,1))
-  outbreak_summary$intervention_tag_boxplot <- sub(' \\[','\n\\[',outbreak_summary$intervention_tag)
-  bxplt <- boxplot(num_sec_cases~ intervention_tag_boxplot, data = outbreak_summary,
-                   xlab='Scenario',ylab='Secondary cases per outbreak')
-  points(1:nrow(outbreak_mean),outbreak_mean$num_sec_cases,col=2,pch=5)
-  legend('topleft','mean',col=2,pch=5)
-  grid()
-  
-  
-  ## RUN SPECIFUC RESULTS => CE PLANE
-  outbreak_summary$cases_averted <- outbreak_mean$num_sec_cases[flag_mean_current] - outbreak_summary$num_sec_cases 
-  outbreak_summary$cost_program  <- outbreak_summary$num_vaccines * (cea_param$price_dose+cea_param$price_admin_dose)
-  
-  # cost averted
-  outbreak_summary$medical_costs_averted <- outbreak_summary$cases_averted * cea_param$saving_per_averted_case
-  outbreak_summary$incr_cost             <- outbreak_summary$cost_program - outbreak_summary$medical_costs_averted
-  
-  # burden averted
-  outbreak_summary$qaly_gain <- outbreak_summary$cases_averted * cea_param$QALYgain_per_averted_case
-  
-  # plot CE plane
-  plot(outbreak_summary$qaly_gain,
-       outbreak_summary$incr_cost,
-       col=alpha(outbreak_summary$intervention,0.6),
-       xlab='QALY gain vs. mean(current)',
-       ylab='Incremental cost vs. mean(current)',
-       pch=16,cex=1)
-  abline(h=0,v=0,lty=2)
-  legend('bottomleft',paste(outbreak_mean$intervention_tag),fill=outbreak_mean$intervention,cex=0.8,title='Scenario')
-  
-  # close pdf stream
-  dev.off()
-  
-  # command line message
-  smd_print('CEA COMPLETE')
-
-}
-
 
 get_cea_param <- function(num_samples = 1)
 {
@@ -412,17 +125,14 @@ calculate_cost_effectiveness <- function(project_dir){
   average_burden$burden_id <- average_burden$reference_id
   num_burden_exp <- length(unique(average_burden$reference_id))
   
-  
   # get CEA parameters
-  #num_samples      <- min(average_burden$num_runs)*num_burden_exp
-  num_samples      <- 1e3 * num_burden_exp
+  num_cea_samples  <- unique(project_summary$num_cea_samples)
+  if(length(num_cea_samples)>1){
+    smd_print('MULTIPLE CEA UNCERTAINTY DIMENTIONS ==>> ERROR',WARNING = TRUE ,FORCED = TRUE)
+  }
+  num_samples      <- num_cea_samples
   cea_param_sample <- get_cea_param(num_samples = num_samples)
 
-  names(cea_param_sample)
-  hist(cea_param_sample[,6])
-  range(cea_param_sample[,6])
-  
- 
   # combine cea param with stride results
   cea_rstride <- cbind(cea_id    = cea_param_sample$cea_id,
                        burden_id = unique(average_burden$burden_id))
@@ -455,7 +165,7 @@ calculate_cost_effectiveness <- function(project_dir){
   cea_rstride$icer <- cea_rstride$incr_cost / cea_rstride$qaly_gain
   cea_rstride$icer[cea_rstride$qaly_gain == 0] <- NA
 
-  pdf(file=file.path(project_dir,paste0(project_summary$run_tag[1],'_cea.pdf')),10,5)
+  pdf(file=file.path(project_dir,paste0(project_summary$run_tag[1],'_uncertainty.pdf')),10,5)
   #par(mfrow=1:2)
   legend_cex <- 0.6
   
@@ -505,7 +215,7 @@ calculate_cost_effectiveness <- function(project_dir){
   num_exp                   <- nlevels(as.factor(cea_rstride$cea_id))
   
   # set WTP levels
-  wtp_opt <- seq(0,5e5,5000)
+  wtp_opt <- seq(0,5e5,length=101)
   num_wtp <- length(wtp_opt)
   
   # initiate output parameters
@@ -560,7 +270,7 @@ calculate_cost_effectiveness <- function(project_dir){
   }
   
   
-  plot(range(wtp_opt),c(0,1.12),col=0,
+  plot(range(wtp_opt),c(0,1.2),col=0,
        xlab = 'Willingness to pay for a QALY (1000 EURO)',
        ylab = 'Probability highest net benefit',
        xaxt='n')
@@ -614,12 +324,15 @@ calculate_cost_effectiveness <- function(project_dir){
   
   # close pdf stream
   dev.off()
+  
+  # command line message
+  smd_print('COST-EFFECTIVENESS ANALYSIS COMPLETE')
 }
 
 
-# intervention_col_names = 'vaccine_rate'; intervention_ref_value = 0
+# intervention_ref_name = 'vaccine_rate'; intervention_ref_value = 0
 get_average_burden_averted <- function(project_summary,
-                                       intervention_col_names  = 'vaccine_rate',
+                                       intervention_ref_name  = 'vaccine_rate',
                                        intervention_ref_value = 0){
   
   # retrieve variable model parameters
@@ -630,7 +343,8 @@ get_average_burden_averted <- function(project_summary,
   
   # create burden tag 
   if(length(exp_disease_col_names)==1){
-    project_summary$burden_exp_tag    <- paste(exp_disease_col_names,project_summary[,exp_disease_col_names],sep='_')
+    values_format <- formatC(project_summary[,exp_disease_col_names],width = 2, flag ='0')
+    project_summary$burden_exp_tag    <- paste(exp_disease_col_names,values_format,sep='_')
   } else{
     project_summary$burden_exp_tag    <- apply(project_summary[,exp_disease_col_names],1,paste,collapse='_') 
   }
@@ -646,7 +360,7 @@ get_average_burden_averted <- function(project_summary,
   project_summary <- merge(project_summary,outbreak_total_runs)
   
   # create intervention tag
-  project_summary$intervention_value  <- project_summary[,intervention_col_names]
+  project_summary$intervention_value  <- project_summary[,intervention_ref_name]
   project_summary$intervention_tag    <- paste0('coverage ',project_summary$intervention_value,
                                               ' [',project_summary$vaccine_min_age,
                                               '-',project_summary$vaccine_max_age,']y')

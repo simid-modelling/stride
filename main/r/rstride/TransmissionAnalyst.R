@@ -306,10 +306,13 @@ analyse_transmission_data_for_r0 <- function(project_dir)
 
 if(0==1){
   
-  plot(seq(0.2,0.6,0.1),.rstride$f_poly_r0(seq(0.2,0.6,0.1),1.47,35.27,-10.23),type='b',ylim=c(2,20)) #child
-  lines(seq(0.2,0.6,0.1),.rstride$f_poly_r0(seq(0.2,0.6,0.1),0.99,22.5,-1.58),type='b',col=2) # adult
-  lines(seq(0.2,0.6,0.1),.rstride$f_poly_r0(seq(0.2,0.6,0.1),1.46,35.33,-10.29),type='b',col=3) #child, index
-  lines(seq(0.2,0.6,0.1),.rstride$f_poly_r0(seq(0.2,0.6,0.1),1.36,35.92,-11.1),type='b',col=1,lty=2) #child, other rng seed
-  
+  xx <- seq(0,0.6,0.1)
+  plot(xx,.rstride$f_poly_r0(xx,1.47,35.27,-10.23),type='b',ylim=c(0,20)) #child
+  lines(xx,.rstride$f_poly_r0(xx,0.99,22.5,-1.58),type='b',col=2) # adult
+  lines(xx,.rstride$f_poly_r0(xx,1.46,35.33,-10.29),type='b',col=3) #child, index
+  lines(xx,.rstride$f_poly_r0(xx,1.36,35.92,-11.1),type='b',col=1,lty=2) #child, other rng seed
+  lines(xx,.rstride$f_poly_r0(xx,0,41.9,-15.28),type='b',col=1,lty=2) #child, new
+  grid()
+  abline(h=1)  
 }
 

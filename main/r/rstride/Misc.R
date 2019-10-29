@@ -182,7 +182,8 @@ if(!(exists('.rstride'))){
         data_exp_all    <- get(load(exp_file_name))
       
         # check if data type present, if not, next experiment
-        if(!data_type %in% names(data_exp_all)){
+        #if(!data_type %in% names(data_exp_all)){
+        if(is.na(data_exp_all[[data_type]])){
           return(NULL)
         }
         

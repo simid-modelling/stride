@@ -87,6 +87,8 @@ if(0==1){
     # save
     # save(data_part,file=file.path(exp_dir,'data_participants.RData'))
     rstride_out$data_participants = data_part
+  } else {
+    rstride_out$data_participants = NA
   }
   
   
@@ -118,6 +120,8 @@ if(0==1){
     # save
     # save(data_transm,file=file.path(exp_dir,'data_transmission.RData'))
     rstride_out$data_transmission = data_transm
+  } else {
+    rstride_out$data_transmission = NA
   }
   
   ######################
@@ -139,6 +143,8 @@ if(0==1){
     # save
     # save(data_cnt,file=file.path(exp_dir,'data_contacts.RData'))
     rstride_out$data_contacts = data_cnt
+  } else {
+    rstride_out$data_contacts = NA
   }
   
   ######################
@@ -159,6 +165,8 @@ if(0==1){
     # save
     # save(data_vacc,file=file.path(exp_dir,'data_vaccination.RData'))
     rstride_out$data_vaccination = data_vacc
+  } else {
+    rstride_out$data_vaccination = NA
   }
   
   # save list with all results

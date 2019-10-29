@@ -38,14 +38,14 @@ dir_postfix <- '_cea'
 #################################################
 
 # uncomment the following line to inspect the config xml tags
-#names(xmlToList('./config/run_default.xml'))
+#names(XML::xmlToList('./config/run_default.xml'))
 
-# set the number of realisations per configuration set
-num_seeds  <- 20
+# set the number of realizations per configuration set
+num_seeds  <- 5
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(r0                         = seq(12,14,2),
-                          num_days                   = 60,
+exp_design <- expand.grid(r0                         = seq(9,11,2),
+                          num_days                   = 360,
                           rng_seed                   = seq(num_seeds),
                           num_participants_survey    = 3000,
                           track_index_case           = 'false',
@@ -59,17 +59,20 @@ exp_design <- expand.grid(r0                         = seq(12,14,2),
                           immunity_distribution_file    = 'data/immunity_measles_belgium.xml',
                           immunity_link_probability     = 0,
                           vaccine_profile               = 'Random',                 # 'None', 'Random', 'AgeDependent'
-                          vaccine_rate                  = c(0.0,0.7,0.9),           # to be used with 'Random'
-                          vaccine_min_age               = 20,                       # to be used with 'Random'
-                          vaccine_max_age               = 29,                       # to be used with 'Random'
+                          vaccine_rate                  = c(0.0,0.4,0.7),           # to be used with 'Random'
+                          vaccine_min_age               = c(18,28),                 # to be used with 'Random'
+                          vaccine_max_age               = NA,                       # to be used with 'Random'
                           case_detection_probability    = 0,                        # Enable case finding
                           num_cea_samples               = 1e4,
                           stringsAsFactors = F)
 
+# remove doubles for 'no vaccination'
+flag_to_remove <- exp_design$vaccine_rate == 0 & exp_design$vaccine_min_age != exp_design$vaccine_min_age[1]
+exp_design <- exp_design[!flag_to_remove,]
+
 # adjust the ages of the target group, according the projected year
-year_prediction <- as.numeric(as.factor(exp_design$immunity_distribution_file)) - 1
-exp_design$vaccine_min_age <- exp_design$vaccine_min_age + year_prediction
-exp_design$vaccine_max_age <- exp_design$vaccine_max_age + year_prediction
+flag_add_max_age <- is.na(exp_design$vaccine_max_age)
+exp_design$vaccine_max_age[flag_add_max_age] <- exp_design$vaccine_min_age[flag_add_max_age] + 10
 
 # add a unique seed for each run
 set.seed(num_seeds)

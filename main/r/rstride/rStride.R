@@ -184,6 +184,8 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                          data_cases$exp_id <- config_exp$exp_id
                          #save(data_cases,file=file.path(config_exp$output_prefix,'data_prevalence.RData'))
                          rstride_out$data_prevalence <- data_cases
+                       } else {
+                         rstride_out$data_prevalence = NA
                        }
                        
                        # save list with all results
