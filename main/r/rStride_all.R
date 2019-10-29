@@ -35,8 +35,6 @@ script_opt <- list.files('./bin',pattern='rStride_',full.names = T)
 
 # remove current '_all' script
 script_opt <- script_opt[!grepl('rStride_all',script_opt)]
-#script_opt <- script_opt[grepl('rStride_expl',script_opt)]
-
 
 
 # run all rStride scripts
