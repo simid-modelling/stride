@@ -68,14 +68,6 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
     return(.rstride$no_return_value())
   }
   
-  
-  
-  ################################
-  ## PARALLEL SETUP             ##
-  ################################
-  # .rstride$par_nodes_info <- smd_start_cluster()
-  smd_start_cluster()
-  
   ################################
   ## GENERAL OPTIONS            ##
   ################################
@@ -113,6 +105,12 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   config_default$output_summary   <- 'true'
   config_default$run_tag          <- run_tag
   config_default$num_cea_samples  <- 1e4
+  
+  
+  ################################
+  ## PARALLEL SETUP             ##
+  ################################
+  smd_start_cluster(timeout = 360)
   
   ##################################
   ## RUN                          ##
@@ -211,7 +209,6 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   ###############################
   ## AGGREGATE OUTPUT          ##
   ###############################
-  # rstride_aggregate_exp_output(project_dir)
   .rstride$aggregate_compressed_output(project_dir)
   
   

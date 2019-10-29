@@ -120,6 +120,9 @@ calculate_cost_effectiveness <- function(project_dir){
   average_burden <- get_average_burden_averted(project_summary)  
   head(average_burden)
   
+  # save average burden
+  write.table(average_burden,file=file.path(project_dir,'cea_burden_average.csv'),row.names=F,sep=',')
+  
   # add burden id 
   average_burden$burden_id <- 1:nrow(average_burden)
   average_burden$burden_id <- average_burden$reference_id
@@ -140,12 +143,9 @@ calculate_cost_effectiveness <- function(project_dir){
   cea_rstride <- merge(cea_rstride,average_burden)
   cea_rstride <- merge(cea_rstride,cea_param_sample)
 
-  dim(cea_rstride)
-  head(cea_rstride)
-  
   # cases averted: outpatient / inpatient
-  cea_rstride$cases_averted_inpatient  <- round(cea_rstride$cases_averted * cea_rstride$hospital_probability)
-  cea_rstride$cases_averted_outpatient <- cea_rstride$cases_averted - cea_rstride$cases_averted_inpatient
+  cea_rstride$cases_averted_inpatient  <- round(cea_rstride$incr_num_cases_averted * cea_rstride$hospital_probability)
+  cea_rstride$cases_averted_outpatient <- cea_rstride$incr_num_cases_averted - cea_rstride$cases_averted_inpatient
   
   # costs averted: outpatient / inpatient / total
   cea_rstride$cost_averted_outpatient <- cea_rstride$cases_averted_outpatient * cea_rstride$outpatient_unit_cost
@@ -153,18 +153,18 @@ calculate_cost_effectiveness <- function(project_dir){
   cea_rstride$cost_averted_total      <- cea_rstride$cost_averted_outpatient + cea_rstride$cost_averted_inpatient 
   
   # program costs
-  cea_rstride$cost_program <- (-cea_rstride$vaccines_averted) * cea_rstride$price_dose
+  cea_rstride$cost_program <- cea_rstride$incr_num_vaccines_admin * cea_rstride$price_dose
   
   # total cost
   cea_rstride$incr_cost    <- cea_rstride$cost_program - cea_rstride$cost_averted_total
   
   # burden averted
-  cea_rstride$qaly_gain    <- cea_rstride$cases_averted * cea_rstride$qaly_loss_case
+  cea_rstride$qaly_gain    <- cea_rstride$incr_num_cases_averted * cea_rstride$qaly_loss_case
 
   # incremental cost effectives ratio (ICER)
   cea_rstride$icer <- cea_rstride$incr_cost / cea_rstride$qaly_gain
   cea_rstride$icer[cea_rstride$qaly_gain == 0] <- NA
-
+  
   pdf(file=file.path(project_dir,paste0(project_summary$run_tag[1],'_uncertainty.pdf')),10,5)
   #par(mfrow=1:2)
   legend_cex <- 0.6
@@ -360,10 +360,15 @@ get_average_burden_averted <- function(project_summary,
   project_summary <- merge(project_summary,outbreak_total_runs)
   
   # create intervention tag
+  project_summary[1,vaccine_col_names]
   project_summary$intervention_value  <- project_summary[,intervention_ref_name]
-  project_summary$intervention_tag    <- paste0('coverage ',project_summary$intervention_value,
-                                              ' [',project_summary$vaccine_min_age,
-                                              '-',project_summary$vaccine_max_age,']y')
+  project_summary$intervention_tag    <- paste0('cov. ',project_summary$vaccine_rate*100,
+                                              '% [',project_summary$vaccine_min_age,
+                                              '-',project_summary$vaccine_max_age,']y ',
+                                              project_summary$vaccine_profile)
+  #project_summary$intervention_tag    <- apply(project_summary[,vaccine_col_names],1,paste,collapse='_') 
+  
+  paste0(vaccine_col_names,project_summary[,vaccine_col_names])
   
   # add 'current' strategy and create intervention tags
   flag_c                                   <- project_summary$intervention_value == intervention_ref_value
@@ -397,11 +402,14 @@ get_average_burden_averted <- function(project_summary,
   project_summary$total_vaccines[is.na(project_summary$total_vaccines)] <- 0
   
   # select CE related output parameters
-  ce_burden_param   <- c(exp_design_col_names,'total_vaccines','intervention_tag','num_infected_seeds','num_runs','burden_exp_tag')
+  ce_burden_param   <- c(exp_design_col_names,'intervention_tag','num_infected_seeds','burden_exp_tag')
   ce_burden_formula <- as.formula(paste('num_cases ~ ',paste(ce_burden_param,collapse=' + ')))
+  ce_burden_vaccines <- as.formula(paste('total_vaccines ~ ',paste(ce_burden_param,collapse=' + ')))
  
   # calculate average results
   burden_mean <- aggregate(ce_burden_formula,data=project_summary, mean, na.rm=TRUE)
+  vaccines_mean <- aggregate(ce_burden_vaccines,data=project_summary, mean, na.rm=TRUE)
+  burden_mean <- merge(burden_mean,vaccines_mean)
   
   # fix factors
   burden_mean$intervention_tag  <- factor(burden_mean$intervention_tag,levels=levels(project_summary$intervention_tag))
@@ -421,8 +429,8 @@ get_average_burden_averted <- function(project_summary,
   }
   
   # averted burden
-  burden_mean$cases_averted    <- burden_mean$num_cases[burden_mean$reference_id] - burden_mean$num_cases
-  burden_mean$vaccines_averted <- burden_mean$total_vaccines[burden_mean$reference_id] - burden_mean$total_vaccines
+  burden_mean$incr_num_cases_averted  <- burden_mean$num_cases[burden_mean$reference_id] - burden_mean$num_cases
+  burden_mean$incr_num_vaccines_admin <- burden_mean$total_vaccines - burden_mean$total_vaccines[burden_mean$reference_id] 
   
   # return burden estimates
   return(burden_mean)

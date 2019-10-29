@@ -170,10 +170,14 @@ if(!(exists('.rstride'))){
   # loop over the output data types
   data_type <- data_type_all[3]
   for(data_type in data_type_all){
+  
+  # check cluster
+  smd_check_cluster()
     
   # loop over all experiments, rbind
   i_exp <- 52
-  data_all <- foreach(i_exp = 1:length(data_filenames),.combine='rbind') %dopar%
+  data_all <- foreach(i_exp = 1:length(data_filenames),
+                      .combine='rbind') %dopar%
   {
         # get file name
         exp_file_name <- data_filenames[i_exp]
@@ -208,7 +212,6 @@ if(!(exists('.rstride'))){
           # add run index
           data_exp$exp_id <- project_summary$exp_id[i_exp]
         
-          print(names(data_exp))
           # return
           data_exp
         } # end exp_id loop
@@ -233,82 +236,6 @@ if(!(exists('.rstride'))){
     run_tag <- unique(project_summary$run_tag)
     save(data_all,file=file.path(project_dir,paste0(run_tag,'_',data_type,'.RData')))
     } # end if data_all is not NULL
-  } # end data-type loop
-}
-
-########################################
-## AGGREGATE EXPERIMENT OUTPUT FILES  ##
-########################################
-
-.rstride$aggregate_exp_output <- function(project_dir){
-  
-  # load project summary
-  project_summary      <- .rstride$load_project_summary(project_dir)
-  
-  # get output data types
-  data_type_opt <- unique(dir(file.path(project_summary$output_prefix),pattern='.RData'))
-  
-  data_type <- data_type_opt[3]
-  for(data_type in data_type_opt)
-  {
-    
-    data_filenames <- dir(project_dir,pattern=data_type,recursive = T,full.names = T)
-    
-    # load all project experiments
-    i_exp <- 1
-    data_all <- foreach(i_exp = 1:nrow(project_summary),.combine='rbind') %dopar%
-    {
-      # get file name
-      exp_file_name <- file.path(project_summary$output_prefix[i_exp],data_type)
-      
-      # check if output exists for the specified data_type
-      if(file.exists(exp_file_name)){
-        
-        # load output data
-        param_name  <- load(exp_file_name)
-        
-        # load data
-        data_exp    <- get(param_name)
-        
-        # for prevalence data, check the number of days
-        if(grepl('prevalence',exp_file_name)){
-          
-          # create full-size data frame to include the maximum number of days
-          data_tmp        <- data.frame(matrix(NA,ncol=max(project_summary$num_days)+2)) # +1 for day 0 and +1 for exp_id
-          names(data_tmp) <-  c(paste0('day',0:max(project_summary$num_days)),
-                                'exp_id')
-          
-          # insert the experiment data
-          data_tmp[names(data_exp)] <- data_exp
-          
-          # replace the experiment data by the newly constructed data.frame
-          data_exp <- data_tmp
-        }
-        
-        # add run index
-        data_exp$exp_id <- project_summary$exp_id[i_exp]
-        
-        # return experiment data
-        data_exp
-      } # end 'if file exists'
-    } # end exp_id loop
-    
-    # make id's unique => by adding a exp_id tag with leading zero's
-    names_id_columns  <- names(data_all)[grepl('id',names(data_all)) & names(data_all) != 'exp_id']
-    num_exp_id_digits <- nchar(max(data_all$exp_id))+1
-    
-    if(length(names_id_columns)>0) {
-      for(i_id_column in names_id_columns){
-        row_is_id  <- !is.na(data_all[,i_id_column]) & data_all[,i_id_column] != 0
-        data_all[row_is_id,i_id_column] <- as.numeric(sprintf(paste0('%d%0',num_exp_id_digits,'d'),
-                                                                    data_all[row_is_id,i_id_column],
-                                                                    data_all$exp_id[row_is_id]))
-      }
-    }
-      
-    # save
-    run_tag <- unique(project_summary$run_tag)
-    save(data_all,file=file.path(project_dir,paste0(run_tag,'_',data_type)))
   } # end data-type loop
 }
 
@@ -440,7 +367,7 @@ if(!(exists('.rstride'))){
   immunity_profiles <- unique(c(design_of_experiment$immunity_profile,design_of_experiment$vaccine_profile))
   
   # get immunity profile names
-  disease_immunity_profiles <- c('None','Random','AgeDependent','Cocoon')
+  disease_immunity_profiles <- c('None','Random','AgeDependent','Teachers')
   
   # check if given profile names are valid
   if(!all(immunity_profiles %in% disease_immunity_profiles)){

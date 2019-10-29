@@ -46,7 +46,12 @@ void DiseaseSeeder::Seed(std::shared_ptr<Population> pop)
         Vaccinate("immunity", immunityProfile, pop->CRefPoolSys().CRefPools<Id::Household>(),pop);
 
         const auto vaccinationProfile = m_config.get<std::string>("run.vaccine_profile");
-        Vaccinate("vaccine", vaccinationProfile, pop->CRefPoolSys().CRefPools<Id::Household>(),pop);
+        if(vaccinationProfile == "Teachers"){
+        	Vaccinate("vaccine", "Random", pop->CRefPoolSys().CRefPools<Id::K12School>(),pop);
+        } else {
+        	Vaccinate("vaccine", vaccinationProfile, pop->CRefPoolSys().CRefPools<Id::Household>(),pop);
+        }
+
 
         // --------------------------------------------------------------
         // Seed infected persons.

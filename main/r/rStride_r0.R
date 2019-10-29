@@ -61,7 +61,7 @@ exp_design <- expand.grid(r0                            = seq(7,20,2),
                           stringsAsFactors = F)
 
 # add a unique seed for each run
-set.seed(125)
+set.seed(nrow(exp_design))
 exp_design$rng_seed <- sample(nrow(exp_design))
 
 ##################################
