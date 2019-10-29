@@ -162,7 +162,8 @@ if(!(exists('.rstride'))){
   project_summary      <- .rstride$load_project_summary(project_dir)
   
   # get output files
-  data_filenames <- unique(dir(file.path(project_summary$output_prefix),pattern='.RData',full.names = T))
+  # data_filenames <- unique(dir(file.path(project_summary$output_prefix),pattern='.RData',full.names = T))
+  data_filenames <- unique(dir(file.path(project_dir,'exp_all'),pattern='.RData',full.names = T))
   
   # get output types
   data_type_all <- names(get(load(data_filenames[1])))

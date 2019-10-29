@@ -122,6 +122,9 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   # add an "experiment id" to the design of experiment matrix
   design_of_experiment$exp_id <- 1:nrow(design_of_experiment) 
   
+  # create temporary directory to store experiment results
+  project_dir_exp <- smd_file_path(project_dir,'exp_all')
+  
   time_stamp_loop = Sys.time()
   # run all experiments (in parallel)
   par_out <- foreach(i_exp=1:nrow(design_of_experiment),
@@ -187,15 +190,12 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                        }
                        
                        # save list with all results
-                       save(rstride_out,file=smd_file_path(config_exp$output_prefix,paste0(exp_tag,'_parsed.RData')))
+                       save(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.RData')))
                        
-                       # remove experiment output folder
+                       # remove experiment output and config
                        if(remove_tmp_output){
-                         unlink(summary_filename,recursive = T)
-                         unlink(cases_filename,recursive = T)
+                         unlink(config_exp$output_prefix,recursive=T)
                          unlink(config_exp_filename,recursive = T)
-                         unlink(contact_log_filename,recursive = T)
-                         unlink(file.path(config_exp$output_prefix,'stride_log.txt'),recursive = T)
                        }
                        
                        
@@ -214,7 +214,7 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   
   # remove project output
   if(remove_tmp_output){
-    unlink(par_out$output_prefix,recursive = T)
+    unlink(project_dir_exp,recursive = T)
   }
   
   
