@@ -20,22 +20,19 @@
 #
 #############################################################################
 
+# load simid.rtools package
+require(devtools)
+devtools::install_github("lwillem/simid_rtools",force=F,quiet=T)
+#devtools::uninstall(simid.rtools)
+library('simid.rtools')
+
 # LOAD R PACKAGES
 # 
 # XML         to parse and write XML files
 # doParallel  to use parallel foreach
 # ggplot2     to plot contact matrices
 # gridExtra   to plot contact matrices
-for(package_i in c('XML','doParallel','ggplot2','gridExtra')){
-  
-  # if not present => install
-  if(!package_i %in% rownames(installed.packages())){
-    install.packages(package_i)
-  }
-  
-  # load package
-  library(package_i,character.only=TRUE, quietly = T, verbose = F)
-}
+smd_load_packages(c('XML','doParallel','ggplot2','gridExtra'))
 
 # load general help functions
 source('./bin/rstride/Misc.R')
@@ -55,8 +52,8 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
 {
   
   # command line message
-  .rstride$cli_print('STARTING rSTRIDE CONTROLLER')
-  
+  smd_print('STARTING rSTRIDE CONTROLLER')
+
   ################################
   ## CHECK DESIGN OF EXPERIMENT ##
   ################################
@@ -75,8 +72,7 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   ################################
   ## PARALLEL SETUP             ##
   ################################
-  .rstride$start_slaves()
-  
+  .rstride$par_nodes_info <- smd_start_cluster()
   
   ################################
   ## GENERAL OPTIONS            ##
@@ -97,15 +93,11 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   run_tag <- paste0(run_tag,dir_postfix)
   
   # create project directory
-  project_dir <- file.path(output_dir,run_tag)
-  # if it does not exist: create full path using the recursive option
-  if(!file.exists(project_dir)){
-    dir.create(project_dir, recursive =  TRUE)
-  }
-  
+  project_dir <- smd_file_path(output_dir,run_tag)
+
   # command line message
-  .rstride$cli_print('WORKING DIR',getwd())
-  .rstride$cli_print('PROJECT DIR',project_dir)
+  smd_print('WORKING DIR',getwd())
+  smd_print('PROJECT DIR',project_dir)
   
   ##################################
   ## GENERAL CONFIG MODIFICATIONS ##
@@ -124,27 +116,29 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   ##################################
   
   # command line message
-  .rstride$cli_print('READY TO RUN',nrow(design_of_experiment),'EXPERIMENT(S)')
-  
-  # store local copy of slave1 pid
-  pid_slave1 <- par_nodes_info$pid_slave1
+  smd_print('READY TO RUN',nrow(design_of_experiment),'EXPERIMENT(S)')
   
   # add an "experiment id" to the design of experiment matrix
   design_of_experiment$exp_id <- 1:nrow(design_of_experiment) 
   
+  time_stamp_loop = Sys.time()
   # run all experiments (in parallel)
   par_out <- foreach(i_exp=1:nrow(design_of_experiment),
                      .combine='rbind',
-                     .packages='XML',
+                     .packages=c('XML','simid.rtools'),
+                     .export = '.rstride',
                      .verbose=FALSE) %dopar%
                      {  
                        
-                       # print progress (only slave1)
-                       .rstride$print_progress(i_exp,nrow(design_of_experiment),pid_slave1)
+                       # create locacl copy of 'par_nodes_info'
+                       par_nodes_info <- .rstride$par_nodes_info
                        
+                       # print progress (only slave1)
+                       smd_print_progress(i_exp,nrow(design_of_experiment),time_stamp_loop,par_nodes_info)
+
                        # create experiment tag
                        exp_tag <- .rstride$create_exp_tag(i_exp)
-                       
+
                        # copy default param
                        config_exp <-   config_default
                        
@@ -154,14 +148,14 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                        }  
                        
                        # update experiment output prefix
-                       config_exp$output_prefix <- file.path(project_dir,exp_tag)
+                       config_exp$output_prefix <- smd_file_path(project_dir,exp_tag,.verbose=FALSE)
                        
                        # create xml file
                        config_exp_filename <- .rstride$save_config_xml(config_exp,'run',config_exp$output_prefix)
-                       
+
                        # run stride (using the C++ Controller)
                        system(paste(stride_bin,config_opt,paste0('../',config_exp_filename)),ignore.stdout=ignore_stride_stdout)
-                       
+
                        # load output summary
                        summary_filename <- file.path(config_exp$output_prefix,'summary.csv')
                        run_summary      <- read.table(summary_filename,header=T,sep=',')
@@ -174,13 +168,13 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                        rstride_out <- list()
                        
                        # parse contact_log (if present)
-                       contact_log_filename <- file.path(config_exp$output_prefix,'contact_log.txt')
+                       contact_log_filename <- smd_file_path(config_exp$output_prefix,'contact_log.txt')
                        if(file.exists(contact_log_filename)){
-                         rstride_out <- parse_contact_logfile(contact_log_filename)
+                         rstride_out <- .rstride$parse_contact_logfile(contact_log_filename)
                        }
                        
                        # convert 'cases' file (if present) => "prevalence"
-                       cases_filename <- file.path(config_exp$output_prefix,'cases.csv')
+                       cases_filename <- smd_file_path(config_exp$output_prefix,'cases.csv')
                        if(file.exists(cases_filename)){
                          data_cases        <- read.table(cases_filename,sep=',')
                          names(data_cases) <- paste0('day',seq(length(data_cases))-1)
@@ -190,7 +184,7 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                        }
                        
                        # save list with all results
-                       save(rstride_out,file=file.path(config_exp$output_prefix,paste0(exp_tag,'_parsed.RData')))
+                       save(rstride_out,file=smd_file_path(config_exp$output_prefix,paste0(exp_tag,'_parsed.RData')))
                        
                        # remove experiment output folder
                        if(remove_tmp_output){
@@ -212,7 +206,7 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   ###############################
   ## AGGREGATE OUTPUT          ##
   ###############################
-  # .rstride$aggregate_exp_output(project_dir)
+  # rstride_aggregate_exp_output(project_dir)
   .rstride$aggregate_compressed_output(project_dir)
   
   
@@ -225,10 +219,10 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   ###############################
   ## TERMINATE PARALLEL NODES  ##
   ###############################
-  .rstride$end_slaves()
+  smd_stop_cluster()
   
   # command line message
-  .rstride$cli_print('rSTRIDE CONTROLLER FINISHED')
+  smd_print('rSTRIDE CONTROLLER FINISHED')
   
   return(project_dir)
   

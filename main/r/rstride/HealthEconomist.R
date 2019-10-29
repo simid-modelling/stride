@@ -302,7 +302,7 @@ calculate_cost_effectiveness_old <- function(project_dir){
   dev.off()
   
   # command line message
-  .rstride$cli_print('CEA COMPLETE')
+  smd_print('CEA COMPLETE')
 
 }
 

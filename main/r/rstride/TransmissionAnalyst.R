@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 
 #############################################################################
@@ -24,7 +24,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
 {
   
   # terminal message
-  .rstride$cli_print('START TO CALLIBRATE R0')
+  smd_print('START TO CALLIBRATE R0')
   
   ##################################
   ## REPRODUCTION NUMBER          ##
@@ -39,7 +39,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   data_transm     <- .rstride$load_aggregated_output(project_dir,'data_transmission',project_summary$exp_id)
 
   if(length(data_transm) == 1 && is.na(data_transm)){
-    .rstride$cli_print('TRANSMISSION OUTPUT MISSING',WARNING = T)
+    smd_print('TRANSMISSION OUTPUT MISSING',WARNING = T)
     return(NA)
   }
 
@@ -96,8 +96,8 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   
   # check R0 limit
   if(R0_limit_fit<0){
-    .rstride$cli_print("FITTING NOT SUCCESFULL... THE PARABOLA OPENS UPWARDS",WARNING=TRUE)
-    .rstride$cli_print("PLEASE INCREASE THE NUMBER OF REALISATIONS AND/OR TRANSMISSION PROBABILITIES",WARNING=TRUE)
+    smd_print("FITTING NOT SUCCESFULL... THE PARABOLA OPENS UPWARDS",WARNING=TRUE)
+    smd_print("PLEASE INCREASE THE NUMBER OF REALISATIONS AND/OR TRANSMISSION PROBABILITIES",WARNING=TRUE)
     return(.rstride$no_return_value())
   }
   
@@ -205,12 +205,12 @@ analyse_transmission_data_for_r0 <- function(project_dir)
     legend('topleft',c('lesler et al. 2009','STRIDE'),col=1:2,lwd=2)
     if(any(as.numeric(config_disease$start_symptomatic[1:18]) != prob_symp)){
       # command line message
-      .rstride$cli_print('"START SYMPTOMATIC" NOT CONFORM LESLER ET AL 2009.')
+      smd_print('"START SYMPTOMATIC" NOT CONFORM LESLER ET AL 2009.')
       
       config_disease$start_symptomatic[1:18] <- prob_symp
       
       # command line message
-      .rstride$cli_print('UPDATED "START SYMPTOMATIC" ACCORDING LESLER ET AL 2009.')
+      smd_print('UPDATED "START SYMPTOMATIC" ACCORDING LESLER ET AL 2009.')
     }
     
   }
@@ -268,7 +268,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   new_disease_config_filename <- .rstride$save_config_xml(config_disease,'disease',file.path(project_dir,disease_config_update_file))
   
   # terminal message
-  .rstride$cli_print('NEW DISEASE CONFIG FILE', disease_config_update_file)
+  smd_print('NEW DISEASE CONFIG FILE', disease_config_update_file)
   
   ###############################
   ## TERMINATE PARALLEL NODES  ##
@@ -276,7 +276,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   .rstride$end_slaves()
   
   # command line message
-  .rstride$cli_print('R0 CALLIBRATION FINISHED')
+  smd_print('R0 CALLIBRATION FINISHED')
   
 }
 
@@ -302,5 +302,14 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   x2 <- (-b - sqrt(d)) / (2*a)
   
   return(x1)
+}
+
+if(0==1){
+  
+  plot(seq(0.2,0.6,0.1),.rstride$f_poly_r0(seq(0.2,0.6,0.1),1.47,35.27,-10.23),type='b',ylim=c(2,20)) #child
+  lines(seq(0.2,0.6,0.1),.rstride$f_poly_r0(seq(0.2,0.6,0.1),0.99,22.5,-1.58),type='b',col=2) # adult
+  lines(seq(0.2,0.6,0.1),.rstride$f_poly_r0(seq(0.2,0.6,0.1),1.46,35.33,-10.29),type='b',col=3) #child, index
+  lines(seq(0.2,0.6,0.1),.rstride$f_poly_r0(seq(0.2,0.6,0.1),1.36,35.92,-11.1),type='b',col=1,lty=2) #child, other rng seed
+  
 }
 

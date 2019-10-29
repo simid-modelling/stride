@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -41,16 +41,16 @@ script_opt <- script_opt[!grepl('rStride_all',script_opt)]
 
 # run all rStride scripts
 for(script_i in script_opt){
-  .rstride$cli_print('---------------------------------------')
+  smd_print('---------------------------------------')
   # print script name
-  .rstride$cli_print('RUN',script_i)
+  smd_print('RUN',script_i)
   
   # run script
   system(script_i,ignore.stdout=FALSE)
   
   # print script name
-  .rstride$cli_print('CLOSE',script_i)
-  .rstride$cli_print('---------------------------------------')
+  smd_print('CLOSE',script_i)
+  smd_print('---------------------------------------')
   
   
 }

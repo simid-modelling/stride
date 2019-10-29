@@ -30,82 +30,15 @@ if(!(exists('.rstride'))){
   .rstride <- new.env()
 }
 
-###############################
-## COMMAND LINE MESSAGES     ##
-###############################
-
-.rstride$cli_print <- function(...,WARNING=F) {
-  
-  # get function arguments
-  function_arguments <- as.list(match.call(expand.dots=FALSE))$...
-  
-  # get function-call environment (to retrieve variable from that environment) 
-  pf <- parent.frame()
-  
-  # parse list => make character vector
-  function_arguments <- foreach(i=1:length(function_arguments),.combine='cbind') %do%{
-    eval(unlist(function_arguments[[i]]),envir = pf)
-  }
-  
-  # add a space to each function arguments
-  function_arguments <- paste(' ',function_arguments)
-  
-  # set text color: black (default) or red (warning)
-  web_color_black <- '\033[0;30m'
-  web_color_red   <- '\033[0;31m'
-  text_color      <- ifelse(WARNING,web_color_red,web_color_black)
-  
-  # print time + arguments (without spaces)
-  cli_out <- paste0(c('echo "',text_color, '[',format(Sys.time()),']',
-                      function_arguments, web_color_black,'"'),collapse = '')
-  system(cli_out)
-}
+# ###############################
+# ## COMMAND LINE MESSAGES     ##
+# ###############################
 
 # terminate rStride
 .rstride$cli_abort <- function()
 {
-  .rstride$cli_print('!! TERMINATE rSTRIDE CONTROLLER !!',WARNING=T)
+  smd_print('!! TERMINATE rSTRIDE CONTROLLER !!',WARNING=T)
 }
-
-###############################
-## PARALLEL START & END      ##
-###############################
-
-.rstride$start_slaves <- function(.env = .RstrideEnv)
-{
-  ## SETUP PARALLEL NODES
-  # note: they will be removed after 280 seconds inactivity
-  num_proc <- detectCores()
-  par_cluster   <- makeForkCluster(num_proc, cores=num_proc, timeout = 280) 
-  registerDoParallel(par_cluster)
-  
-  # store the process id (pid) of the first slave
-  pid_slave1 <- clusterEvalQ(par_cluster, { Sys.getpid() })[[1]]
-  
-  # CREATE GLOBAL VARIABLE
-  par_nodes_info <<- list(par_cluster = par_cluster,
-                          pid_slave1 = pid_slave1)
-  
-}
-
-.rstride$end_slaves <- function()
-{
-  ## CLOSE NODES AND NODE INFO
-  if(exists('par_nodes_info')){
-    stopCluster(par_nodes_info$par_cluster); 
-    rm(par_nodes_info,envir = .GlobalEnv) # REMOVE GLOBAL VARIABLE
-  }
-  
-}
-
-.rstride$print_progress <- function(i_current,i_total,pid_slave1){
-  
-  if(Sys.getpid() == pid_slave1){
-    .rstride$cli_print('RUNNING...',i_current,'/',i_total)
-  }
-  
-}
-
 
 ###############################
 ## PROJECT SUMMARY           ##
@@ -170,22 +103,6 @@ if(!(exists('.rstride'))){
 ## XML FUNCTIONS             ##
 ###############################
 
-# Convert a list into XML format [RECURSIVE FUNCTION]
-# counterpart of "XML::xmlToList" function
-.rstride$listToXML <- function(node, sublist){
-  
-  for(i in 1:length(sublist)){
-    child <- newXMLNode(names(sublist)[i], parent=node);
-    
-    if (typeof(sublist[[i]]) == "list"){
-      .rstride$listToXML(child, sublist[[i]])
-    }
-    else{
-      xmlValue(child) <- paste(sublist[[i]],collapse= ';')
-    }
-  } 
-}
-
 # list_config <- config_disease
 # root_name <- 'disease'
 # output_prefix <- 'sim_output'
@@ -199,7 +116,7 @@ if(!(exists('.rstride'))){
   root <- newXMLNode(root_name, doc = xml_doc)
   
   # add list info
-  .rstride$listToXML(root, list_config)
+  smd_listToXML(root, list_config)
   
   # create filename
   filename <- paste0(output_prefix,'.xml')
@@ -425,7 +342,6 @@ if(!(exists('.rstride'))){
 ###############################
 
 .rstride$no_return_value <- function(){
-  
   return(invisible())
 }
 
@@ -433,7 +349,7 @@ if(!(exists('.rstride'))){
   
   # if directory does not exists, return TRUE (+warning)
   if(!file.exists(paste(path_dir))){
-    .rstride$cli_print('[',paste(match.call(),collapse=' '),'] DIRECTORY NOT PRESENT:',path_dir,WARNING=T)
+    smd_print('[',paste(match.call(),collapse=' '),'] DIRECTORY NOT PRESENT:',path_dir,WARNING=T)
     return(TRUE)
   } 
   
@@ -459,7 +375,7 @@ if(!(exists('.rstride'))){
   
   # if any file missing => return FALSE
   if(any(file_not_exist_bool)){
-    .rstride$cli_print('DATA FILE(S) MISSING:', paste(file_names[file_not_exist_bool],collapse = ' '),WARNING=T)
+    smd_print('DATA FILE(S) MISSING:', paste(file_names[file_not_exist_bool],collapse = ' '),WARNING=T)
     return(FALSE)
   }  
   
@@ -474,7 +390,7 @@ if(!(exists('.rstride'))){
   valid_levels <- design_of_experiment$contact_log_level %in% c('None','Transmissions','All')
   
   if(any(!valid_levels)){
-    .rstride$cli_print('INVALID LOG LEVEL(S):', paste(design_of_experiment$contact_log_level[!valid_levels],collapse = ' '),WARNING=T)
+    smd_print('INVALID LOG LEVEL(S):', paste(design_of_experiment$contact_log_level[!valid_levels],collapse = ' '),WARNING=T)
     return(FALSE)
   }  
   
@@ -501,7 +417,7 @@ if(!(exists('.rstride'))){
       
       # check
       if(r0_max > fit_r0_limit){
-        .rstride$cli_print('INVALID R0 CONFIG VALUE(S):', paste(design_of_experiment$r0,collapse = ' '),paste0('(R0 LIMIT = ',fit_r0_limit,')') ,WARNING=T)
+        smd_print('INVALID R0 CONFIG VALUE(S):', paste(design_of_experiment$r0,collapse = ' '),paste0('(R0 LIMIT = ',fit_r0_limit,')') ,WARNING=T)
         return(FALSE)
       } 
     } # end for-loop
@@ -522,7 +438,7 @@ if(!(exists('.rstride'))){
   
   # check if given profile names are valid
   if(!all(immunity_profiles %in% disease_immunity_profiles)){
-    .rstride$cli_print('INVALID IMMUNITY PROFILE(S):', paste(immunity_profiles,collapse = ' '),WARNING=T)
+    smd_print('INVALID IMMUNITY PROFILE(S):', paste(immunity_profiles,collapse = ' '),WARNING=T)
     return(FALSE)
   } # end if-compare
   
@@ -554,7 +470,7 @@ if(!(exists('.rstride'))){
   
   # check... and print warning if needed
   if(any(unique_exp_design$num_seed_infected<=0)){
-    .rstride$cli_print('NUMBER OF INFECTED SEEDS == 0 WITH:', paste(unique_exp_design[unique_exp_design$num_seed_infected<=0,1:2], collapse = ' & seeding rate '),WARNING=T)
+    smd_print('NUMBER OF INFECTED SEEDS == 0 WITH:', paste(unique_exp_design[unique_exp_design$num_seed_infected<=0,1:2], collapse = ' & seeding rate '),WARNING=T)
     return(FALSE)
   }
   
@@ -585,11 +501,11 @@ if(!(exists('.rstride'))){
   project_dir <<- file.path(output_dir,sim_dirs[length(sim_dirs)])
   
   # terminal message
-  .rstride$cli_print('SET PROJECT DIR TO ', project_dir)
+  smd_print('SET PROJECT DIR TO ', project_dir)
   
   # load rStride source code
   source('bin/rstride/rStride.R')
-  .rstride$cli_print('rSTRIDE LOADED')
+  smd_print('rSTRIDE LOADED')
   
 }
 
@@ -612,6 +528,6 @@ if(!(exists('.rstride'))){
   setwd(file.path(install_dir,last_stride_dir))
   
   # terminal message
-  .rstride$cli_print('NEW WORK DIRECTORY ',file.path(install_dir,last_stride_dir))
+  smd_print('NEW WORK DIRECTORY ',file.path(install_dir,last_stride_dir))
   
 }

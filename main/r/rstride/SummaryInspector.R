@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 # MODEL SUMMARY EXPLORATION
@@ -35,7 +35,7 @@ inspect_summary <- function(project_dir)
   if(nrow(input_opt_design)<=1){
     
     # terminal message
-    .rstride$cli_print('NO VARYING INPUT PARAMETERS IN THE SUMMARY DATA')
+    smd_print('NO VARYING INPUT PARAMETERS IN THE SUMMARY DATA')
     
     # stop
     return(.rstride$no_return_value())
@@ -94,7 +94,7 @@ inspect_summary <- function(project_dir)
   dev.off()
   
   # terminal message
-  .rstride$cli_print('INSPECTION OF SUMMARY DATA COMPLETE')
+  smd_print('INSPECTION OF SUMMARY DATA COMPLETE')
   
 }
 

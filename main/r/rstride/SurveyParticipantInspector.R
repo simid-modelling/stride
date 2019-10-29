@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 
 #############################################################################
@@ -29,7 +29,7 @@ inspect_participant_data <- function(project_dir)
   # if no participants are surveyed, stop
   if(any(project_summary$num_participants_survey==0)){
     # command line message
-    .rstride$cli_print('NO PARTICIPANT DATA AVAILABLE')
+    smd_print('NO PARTICIPANT DATA AVAILABLE')
     return(.rstride$no_return_value())
   }
   
@@ -127,6 +127,6 @@ inspect_participant_data <- function(project_dir)
   dev.off()
   
   # command line message
-  .rstride$cli_print('INSPECTION OF PARTICIPANT DATA COMPLETE')
+  smd_print('INSPECTION OF PARTICIPANT DATA COMPLETE')
   
 } # function end

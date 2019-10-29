@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2018, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 
 #############################################################################
@@ -286,7 +286,7 @@ inspect_transmission_data <- function(project_dir)
   dev.off()
   
   # command line message
-  .rstride$cli_print('INSPECTION OF TRANSMISSION DATA COMPLETE')
+  smd_print('INSPECTION OF TRANSMISSION DATA COMPLETE')
   
 } # function end
 

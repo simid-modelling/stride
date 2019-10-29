@@ -34,7 +34,7 @@ if(0==1){
   
 }
 
-parse_contact_logfile <- function(contact_log_filename)
+.rstride$parse_contact_logfile <- function(contact_log_filename)
 {
   
   # terminal message

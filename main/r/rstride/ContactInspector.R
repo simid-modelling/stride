@@ -40,7 +40,7 @@ inspect_contact_data <- function(project_dir){
   project_summary <- .rstride$load_project_summary(project_dir)
   
   # start slave nodes
-  .rstride$start_slaves()
+  par_nodes_info <- smd_start_cluster()
   
   # analyse data
   i_exp <- 2
@@ -51,10 +51,10 @@ inspect_contact_data <- function(project_dir){
   }
   
   # end slave nodes
-  .rstride$end_slaves()
+  smd_stop_cluster()
   
   # terminal message
-  .rstride$cli_print('INSPECTION OF SOCIAL CONTACTS PATTERNS COMPLETE')
+  smd_print('INSPECTION OF SOCIAL CONTACTS PATTERNS COMPLETE')
 }
 
 #############################################################################
@@ -114,7 +114,7 @@ inspect_contact_data <- function(project_dir){
     ref_data_tag <- 'ref_fl2010'
     if(grepl('15touch',exp_summary$age_contact_matrix_file)){
       #ref_data_tag <- 'ref_fl2010_15touch'
-      .rstride$cli_print("NO REFERENCE 15_touch CONTACT DATA AVAIABLE",WARNING = TRUE)
+      smd_print("NO REFERENCE 15_touch CONTACT DATA AVAIABLE",WARNING = TRUE)
     }
     
     # LOAD SURVEY DATA FROM FLANDERS AND FULLY CONNECTED HOUSEHOLDS
