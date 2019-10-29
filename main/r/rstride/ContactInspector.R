@@ -40,14 +40,17 @@ inspect_contact_data <- function(project_dir){
   project_summary <- .rstride$load_project_summary(project_dir)
   
   # start slave nodes
-  par_nodes_info <- smd_start_cluster()
+  #smd_start_cluster()
   
   # analyse data
   i_exp <- 2
-  foreach(i_exp = 1:nrow(project_summary)) %do% 
+  # parallel processing issues to pass .rstride environment
+  foreach(i_exp = 1:nrow(project_summary),
+          .packages = 'simid.rtools',
+          .export = '.rstride') %do% 
   {  
     # plot contacts
-    .rstride$plot_contacts(project_summary[i_exp,],'./data')
+    .rstride$plot_contacts(project_dir,project_summary[i_exp,],'./data')
   }
   
   # end slave nodes
@@ -61,17 +64,17 @@ inspect_contact_data <- function(project_dir){
 # FUNCTION TO PLOT SOCIAL CONTACT MATRICES AND COUNTS                      ##
 #############################################################################
 # exp_summary <- project_summary[i_exp,]; data_dir <- './data'
-.rstride$plot_contacts <- function(exp_summary,data_dir)
+.rstride$plot_contacts <- function(project_dir,exp_summary,data_dir)
 {
-  
+
   ######################
   ## GET DATA       ##
   ######################
-  
+
   # load data
   data_cnt      <- .rstride$load_aggregated_output(project_dir,'data_contacts',exp_summary$exp_id)
   data_part     <- .rstride$load_aggregated_output(project_dir,'data_participants',exp_summary$exp_id)
-  
+
   if(nrow(data_cnt)>0 && nrow(data_part)>0)
   {
     

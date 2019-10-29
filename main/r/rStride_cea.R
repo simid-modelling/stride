@@ -63,6 +63,7 @@ exp_design <- expand.grid(r0                         = seq(12,14,2),
                           vaccine_min_age               = 20,                       # to be used with 'Random'
                           vaccine_max_age               = 29,                       # to be used with 'Random'
                           case_detection_probability    = 0,                        # Enable case finding
+                          num_cea_samples               = 1e4,
                           stringsAsFactors = F)
 
 # adjust the ages of the target group, according the projected year

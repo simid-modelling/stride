@@ -25,6 +25,7 @@
 
 # load required R package
 require(doParallel,quietly = TRUE)
+require(simid.rtools,quietly = TRUE)
 
 if(!(exists('.rstride'))){
   .rstride <- new.env()

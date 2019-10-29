@@ -21,10 +21,10 @@
 #############################################################################
 
 # load simid.rtools package
-require(devtools)
+require(devtools,quietly = T)
 devtools::install_github("lwillem/simid_rtools",force=F,quiet=T)
 #devtools::uninstall(simid.rtools)
-library('simid.rtools')
+library('simid.rtools',quietly = T)
 
 # LOAD R PACKAGES
 # 
@@ -32,7 +32,8 @@ library('simid.rtools')
 # doParallel  to use parallel foreach
 # ggplot2     to plot contact matrices
 # gridExtra   to plot contact matrices
-smd_load_packages(c('XML','doParallel','ggplot2','gridExtra'))
+# mgcv        to sample uncertaint parameters from distributions
+smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv'))
 
 # load general help functions
 source('./bin/rstride/Misc.R')
@@ -72,7 +73,8 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   ################################
   ## PARALLEL SETUP             ##
   ################################
-  .rstride$par_nodes_info <- smd_start_cluster()
+  # .rstride$par_nodes_info <- smd_start_cluster()
+  smd_start_cluster()
   
   ################################
   ## GENERAL OPTIONS            ##
@@ -110,6 +112,7 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   config_default$immunity_rate    <- 0
   config_default$output_summary   <- 'true'
   config_default$run_tag          <- run_tag
+  config_default$num_cea_samples  <- 1e4
   
   ##################################
   ## RUN                          ##
@@ -126,12 +129,12 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   par_out <- foreach(i_exp=1:nrow(design_of_experiment),
                      .combine='rbind',
                      .packages=c('XML','simid.rtools'),
-                     .export = '.rstride',
+                     .export = c('.rstride','par_nodes_info'),
                      .verbose=FALSE) %dopar%
                      {  
                        
                        # create locacl copy of 'par_nodes_info'
-                       par_nodes_info <- .rstride$par_nodes_info
+                       #par_nodes_info <- .rstride$par_nodes_info
                        
                        # print progress (only slave1)
                        smd_print_progress(i_exp,nrow(design_of_experiment),time_stamp_loop,par_nodes_info)

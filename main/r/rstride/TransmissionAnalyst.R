@@ -75,7 +75,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   
   # FIT SECOND ORDER POLYNOMIAL
   temp <- data.frame(x=sec_transm$transmission_probability, y=sec_transm$sec_cases)
-  mod <- summary(lm(y ~ x + I(x^2), data = temp))
+  mod <- summary(lm(y ~ 0 + x + I(x^2), data = temp))
   mod
   
   # # logistic model
@@ -87,9 +87,9 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # mod
   # 
   # Get parameters
-  fit_b0 <- mod$coefficients[1,1]
-  fit_b1 <- mod$coefficients[2,1]
-  fit_b2 <- mod$coefficients[3,1]
+  fit_b0 <- 0
+  fit_b1 <- mod$coefficients[1,1]
+  fit_b2 <- mod$coefficients[2,1]
   
   # check R0 limit: prevent upwards parabola and complex root values                
   R0_limit_fit           <- -fit_b1^2/(4*fit_b2) + fit_b0
@@ -273,7 +273,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   ###############################
   ## TERMINATE PARALLEL NODES  ##
   ###############################
-  .rstride$end_slaves()
+  smd_stop_cluster()
   
   # command line message
   smd_print('R0 CALLIBRATION FINISHED')
