@@ -212,7 +212,10 @@ if(!(exists('.rstride'))){
           # return
           data_exp
         } # end exp_id loop
-            
+    
+  # continue if data_all is not NULL
+  if(any(!is.null(data_all))){
+    
     # make id's unique => by adding a exp_id tag with leading zero's
     names_id_columns  <- names(data_all)[grepl('id',names(data_all)) & names(data_all) != 'exp_id']
     num_exp_id_digits <- nchar(max(data_all$exp_id))+1
@@ -229,6 +232,7 @@ if(!(exists('.rstride'))){
     # save
     run_tag <- unique(project_summary$run_tag)
     save(data_all,file=file.path(project_dir,paste0(run_tag,'_',data_type,'.RData')))
+    } # end if data_all is not NULL
   } # end data-type loop
 }
 
