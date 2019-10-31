@@ -176,16 +176,16 @@ if(!(exists('.rstride'))){
   smd_check_cluster()
     
   # loop over all experiments, rbind
-  i_exp <- 52
-  data_all <- foreach(i_exp = 1:length(data_filenames),
+    i_file <- 10
+  data_all <- foreach(i_file = 1:length(data_filenames),
                       .combine='rbind') %dopar%
   {
         # get file name
-        exp_file_name <- data_filenames[i_exp]
+        exp_file_name <- data_filenames[i_file]
         
         # load output data
         data_exp_all    <- get(load(exp_file_name))
-      
+    
         # check if data type present, if not, next experiment
         #if(!data_type %in% names(data_exp_all)){
         if(is.na(data_exp_all[[data_type]])){
@@ -210,12 +210,9 @@ if(!(exists('.rstride'))){
             data_exp <- data_tmp
           }
           
-          # add run index
-          data_exp$exp_id <- project_summary$exp_id[i_exp]
-        
           # return
           data_exp
-        } # end exp_id loop
+        } # end i_file loop
     
   # continue if data_all is not NULL
   if(any(!is.null(data_all))){
@@ -447,15 +444,17 @@ if(!(exists('.rstride'))){
 #.rstride$set_wd()
 .rstride$set_wd <- function(){
   
+  stride_dir_tag  <- 'stride-'
+  
   # default install directory
   install_dir              <- system('echo $HOME/opt',intern=T)
   
-  # if directory does not exists, try VSC cluster directory
-  if(!dir.exists(install_dir)){
+  # if directory does not exists OR contains a 'stride' folder ==>> try VSC SCRATCH directory
+  if(!dir.exists(install_dir) && !any(dir(install_dir,pattern = stride_dir_tag))){
     install_dir              <- system('echo $VSC_SCRATCH',intern=T)
   }
   
-  # if directory does not exists, try VSC cluster directory
+  # if directory does not exists, abort
   if(!dir.exists(install_dir)){
     
     smd_print('LATEST STRIDE INSTALLATION COULD NOT BE FOUND')

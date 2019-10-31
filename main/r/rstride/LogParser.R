@@ -34,7 +34,7 @@ if(0==1){
   
 }
 
-.rstride$parse_contact_logfile <- function(contact_log_filename)
+.rstride$parse_contact_logfile <- function(contact_log_filename,exp_id)
 {
   
   # terminal message
@@ -84,6 +84,9 @@ if(0==1){
     col_non_numeric <- which(grepl('is_',header_part))
     data_part[,-col_non_numeric] <- data.frame(apply(data_part[,-col_non_numeric], 2, as.double))
     
+    # add exp_id
+    data_part$exp_id <- exp_id
+    
     # save
     # save(data_part,file=file.path(exp_dir,'data_participants.RData'))
     rstride_out$data_participants = data_part
@@ -117,6 +120,9 @@ if(0==1){
     data_transm[data_transm == -1]   <- NA
     data_transm$cnt_location[data_transm$cnt_location == '<NA>'] <- NA
     
+    # add exp_id
+    data_transm$exp_id <- exp_id
+    
     # save
     # save(data_transm,file=file.path(exp_dir,'data_transmission.RData'))
     rstride_out$data_transmission = data_transm
@@ -140,6 +146,9 @@ if(0==1){
     data_cnt <- data.frame(apply(data_cnt,  2, as.double))
     dim(data_cnt)
     
+    # add exp_id
+    data_cnt$exp_id <- exp_id
+    
     # save
     # save(data_cnt,file=file.path(exp_dir,'data_contacts.RData'))
     rstride_out$data_contacts = data_cnt
@@ -161,6 +170,9 @@ if(0==1){
     pool_type_col <- names(data_vacc) %in% c('pool_type','pool_has_infant')
     data_vacc[,!pool_type_col] <- data.frame(apply(data_vacc[,!pool_type_col], 2, as.integer))
     dim(data_vacc)
+    
+    # add exp_id
+    data_vacc$exp_id <- exp_id
     
     # save
     # save(data_vacc,file=file.path(exp_dir,'data_vaccination.RData'))

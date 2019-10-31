@@ -174,7 +174,7 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                        # parse contact_log (if present)
                        contact_log_filename <- smd_file_path(config_exp$output_prefix,'contact_log.txt')
                        if(file.exists(contact_log_filename)){
-                         rstride_out <- .rstride$parse_contact_logfile(contact_log_filename)
+                         rstride_out <- .rstride$parse_contact_logfile(contact_log_filename,i_exp)
                        }
                        
                        # convert 'cases' file (if present) => "prevalence"
@@ -185,6 +185,7 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                          data_cases$exp_id <- config_exp$exp_id
                          #save(data_cases,file=file.path(config_exp$output_prefix,'data_prevalence.RData'))
                          rstride_out$data_prevalence <- data_cases
+                         
                        } else {
                          rstride_out$data_prevalence = NA
                        }
@@ -197,7 +198,6 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                          unlink(config_exp$output_prefix,recursive=T)
                          unlink(config_exp_filename,recursive = T)
                        }
-                       
                        
                        # return experiment output summary
                        return(run_summary)
