@@ -22,6 +22,8 @@
 
 inspect_participant_data <- function(project_dir)
 {
+  # command line message
+  smd_print('INSPECT PARTICIPANT DATA...')
   
   # load project summary
   project_summary <- .rstride$load_project_summary(project_dir)

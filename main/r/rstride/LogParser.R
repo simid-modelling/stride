@@ -152,13 +152,13 @@ if(0==1){
   ###################### 
   if(any(data_log[,1] == "[VACC]"))
   {
-    header_cnt          <- c('local_id', 'part_age', 'pool_type', 'pool_id', 'case_id', 'case_age','sim_day','id_index_case')
+    header_cnt          <- c('local_id', 'part_age', 'pool_type', 'pool_id', 'pool_has_infant', 'sim_day')
     data_vacc           <- data_log[data_log[,1] == "[VACC]",seq_len(length(header_cnt))+1]
     names(data_vacc)    <- header_cnt
     data_vacc[1,]
     
     # make sure, all values are stored as integers
-    pool_type_col <- names(data_vacc) == 'pool_type'
+    pool_type_col <- names(data_vacc) %in% c('pool_type','pool_has_infant')
     data_vacc[,!pool_type_col] <- data.frame(apply(data_vacc[,!pool_type_col], 2, as.integer))
     dim(data_vacc)
     

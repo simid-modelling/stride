@@ -124,8 +124,8 @@ shared_ptr<Population> DefaultPopBuilder::Build(shared_ptr<Population> pop)
         // means "not belonging pool of that type" (e.g. school/ work -
         // cannot belong to both, or e.g. out-of-work).
         //
-        // Pools are uniquely identified by (typ, subscript) and a Person
-        // belongs, for typ, to pool with subscript p.GetPoolId(typ).
+        // Pools are uniquely identified by (type, subscript) and a Person
+        // belongs, per type, to the pool with subscript p.GetPoolId(type).
         // Defensive measure: we have a pool for Id 0 and leave it empty.
         // --------------------------------------------------------------
         for (auto& p : *pop) {

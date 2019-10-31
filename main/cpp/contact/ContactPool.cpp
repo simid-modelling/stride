@@ -30,7 +30,7 @@ namespace stride {
 using namespace std;
 
 ContactPool::ContactPool(unsigned int poolId, ContactType::Id type)
-    : m_index_immune(0), m_pool_id(poolId), m_pool_type(type), m_members()
+    : m_index_immune(0), m_pool_id(poolId), m_pool_type(type), m_members(), m_has_infant(false)
 {
 }
 
@@ -38,6 +38,10 @@ void ContactPool::AddMember(Person* p)
 {
         m_members.emplace_back(p);
         m_index_immune++;
+
+        if(p->GetAge()<1){
+        	m_has_infant = true;
+        }
 }
 
 unsigned int ContactPool::GetInfectedCount() const

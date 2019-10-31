@@ -59,6 +59,9 @@ public:
         /// Get the type of ContactPool, used for logging and tests
         ContactType::Id GetType() const { return m_pool_type; }
 
+        /// Inspect whether this pool contains an infant
+        bool HasInfant() const { return m_has_infant; }
+
 public:
         // To iterate over the members.
         using iterator = std::vector<stride::Person*>::iterator;
@@ -88,6 +91,7 @@ private:
         unsigned int         m_pool_id;      ///< The ID of the ContactPool (for logging purposes).
         ContactType::Id      m_pool_type;    ///< The type of the ContactPool (for logging and testing purposes).
         std::vector<Person*> m_members;      ///< Pointers to contactpool members (raw pointers intentional).
+        bool                 m_has_infant;   ///< Boolean whether this contact pool contains infants between 0-1 years of age
 };
 
 } // namespace stride

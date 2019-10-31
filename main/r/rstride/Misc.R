@@ -368,7 +368,7 @@ if(!(exists('.rstride'))){
   immunity_profiles <- unique(c(design_of_experiment$immunity_profile,design_of_experiment$vaccine_profile))
   
   # get immunity profile names
-  disease_immunity_profiles <- c('None','Random','AgeDependent','Teachers')
+  disease_immunity_profiles <- c('None','Random','AgeDependent','Teachers','Cocoon')
   
   # check if given profile names are valid
   if(!all(immunity_profiles %in% disease_immunity_profiles)){
@@ -450,18 +450,31 @@ if(!(exists('.rstride'))){
   # default install directory
   install_dir              <- system('echo $HOME/opt',intern=T)
   
-  # load directory content (non recursive)
-  stride_dir_tag  <- 'stride-'
-  stride_dirs     <- dir(install_dir,pattern = stride_dir_tag)
-  stride_dirs_num <- as.numeric(sub(stride_dir_tag,'',stride_dirs))
+  # if directory does not exists, try VSC cluster directory
+  if(!dir.exists(install_dir)){
+    install_dir              <- system('echo $VSC_SCRATCH',intern=T)
+  }
   
-  # select last directory
-  last_stride_dir <- stride_dirs[stride_dirs_num == max(stride_dirs_num)]
+  # if directory does not exists, try VSC cluster directory
+  if(!dir.exists(install_dir)){
+    
+    smd_print('LATEST STRIDE INSTALLATION COULD NOT BE FOUND')
   
-  # set work directory
-  setwd(file.path(install_dir,last_stride_dir))
+  } else {
+    # load directory content (non recursive)
+    stride_dir_tag  <- 'stride-'
+    stride_dirs     <- dir(install_dir,pattern = stride_dir_tag)
+    stride_dirs_num <- as.numeric(sub(stride_dir_tag,'',stride_dirs))
+    
+    # select last directory
+    last_stride_dir <- stride_dirs[stride_dirs_num == max(stride_dirs_num)]
+    
+    # set work directory
+    setwd(file.path(install_dir,last_stride_dir))
+    
+    # terminal message
+    smd_print('NEW WORK DIRECTORY ',file.path(install_dir,last_stride_dir))
+  }
   
-  # terminal message
-  smd_print('NEW WORK DIRECTORY ',file.path(install_dir,last_stride_dir))
   
 }

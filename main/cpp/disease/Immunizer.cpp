@@ -86,8 +86,8 @@ void Immunizer::Random(const SegmentedVector<ContactPool>& pools, vector<double>
                                 numImmune--;
                                 // TODO: check log_level
                                 if(log_immunity){
-                                	logger->info("[VACC] {} {} {} {} {} {} {} {}",
-                                				 p.GetId(), p.GetAge(),-1, -1, -1,-1, 0, -1);
+                                	logger->info("[VACC] {} {} {} {} {} {}",
+                                				 p.GetId(), p.GetAge(),ToString(p_pool.GetType()), p_pool.GetId(), p_pool.HasInfant(),0);
                                 }
                         }
                         // random draw to continue in this pool or to sample a new one

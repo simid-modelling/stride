@@ -203,6 +203,9 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                        return(run_summary)
                      }
   
+  # print final statement
+  smd_print_progress(nrow(design_of_experiment),nrow(design_of_experiment),time_stamp_loop,par_nodes_info)
+  
   # save overal summary
   write.table(par_out,file=file.path(project_dir,paste0(run_tag,'_summary.csv')),sep=',',row.names=F)
   

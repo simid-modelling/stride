@@ -25,7 +25,9 @@
 #include "contact/ContactLogMode.h"
 #include "contact/InfectorExec.h"
 #include "contact/TransmissionProfile.h"
-#include "disease/PublicHealthAgency.h"
+
+#include "util/RnMan.h"
+
 
 #include <boost/property_tree/ptree.hpp>
 #include <string>
@@ -96,7 +98,6 @@ private:
         util::RnMan                 m_rn_man;           ///< Random number generation management.
 
         TransmissionProfile m_transmission_profile; ///< Profile of disease.
-        PublicHealthAgency  m_public_health_agency; ///< Agency to implement reactive strategies.
 };
 
 } // namespace stride

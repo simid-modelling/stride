@@ -40,7 +40,7 @@ DiseaseSeeder::DiseaseSeeder(const ptree& config, RnMan& rnMan) : m_config(confi
 void DiseaseSeeder::Seed(std::shared_ptr<Population> pop)
 {
         // --------------------------------------------------------------
-        // Population immunity (natural immunity & vaccination).
+        // Population immunity (natural & vaccine induced immunity).
         // --------------------------------------------------------------
         const auto immunityProfile = m_config.get<std::string>("run.immunity_profile");
         Vaccinate("immunity", immunityProfile, pop->CRefPoolSys().CRefPools<Id::Household>(),pop);
@@ -88,34 +88,50 @@ void DiseaseSeeder::Vaccinate(const std::string& immunityType, const std::string
         // retrieve the maximum age in the population
         unsigned int maxAge = pop->GetMaxAge();
 
+        if (immunizationProfile == "AgeDependent") {
+                        const auto   immunityFile = m_config.get<string>("run." + ToLower(immunityType) + "_distribution_file");
+                        const ptree& immunity_pt  = FileSys::ReadPtreeFile(immunityFile);
 
-        if (immunizationProfile == "Random") {
-                const auto immunityRate     = m_config.get<double>("run." + ToLower(immunityType) + "_rate");
-                const auto immunity_min_age = m_config.get<double>("run." + ToLower(immunityType) + "_min_age",0);
-                const auto immunity_max_age = m_config.get<double>("run." + ToLower(immunityType) + "_max_age",maxAge);
+                        linkProbability = m_config.get<double>("run." + ToLower(immunityType) + "_link_probability");
 
-                // Initialize a vector to count the population per age class [0-maxAge].
-                for (unsigned int index_age = 0; index_age <= maxAge; index_age++) {
-                        if(index_age >= immunity_min_age && index_age <= immunity_max_age){
-                        	immunityDistribution.push_back(immunityRate);
-                        } else{
-                        	immunityDistribution.push_back(0);
+                        for (unsigned int index_age = 0; index_age <= maxAge; index_age++) {
+                                auto immunityRate = immunity_pt.get<double>("immunity.age" + std::to_string(index_age));
+                                immunityDistribution.push_back(immunityRate);
                         }
-                }
-                immunizer.Random(immunityPools, immunityDistribution, linkProbability, pop, true);
-        } else if (immunizationProfile == "AgeDependent") {
-                const auto   immunityFile = m_config.get<string>("run." + ToLower(immunityType) + "_distribution_file");
-                const ptree& immunity_pt  = FileSys::ReadPtreeFile(immunityFile);
+                        immunizer.Random(immunityPools, immunityDistribution, linkProbability, pop, false);
 
-                linkProbability = m_config.get<double>("run." + ToLower(immunityType) + "_link_probability");
+		} else if(immunizationProfile == "Random" || immunizationProfile == "Cocoon") {
 
-                for (unsigned int index_age = 0; index_age <= maxAge; index_age++) {
-                        auto immunityRate = immunity_pt.get<double>("immunity.age" + std::to_string(index_age));
-                        immunityDistribution.push_back(immunityRate);
-                }
-                immunizer.Random(immunityPools, immunityDistribution, linkProbability, pop, false);
+			// Initialize new ContactPool vector
+			SegmentedVector<ContactPool> immunityPools_selection;
 
-        }
+			// immunizationProfile == Random: copy all contact pools
+			// immunizationProfile == Cocoon: copy all contact pools with an infant
+			for (auto& c : immunityPools) {
+				if(immunizationProfile == "Random" || c.HasInfant()){
+					immunityPools_selection.push_back(c);
+				}
+			}
+
+			// get immunity rate and
+			const auto immunityRate     = m_config.get<double>("run." + ToLower(immunityType) + "_rate");
+			const auto immunity_min_age = m_config.get<double>("run." + ToLower(immunityType) + "_min_age",0);
+			const auto immunity_max_age = m_config.get<double>("run." + ToLower(immunityType) + "_max_age",maxAge);
+
+			// Initialize a vector to store the immunity rate per age class [0-maxAge].
+			for (unsigned int index_age = 0; index_age <= maxAge; index_age++) {
+					if(index_age >= immunity_min_age && index_age <= immunity_max_age){
+						immunityDistribution.push_back(immunityRate);
+					} else{
+						immunityDistribution.push_back(0);
+					}
+			}
+
+			immunizer.Random(immunityPools_selection, immunityDistribution, linkProbability, pop, true);
+
+		}
+
+
 }
 
 } // namespace stride

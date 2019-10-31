@@ -51,6 +51,8 @@ exp_design <- expand.grid(r0                         = seq(9,11,2),
                           track_index_case           = 'false',
                           contact_log_level          = 'Transmissions',
                           seeding_rate               = 1.7e-5,
+                          seeding_age_min            = 1,
+                          seeding_age_max            = 90,
                           disease_config_file        = 'disease_measles_adaptive_behavior.xml',
                           population_file            = 'pop_belgium600k_c500_teachers_censushh.csv',
                           age_contact_matrix_file    = 'contact_matrix_flanders_conditional_teachers.xml',
@@ -58,17 +60,18 @@ exp_design <- expand.grid(r0                         = seq(9,11,2),
                           immunity_profile              = 'AgeDependent',           # 'None', 'Random', 'AgeDependent'
                           immunity_distribution_file    = 'data/immunity_measles_belgium.xml',
                           immunity_link_probability     = 0,
-                          vaccine_profile               = 'Random',                 # 'None', 'Random', 'AgeDependent'
-                          vaccine_rate                  = c(0.0,0.4,0.7),           # to be used with 'Random'
-                          vaccine_min_age               = c(18,28),                 # to be used with 'Random'
-                          vaccine_max_age               = NA,                       # to be used with 'Random'
-                          case_detection_probability    = 0,                        # Enable case finding
+                          vaccine_profile               = c('Random','Teachers'), # 'None', 'Random', 'Cocoon', 'AgeDependent'
+                          vaccine_rate                  = c(0.0,0.6),               # to be used with 'Random','Teachers','Cocoon'
+                          vaccine_min_age               = c(20),                    # to be used with 'Random','Teachers','Cocoon'
+                          vaccine_max_age               = NA,                       # to be used with 'Random','Teachers','Cocoon'
                           num_cea_samples               = 1e4,
                           stringsAsFactors = F)
 
 # remove doubles for 'no vaccination'
-flag_to_remove <- exp_design$vaccine_rate == 0 & exp_design$vaccine_min_age != exp_design$vaccine_min_age[1]
-exp_design <- exp_design[!flag_to_remove,]
+vaccine_tag    <- apply(exp_design[,grepl('vaccine',names(exp_design))],1,paste,collapse='_') 
+flag_to_remove <- exp_design$vaccine_rate == 0 & vaccine_tag != vaccine_tag[exp_design$vaccine_rate == 0][1]
+exp_design     <- exp_design[!flag_to_remove,]
+# table(flag_to_remove)
 
 # adjust the ages of the target group, according the projected year
 flag_add_max_age <- is.na(exp_design$vaccine_max_age)

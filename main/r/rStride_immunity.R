@@ -41,7 +41,7 @@ dir_postfix <- '_imm'
 #names(xmlToList('./config/run_default.xml'))
 
 # set the number of realisations per configuration set
-num_seeds  <- 10
+num_seeds  <- 5
 
 # add parameters and values to combine in a full-factorial grid
 exp_design <- expand.grid(r0                         = seq(12,12,2),
@@ -58,7 +58,7 @@ exp_design <- expand.grid(r0                         = seq(12,12,2),
                           immunity_profile           = 'AgeDependent',                        # 'None', 'Random', 'AgeDependent'
                           immunity_distribution_file = 'data/immunity_measles_belgium.xml',   # to be used with 'AgeDependent'
                           immunity_link_probability  = 0,                                     # to be used with 'AgeDependent'
-                          vaccine_profile           = c('None','Random','Teachers'),         # 'None', 'Random', 'AgeDependent', 'Teachers'
+                          vaccine_profile           = c('None','Random','Teachers','Cocoon'),         # 'None', 'Random', 'AgeDependent', 'Teachers'
                           vaccine_rate              = 0.7,                                   # to be used with 'Random'
                           vaccine_min_age           = 20,                                    # to be used with 'Random'
                           vaccine_max_age           = 25,                                    # to be used with 'Random'
@@ -72,7 +72,7 @@ exp_design$rng_seed <- sample(nrow(exp_design))
 #################################################
 ## RUN rSTRIDE                                 ##
 #################################################
-project_dir <- run_rStride(exp_design,dir_postfix)
+project_dir <- run_rStride(exp_design,dir_postfix,remove_tmp_output = FALSE)
 
 
 #################################################
@@ -92,5 +92,5 @@ inspect_participant_data(project_dir)
 #################################################
 inspect_transmission_data(project_dir)
 
-
+# names(data_all)
 
