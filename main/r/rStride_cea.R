@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -47,7 +47,7 @@ num_seeds  <- 5
 exp_design <- expand.grid(r0                         = seq(9,11,2),
                           num_days                   = 360,
                           rng_seed                   = seq(num_seeds),
-                          num_participants_survey    = 3000,
+                          num_participants_survey    = 10,
                           track_index_case           = 'false',
                           contact_log_level          = 'Transmissions',
                           seeding_rate               = 1.7e-5,

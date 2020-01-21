@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -50,8 +50,6 @@ exp_design <- expand.grid(dir_postfix               = '_cnt_orig',
                           rng_seed                  = 1:num_seeds,
                           population_file           = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file   = "contact_matrix_flanders_conditional_teachers.xml",
-                          #age_contact_matrix_file   = "contact_matrix_flanders_conditional_3level.xml",
-                          #age_contact_matrix_file   = "contact_matrix_flanders_conditional_teachers.xml",
                           stringsAsFactors = F)
 
 # add a unique seed for each run
