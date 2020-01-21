@@ -72,7 +72,7 @@ exp_design$rng_seed <- sample(nrow(exp_design))
 #################################################
 ## RUN rSTRIDE                                 ##
 #################################################
-project_dir <- run_rStride(exp_design,dir_postfix,remove_tmp_output = FALSE)
+project_dir <- run_rStride(exp_design,dir_postfix,remove_tmp_output = TRUE)
 
 
 #################################################

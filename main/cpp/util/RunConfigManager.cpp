@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2017, Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2020, Kuylen E, Willem L, Broeckhove J
  */
 /**
  * @file
@@ -59,36 +59,13 @@ ptree RunConfigManager::Create(const std::string& configName)
         return FromString(creators.at(configName)());
 }
 
-void RunConfigManager::AddGeoPopConfig(ptree& pt)
-{
-        const string geopop_str   = R"###(
-<run>
-        <population_file>gengeopop.proto</population_file>
-        <population_type>generate</geopopulation_type>
-        <geopop_gen>
-                <cities_file>flanders_cities.csv</cities_file>
-                <commuting_file>flanders_commuting.csv</commuting_file>
-                <fraction_college_commuters>0.5</fraction_college_commuters>
-                <fraction_workplace_commuters>0.5</fraction_workplace_commuters>
-                <household_file>households_flanders.csv</household_file>
-                <participation_college>0.5</participation_college>
-                <particpation_workplace>0.75</particpation_workplace>
-                <population_size>600000</population_size>
-    </geopop_gen>
-</run>
-        )###";
-        ptree        geopop_ptree = FromString(geopop_str);
-        pt.put_child("run.population_file", geopop_ptree.get_child("run.population_file"));
-        pt.put_child("run.population_type", geopop_ptree.get_child("run.population_type"));
-        pt.put_child("run.geopop_gen", geopop_ptree.get_child("run.geopop_gen"));
-}
 
 string RunConfigManager::CreateBenchInfluenza()
 {
         return R"###(
 <?xml version="1.0" encoding="utf-8"?>
 <run>
-        <age_contact_matrix_file>contact_matrix_flanders_subpop.xml</age_contact_matrix_file>
+        <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
         <contact_log_level>None</contact_log_level>
         <contact_output_file>false</contact_output_file>
         <disease_config_file>disease_influenza.xml</disease_config_file>
@@ -100,9 +77,9 @@ string RunConfigManager::CreateBenchInfluenza()
         <num_participants_survey>10</num_participants_survey>
         <num_threads>1</num_threads>
         <output_prefix></output_prefix>
-        <population_file>pop_flanders600.csv</population_file>
+        <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
         <population_type>default</geopopulation_type>
-        <rng_seed>1097253,2387652,9963540,4730214</rng_seed>
+        <rng_seed>4730214</rng_seed>
         <r0>1.5</r0>
         <seeding_rate>0.001</seeding_rate>
         <seeding_age_min>1</seeding_age_min>
@@ -121,10 +98,10 @@ string RunConfigManager::CreateBenchMeasles()
         return R"###(
 <?xml version="1.0" encoding="utf-8"?>
 <run>
-        <age_contact_matrix_file>contact_matrix_flanders_subpop.xml</age_contact_matrix_file>
+        <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
         <contact_log_level>None</contact_log_level>
         <contact_output_file>false</contact_output_file>
-        <disease_config_file>disease_measles.xml</disease_config_file>
+        <disease_config_file>disease_measles_adaptive_behavior.xml</disease_config_file>
         <holidays_file>holidays_none.json</holidays_file>
         <immunity_profile>None</immunity_profile>
         <immunity_rate>0.01</immunity_rate>
@@ -132,9 +109,9 @@ string RunConfigManager::CreateBenchMeasles()
         <num_participants_survey>10</num_participants_survey>
         <num_threads>1</num_threads>
         <output_prefix></output_prefix>
-        <population_file>pop_flanders600.csv</population_file>
+        <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
         <population_type>default</geopopulation_type>
-        <rng_seed>1097253,2387652,9963540,4730214</rng_seed>
+        <rng_seed>4730214</rng_seed>
         <r0>16</r0>
         <seeding_age_max>99</seeding_age_max>
         <seeding_age_min>1</seeding_age_min>
@@ -155,10 +132,10 @@ string RunConfigManager::CreateDefault()
         return R"###(
 <?xml version="1.0" encoding="utf-8"?>
 <run>
-        <age_contact_matrix_file>contact_matrix_flanders_subpop.xml</age_contact_matrix_file>
+        <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
         <contact_log_level>Transmissions</contact_log_level>
         <contact_output_file>true</contact_output_file>
-        <disease_config_file>disease_measles.xml</disease_config_file>
+        <disease_config_file>disease_measles_adaptive_behavior.xml</disease_config_file>
         <global_information_policy>NoGlobalInformation</global_information_policy>
         <holidays_file>holidays_none.json</holidays_file>
         <immunity_profile>None</immunity_profile>
@@ -171,9 +148,9 @@ string RunConfigManager::CreateDefault()
         <output_persons>false</output_persons>
         <output_prefix></output_prefix>
         <output_summary>false</output_summary>
-        <population_file>pop_flanders600.csv</population_file>
+        <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
         <population_type>default</geopopulation_type>
-        <rng_seed>1097253,2387652,9963540,4730214</rng_seed>
+        <rng_seed>4730214</rng_seed>
         <r0>11</r0>
         <seeding_age_max>99</seeding_age_max>
         <seeding_age_min>1</seeding_age_min>
@@ -226,7 +203,7 @@ string RunConfigManager::CreateTestsInfluenza()
         return R"###(
 <?xml version="1.0" encoding="utf-8"?>
 <run>
-        <age_contact_matrix_file>contact_matrix_flanders_subpop.xml</age_contact_matrix_file>
+        <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
         <contact_log_level>None</contact_log_level>
         <contact_output_file>false</contact_output_file>
         <disease_config_file>disease_influenza.xml</disease_config_file>
@@ -238,9 +215,9 @@ string RunConfigManager::CreateTestsInfluenza()
         <num_participants_survey>10</num_participants_survey>
         <num_threads>1</num_threads>
         <output_prefix></output_prefix>
-        <population_file>pop_flanders600.csv</population_file>
+        <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
         <population_type>default</geopopulation_type>
-        <rng_seed>1097253,2387652,9963540,4730214</rng_seed>
+        <rng_seed>4730214</rng_seed>
         <r0>3</r0>
         <seeding_rate>0.00089999999999999998</seeding_rate>
         <seeding_age_min>1</seeding_age_min>
@@ -259,10 +236,10 @@ string RunConfigManager::CreateTestsMeasles()
         return R"###(
 <?xml version="1.0" encoding="utf-8"?>
 <run>
-        <age_contact_matrix_file>contact_matrix_flanders_subpop.xml</age_contact_matrix_file>
+        <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
         <contact_log_level>Transmissions</contact_log_level>
         <contact_output_file>false</contact_output_file>
-        <disease_config_file>disease_measles.xml</disease_config_file>
+        <disease_config_file>disease_measles_adaptive_behavior.xml</disease_config_file>
         <holidays_file>holidays_none.json</holidays_file>
         <immunity_rate>0.80000000000000004</immunity_rate>
         <immunity_profile>None</immunity_profile>
@@ -270,7 +247,7 @@ string RunConfigManager::CreateTestsMeasles()
         <num_participants_survey>10</num_participants_survey>
         <num_threads>1</num_threads>
         <output_prefix></output_prefix>
-        <population_file>pop_flanders600.csv</population_file>
+        <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
         <population_type>default</geopopulation_type>
         <rng_seed>1097253,2387652,9963540,4730214</rng_seed>
         <seeding_age_max>99</seeding_age_max>

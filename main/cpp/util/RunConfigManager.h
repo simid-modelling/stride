@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2017, Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2020, Kuylen E, Willem L, Broeckhove J
  */
 
 /**
@@ -35,9 +35,6 @@ namespace util {
 class RunConfigManager
 {
 public:
-        /// Adapt the configuration by adding the gengeopop data items.
-        static void AddGeoPopConfig(boost::property_tree::ptree& pt);
-
         /// Clean (i.e. indent, sort and produde the sha1) the ptree config file.
         static void CleanConfigFile(boost::property_tree::ptree pt);
 

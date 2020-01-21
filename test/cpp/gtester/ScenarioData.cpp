@@ -11,7 +11,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2018 Willem L, Kuylen E, Stijven S & Broeckhove J
+ *  Copyright 2020 Willem L, Kuylen E, Stijven S & Broeckhove J
  */
 
 /**
@@ -39,9 +39,9 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
                                             : RunConfigManager::Create("TestsMeasles");
 
         const map<string, unsigned int> targets_default = {
-            {"influenza_a", 534000U}, {"influenza_b", 0U}, {"influenza_c", 5U}, {"measles_16", 240000U},
-            {"measles_26", 600000U},  {"r0_0", 1200U},     {"r0_4", 5400U},     {"r0_8", 19000U},
-            {"r0_12", 45000U},        {"r0_16", 75000U}};
+            {"influenza_a", 505000U}, {"influenza_b", 0U}, {"influenza_c", 5U}, {"measles_16", 166000U},
+            {"measles_26", 600000U},  {"r0_0", 1200U},     {"r0_4", 5400U},     {"r0_8", 11600U},
+            {"r0_12", 27500U},        {"r0_16", 53000U}};
 
         const map<string, double> margins_default = {
             {"influenza_a", 1.0e-02}, {"influenza_b", 0.0}, {"influenza_c", 2.0e-02}, {"measles_16", 5.0e-02},
@@ -61,11 +61,11 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
                 pt.put("run.immunity_rate", 0.9991);
         }
         if (tag == "measles_16") {
-                pt.put("run.disease_config_file", "disease_measles.xml");
+                pt.put("run.disease_config_file", "disease_measles_adaptive_behavior.xml");
                 pt.put("run.r0", 16U);
         }
         if (tag == "measles_26") {
-                pt.put("run.disease_config_file", "disease_measles.xml");
+                pt.put("run.disease_config_file", "disease_measles_adaptive_behavior.xml");
                 pt.put("run.r0", 26U);
                 pt.put("run.num_days", 200U);
         }
