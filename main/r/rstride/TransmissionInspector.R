@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 
 #############################################################################
@@ -58,7 +58,7 @@ inspect_transmission_data <- function(project_dir)
     if(nrow(input_opt_design)>0){ # add some param info to the legend
       legend_info <- c(legend_info,paste0(colnames(input_opt_design),': ',input_opt_design[i_config,]))
     }
-    legend('topleft',legend_info,cex=0.8)
+    legend('topright',legend_info,cex=0.8,bg='white')
     
     # CUMMULATIVE INCIDENCE: AVERAGE
     boxplot(t(apply(tbl_transm_matrix,2,cumsum))/num_infected_seeds,

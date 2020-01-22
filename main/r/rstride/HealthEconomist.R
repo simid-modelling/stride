@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 
 #############################################################################
@@ -91,7 +91,7 @@ get_cea_param <- function(num_samples = 1)
     
   # program cost
   # ref: RIZIV + BCFI
-  price_admin  <- cost_GP_visit
+  price_admin  <- cost_GP_visit #TODO?
   price_dose   <- 22.14
   data_cea_sample$price_dose_admin <- price_dose + price_admin
   
@@ -120,215 +120,225 @@ calculate_cost_effectiveness <- function(project_dir){
   project_summary    <- .rstride$load_project_summary(project_dir)
   
   # get average burden   
-  average_burden <- get_average_burden_averted(project_dir)  
-  head(average_burden)
+  average_burden_all <- get_average_burden_averted(project_dir)  
+  head(average_burden_all)
   
   # save average burden
-  write.table(average_burden,file=file.path(project_dir,paste0(project_summary$run_tag[1],'_cea_burden_average.csv')),row.names=F,sep=',')
+  write.table(average_burden_all,file=file.path(project_dir,paste0(project_summary$run_tag[1],'_cea_burden_average.csv')),row.names=F,sep=',')
   
   # add burden id 
-  average_burden$burden_id <- 1:nrow(average_burden)
-  average_burden$burden_id <- average_burden$reference_id
-  num_burden_exp <- length(unique(average_burden$reference_id))
-  
-  # get CEA parameters
-  num_cea_samples  <- unique(project_summary$num_cea_samples)
-  if(length(num_cea_samples)>1){
-    smd_print('MULTIPLE CEA UNCERTAINTY DIMENTIONS ==>> ERROR',WARNING = TRUE ,FORCED = TRUE)
-  }
-  num_samples      <- num_cea_samples
-  cea_param_sample <- get_cea_param(num_samples = num_samples)
+  average_burden_all$burden_id <- average_burden_all$reference_id
 
-  # combine cea param with stride results
-  cea_rstride <- cbind(cea_id    = cea_param_sample$cea_id,
-                       burden_id = unique(average_burden$burden_id))
-  # merge
-  cea_rstride <- merge(cea_rstride,average_burden)
-  cea_rstride <- merge(cea_rstride,cea_param_sample)
-
-  # cases averted: outpatient / inpatient
-  cea_rstride$cases_averted_inpatient  <- round(cea_rstride$incr_mean_num_cases_averted * cea_rstride$hospital_probability)
-  cea_rstride$cases_averted_outpatient <- cea_rstride$incr_mean_num_cases_averted - cea_rstride$cases_averted_inpatient
-  
-  # costs averted: outpatient / inpatient / total
-  cea_rstride$cost_averted_outpatient <- cea_rstride$cases_averted_outpatient * cea_rstride$outpatient_unit_cost
-  cea_rstride$cost_averted_inpatient  <- cea_rstride$cases_averted_inpatient  * cea_rstride$inpatient_unit_cost
-  cea_rstride$cost_averted_total      <- cea_rstride$cost_averted_outpatient + cea_rstride$cost_averted_inpatient 
-  
-  # program costs
-  cea_rstride$cost_program <- cea_rstride$incr_mean_num_vaccines_admin * cea_rstride$price_dose
-  
-  # total cost
-  cea_rstride$incr_cost    <- cea_rstride$cost_program - cea_rstride$cost_averted_total
-  
-  # burden averted
-  cea_rstride$qaly_gain    <- cea_rstride$incr_mean_num_cases_averted * cea_rstride$qaly_loss_case
-
-  # incremental cost effectives ratio (ICER)
-  cea_rstride$icer <- cea_rstride$incr_cost / cea_rstride$qaly_gain
-  cea_rstride$icer[cea_rstride$qaly_gain == 0] <- NA
-  
+  # open pdf stream
   pdf(file=file.path(project_dir,paste0(project_summary$run_tag[1],'_uncertainty.pdf')),10,5)
   #par(mfrow=1:2)
   legend_cex <- 0.6
   
-  cea_legend <- get_factor_legend(cea_rstride$intervention_tag)
-  names(cea_legend) <- c('intervention_tag','intervention_color')
-  cea_rstride <- merge(cea_rstride,cea_legend)
-  
-  cea_legend_pch <- data.frame(name = levels(cea_rstride$burden_exp_tag),
-                               pch  = 1:nlevels(cea_rstride$burden_exp_tag))
-  
-  # CEA PLANE
-  plot(cea_rstride$qaly_gain,
-       cea_rstride$incr_cost,
-       col=alpha(cea_rstride$intervention_color,0.1),
-       xlab='QALY gain',
-       ylab='Incremental cost',
-       #pch=16,
-       pch=as.numeric(cea_rstride$burden_exp_tag),
-       cex=1)
-  abline(h=0,v=0,lty=2)
-  legend('topright',
-         paste(cea_legend$intervention_tag),
-         fill = cea_legend$intervention_color,
-         cex=legend_cex,
-         title='Scenario',
-         bg='white')
-  legend('right',
-         paste(cea_legend_pch$name),
-         pch = cea_legend_pch$pch,
-         col=1,
-         cex=legend_cex,
-         title='Scenario',
-         bg='white')
-  
-  ## ICER
-  par(mar=c(10,5,1,1))
-  boxplot(icer ~ intervention_tag + burden_exp_tag,
-          data = cea_rstride,
-          xlab='intervention',
-          ylab='icer',
-          las=2)
-  abline(h=0,lty=2)
-  
-  # create experiment id
-  input_param_names         <- c(names(cea_param_sample),'burden_id','r0')
-  num_scenario              <- nlevels(cea_rstride$intervention_tag)
-  num_exp                   <- nlevels(as.factor(cea_rstride$cea_id))
-  
-  # set WTP levels
-  wtp_opt <- seq(0,5e5,length=101)
-  num_wtp <- length(wtp_opt)
-  
-  # initiate output parameters
-  prob_high_net_benefit      <- matrix(NA,num_scenario,num_wtp)  # CEAC
-  prob_high_mean_net_benefit <- prob_high_net_benefit            # CEAF
-  net_benefit_all            <- array(NA,dim=c(num_wtp,num_scenario,num_exp))
-  net_benefit_legend         <- get_factor_legend(cea_rstride$intervention_tag)
-  
-  i_wtp <- 3
-  for(i_wtp in 1:num_wtp){
-    cea_rstride_nb             <- cea_rstride
-    cea_rstride_nb$net_benefit <- get_net_benefit(cea_rstride$qaly_gain,cea_rstride$incr_cost,wtp_opt[i_wtp])  
-    
-    net_benefit_matrix        <- data.frame(matrix(NA,ncol=num_scenario,nrow=num_exp))
-    names(net_benefit_matrix) <- levels(cea_rstride_nb$intervention_tag)
-    
-    i_scen <- 2
-    for(i_scen in 1:num_scenario){
-      flag              <- as.numeric(cea_rstride_nb$intervention_tag) == i_scen
-      
-      net_benefit_value <- cea_rstride_nb$net_benefit[flag]
-      net_benefit_index <- as.numeric(cea_rstride_nb$cea_id[flag])
-      
-      net_benefit_matrix[net_benefit_index,i_scen] <- net_benefit_value
-      
-    }
-    head(net_benefit_matrix)
-    dim(net_benefit_matrix)
-    
-    input_param_scen <- unique(cea_rstride_nb[,input_param_names])
-    
-    # get highest net benefit per simulation
-    high_net_benefit <- (apply(X = net_benefit_matrix, MARGIN = 1,FUN=function(X){X==max(X,na.rm=T)}))
-    # aggregate to get a probability
-    prob <- rowSums(high_net_benefit,na.rm=T) / num_exp
-    
-    # store probability of highest net benefit => CEAC
-    prob_high_net_benefit[,i_wtp] <- prob
-    
-    # if not the highest "mean net benefit", set NA => CEAF
-    mean_nb   <- colMeans(net_benefit_matrix,na.rm = T)
-    prob_mean <- prob
-    prob_mean[mean_nb != max(mean_nb,na.rm = T)] <- NA
-    
-    # store
-    prob_high_mean_net_benefit[,i_wtp] <- prob_mean
-    
-    # store net_benefit
-    dim(t(net_benefit_matrix))
-    dim(net_benefit_all)
-    net_benefit_all[i_wtp,,] <- t(net_benefit_matrix)
-  }
-  
-  plot(range(wtp_opt),c(0,1.2),col=0,
-       xlab = 'Willingness to pay for a QALY (1000 EURO)',
-       ylab = 'Probability highest net benefit',
-       xaxt='n')
-  axis(1,pretty(wtp_opt),pretty(wtp_opt)/1e3)
-  grid(col=alpha(1,0.5))
-  #abline(v=seq(0,max(wtp_opt),1000),lty=3,col=alpha(1,0.5))
-  # CEAC
-  for(i in 1:dim(prob_high_net_benefit)[1])
-  {
-    lines(wtp_opt,prob_high_net_benefit[i,],col=alpha(cea_legend$intervention_color[i],0.8),lwd=4,pch=20)
-  }
-  # CEAF
-  for(i in 1:dim(prob_high_mean_net_benefit)[1])
-  {
-    lines( wtp_opt,prob_high_mean_net_benefit[i,],col=cea_legend$intervention_color[i],lwd=4) # add line
-    points(wtp_opt,prob_high_mean_net_benefit[i,],col=1,lwd=2,pch=1)
-  }
-  legend_ncol <- ceiling((length(net_benefit_legend$color)+1)/2)
-  legend('topleft',
-         c(net_benefit_legend$name,'CEAF'),
-         pch=c(rep(NA,length(net_benefit_legend$color)),1),
-         lty=c(rep(1,length(net_benefit_legend$color)),0),
-         lwd=2,
-         col=c(net_benefit_legend$color,1),
-         bg='white',
-         ncol=legend_ncol,
-         cex=0.9)
-  
-  ## EVPI
-  ## Based on code from Joke for Typhoid and McMarcel
+  # for each burden type
+  i_exp_burden_tag <- levels(average_burden_all$burden_exp_tag)[1]
+  for(i_exp_burden_tag in levels(average_burden_all$burden_exp_tag)){
+    average_burden <- average_burden_all[average_burden_all$burden_exp_tag == i_exp_burden_tag,]
 
-  param_opt <- names(.rstride$get_variable_model_param(input_param_scen))
-  param_opt <- param_opt[!grepl('id',param_opt)]
-  num_param <- length(param_opt)
-  
-  flag_col         <- names(input_param_scen) %in% param_opt 
-  country_param    <- input_param_scen[,flag_col]
-  evppi <- matrix(NA,num_wtp,num_param)  
-  j <- 1; i <- 1
-  for(j in 1:num_wtp){
-    NB_tmp <- t(net_benefit_all[j,,])
-    for(i in 1:num_param){
-      evppi[j,i] <- evpi_gam(NB_tmp,country_param[,i])
+    # get CEA parameters
+    num_cea_samples  <- unique(project_summary$num_cea_samples)
+    if(length(num_cea_samples)>1){
+      smd_print('MULTIPLE CEA UNCERTAINTY DIMENTIONS ==>> ERROR',WARNING = TRUE ,FORCED = TRUE)
     }
-  }  
-  colnames(evppi) <- param_opt
+    num_samples      <- num_cea_samples
+    cea_param_sample <- get_cea_param(num_samples = num_samples)
   
-  # plot EVPPI
-  plot_evppi(evppi,wtp_opt)
-  grid(col=alpha(1,0.5))
+    # combine cea param with stride results
+    cea_rstride <- cbind(cea_id    = cea_param_sample$cea_id,
+                         burden_id = unique(average_burden$burden_id))
+    # merge
+    cea_rstride <- merge(cea_rstride,average_burden)
+    cea_rstride <- merge(cea_rstride,cea_param_sample)
+  
+    # cases averted: outpatient / inpatient
+    cea_rstride$cases_averted_inpatient  <- round(cea_rstride$incr_mean_num_cases_averted * cea_rstride$hospital_probability)
+    cea_rstride$cases_averted_outpatient <- cea_rstride$incr_mean_num_cases_averted - cea_rstride$cases_averted_inpatient
+    
+    # costs averted: outpatient / inpatient / total
+    cea_rstride$cost_averted_outpatient <- cea_rstride$cases_averted_outpatient * cea_rstride$outpatient_unit_cost
+    cea_rstride$cost_averted_inpatient  <- cea_rstride$cases_averted_inpatient  * cea_rstride$inpatient_unit_cost
+    cea_rstride$cost_averted_total      <- cea_rstride$cost_averted_outpatient + cea_rstride$cost_averted_inpatient 
+    
+    # program costs
+    cea_rstride$cost_program <- cea_rstride$incr_mean_num_vaccines_admin * cea_rstride$price_dose
+    
+    # total cost
+    cea_rstride$incr_cost    <- cea_rstride$cost_program - cea_rstride$cost_averted_total
+    
+    # burden averted
+    cea_rstride$qaly_gain    <- cea_rstride$incr_mean_num_cases_averted * cea_rstride$qaly_loss_case
+  
+    # incremental cost effectives ratio (ICER)
+    cea_rstride$icer <- cea_rstride$incr_cost / cea_rstride$qaly_gain
+    cea_rstride$icer[cea_rstride$qaly_gain == 0] <- NA
+    
+    # plotting...
+    cea_legend <- get_factor_legend(cea_rstride$intervention_tag)
+    names(cea_legend) <- c('intervention_tag','intervention_color')
+    cea_rstride <- merge(cea_rstride,cea_legend)
+    
+    cea_legend_pch <- data.frame(name = levels(cea_rstride$burden_exp_tag),
+                                 pch  = 1:nlevels(cea_rstride$burden_exp_tag))
+    
+    # CEA PLANE
+    plot(cea_rstride$qaly_gain,
+         cea_rstride$incr_cost,
+         col=alpha(cea_rstride$intervention_color,0.1),
+         main=i_exp_burden_tag,
+         xlab='QALY gain',
+         ylab='Incremental cost',
+         #pch=16,
+         pch=as.numeric(cea_rstride$burden_exp_tag),
+         cex=1)
+    abline(h=0,v=0,lty=2)
+    legend('topright',
+           paste(cea_legend$intervention_tag),
+           fill = cea_legend$intervention_color,
+           cex=legend_cex,
+           title='Scenario',
+           bg='white')
+    # legend('right',
+    #        paste(cea_legend_pch$name),
+    #        pch = cea_legend_pch$pch,
+    #        col=1,
+    #        cex=legend_cex,
+    #        title='Scenario',
+    #        bg='white')
+    
+    # ## ICER
+    # par(mar=c(10,5,1,1))
+    # boxplot(icer ~ intervention_tag + burden_exp_tag,
+    #         data = cea_rstride,
+    #         xlab='intervention',
+    #         ylab='icer',
+    #         las=2)
+    # abline(h=0,lty=2)
+    
+    # create experiment id
+    input_param_names         <- c(names(cea_param_sample),'burden_id','r0')
+    num_scenario              <- nlevels(cea_rstride$intervention_tag)
+    num_exp                   <- nlevels(as.factor(cea_rstride$cea_id))
+    
+    # set WTP levels
+    wtp_opt <- seq(0,5e5,length=101)
+    num_wtp <- length(wtp_opt)
+    
+    # initiate output parameters
+    prob_high_net_benefit      <- matrix(NA,num_scenario,num_wtp)  # CEAC
+    prob_high_mean_net_benefit <- prob_high_net_benefit            # CEAF
+    net_benefit_all            <- array(NA,dim=c(num_wtp,num_scenario,num_exp))
+    net_benefit_legend         <- get_factor_legend(cea_rstride$intervention_tag)
+    
+    i_wtp <- 3
+    for(i_wtp in 1:num_wtp){
+      cea_rstride_nb             <- cea_rstride
+      cea_rstride_nb$net_benefit <- get_net_benefit(cea_rstride$qaly_gain,cea_rstride$incr_cost,wtp_opt[i_wtp])  
+      
+      net_benefit_matrix        <- data.frame(matrix(NA,ncol=num_scenario,nrow=num_exp))
+      names(net_benefit_matrix) <- levels(cea_rstride_nb$intervention_tag)
+      
+      i_scen <- 2
+      for(i_scen in 1:num_scenario){
+        flag              <- as.numeric(cea_rstride_nb$intervention_tag) == i_scen
+        
+        net_benefit_value <- cea_rstride_nb$net_benefit[flag]
+        net_benefit_index <- as.numeric(cea_rstride_nb$cea_id[flag])
+        
+        net_benefit_matrix[net_benefit_index,i_scen] <- net_benefit_value
+        
+      }
+      head(net_benefit_matrix)
+      dim(net_benefit_matrix)
+      
+      input_param_scen <- unique(cea_rstride_nb[,input_param_names])
+      
+      # get highest net benefit per simulation
+      high_net_benefit <- (apply(X = net_benefit_matrix, MARGIN = 1,FUN=function(X){X==max(X,na.rm=T)}))
+      # aggregate to get a probability
+      prob <- rowSums(high_net_benefit,na.rm=T) / num_exp
+      
+      # store probability of highest net benefit => CEAC
+      prob_high_net_benefit[,i_wtp] <- prob
+      
+      # if not the highest "mean net benefit", set NA => CEAF
+      mean_nb   <- colMeans(net_benefit_matrix,na.rm = T)
+      prob_mean <- prob
+      prob_mean[mean_nb != max(mean_nb,na.rm = T)] <- NA
+      
+      # store
+      prob_high_mean_net_benefit[,i_wtp] <- prob_mean
+      
+      # store net_benefit
+      dim(t(net_benefit_matrix))
+      dim(net_benefit_all)
+      net_benefit_all[i_wtp,,] <- t(net_benefit_matrix)
+    }
+    
+    plot(range(wtp_opt),c(0,1.2),col=0,
+         xlab = 'Willingness to pay for a QALY (1000 EURO)',
+         ylab = 'Probability highest net benefit',
+         main=i_exp_burden_tag,
+         xaxt='n')
+    axis(1,pretty(wtp_opt),pretty(wtp_opt)/1e3)
+    grid(col=alpha(1,0.5))
+    #abline(v=seq(0,max(wtp_opt),1000),lty=3,col=alpha(1,0.5))
+    # CEAC
+    for(i in 1:dim(prob_high_net_benefit)[1])
+    {
+      lines(wtp_opt,prob_high_net_benefit[i,],col=alpha(cea_legend$intervention_color[i],0.8),lwd=4,pch=20)
+    }
+    # CEAF
+    for(i in 1:dim(prob_high_mean_net_benefit)[1])
+    {
+      lines( wtp_opt,prob_high_mean_net_benefit[i,],col=cea_legend$intervention_color[i],lwd=4) # add line
+      points(wtp_opt,prob_high_mean_net_benefit[i,],col=1,lwd=2,pch=1)
+    }
+    legend_ncol <- ceiling((length(net_benefit_legend$color)+1)/2)
+    legend('topleft',
+           c(net_benefit_legend$name,'CEAF'),
+           pch=c(rep(NA,length(net_benefit_legend$color)),1),
+           lty=c(rep(1,length(net_benefit_legend$color)),0),
+           lwd=2,
+           col=c(net_benefit_legend$color,1),
+           bg='white',
+           ncol=legend_ncol,
+           cex=0.9)
+    
+    ## EVPI
+    ## Based on code from Joke for Typhoid and McMarcel
+  
+    param_opt <- names(.rstride$get_variable_model_param(input_param_scen))
+    param_opt <- param_opt[!grepl('id',param_opt)]
+    num_param <- length(param_opt)
+    
+    flag_col         <- names(input_param_scen) %in% param_opt 
+    country_param    <- input_param_scen[,flag_col]
+    evppi <- matrix(NA,num_wtp,num_param)  
+    j <- 1; i <- 1
+    for(j in 1:num_wtp){
+      NB_tmp <- t(net_benefit_all[j,,])
+      for(i in 1:num_param){
+        evppi[j,i] <- evpi_gam(NB_tmp,country_param[,i])
+      }
+    }  
+    colnames(evppi) <- param_opt
+    
+    # plot EVPPI
+    plot_evppi(evppi,wtp_opt)
+    grid(col=alpha(1,0.5))
+
+  } # end for-loop: burden type
   
   # close pdf stream
   dev.off()
   
   # command line message
   smd_print('COST-EFFECTIVENESS ANALYSIS COMPLETE')
+
 }
 
 
