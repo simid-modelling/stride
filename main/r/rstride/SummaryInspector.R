@@ -67,7 +67,7 @@ inspect_summary <- function(project_dir)
   }
   
   par(mar = c(10, 4, 1, 4) + 0.3)  # Leave space for 3rd axis
-  boxplot(as.formula(paste("num_cases",paste(colnames(input_opt_design),collapse='+'),sep="~")),
+  boxplot(as.formula(paste("num_cases ~ interaction(",paste(colnames(input_opt_design),collapse=','),',drop=T)')),
           data = project_summary,
           ylab = '',
           las=2,
@@ -102,7 +102,7 @@ inspect_summary <- function(project_dir)
   
   
   # plot
-  sec_cases_formula  <- as.formula(paste('avg_num_sec_cases ~ ',paste(colnames(input_opt_design),collapse=' + ')))
+  sec_cases_formula  <- as.formula(paste('avg_num_sec_cases ~ interaction(',paste(colnames(input_opt_design),collapse=' , '),',drop=TRUE)'))
   bxplot <- boxplot(sec_cases_formula, 
                     data=project_summary,
                     ylab = '',
@@ -113,17 +113,19 @@ inspect_summary <- function(project_dir)
   grid()
   
   sec_cases_mean <- aggregate(sec_cases_formula,data=project_summary,mean)
-  points(1:3,sec_cases_mean$avg_num_sec_cases,pch=4,lwd=2)
-  legend('topleft','mean',pch=4,col=1,cex=0.8)
+  if(all(sec_cases_mean[,1] == bxplot$names)){
+    points(1:nrow(sec_cases_mean),sec_cases_mean$avg_num_sec_cases,pch=4,lwd=2)
+    legend('topleft','mean',pch=4,col=1,cex=0.8)
+  }
   
   ## SUBSETS
-  project_summary$subset_id <- sample(10,nrow(project_summary),replace = T)
-  sec_cases_col <- paste(c('subset_id',colnames(input_opt_design)),collapse=' + ')
-  sec_cases_formula  <- as.formula(paste('avg_num_sec_cases ~ ',sec_cases_col))
+  num_subsets <- 10
+  project_summary$subset_id <- sample(num_subsets,nrow(project_summary),replace = T)
+  sec_cases_formula  <- as.formula(paste('avg_num_sec_cases ~ interaction(subset_id,',paste(colnames(input_opt_design),collapse=' , '),',drop=TRUE)'))
   bxplot <- boxplot(sec_cases_formula, 
                     data=project_summary,
                     ylab = '',
-                    xlab=sec_cases_col,
+                    xlab=paste(colnames(input_opt_design),collapse=' , '),
                     las=2,
                     cex.axis=0.8)
   mtext("Sec. cases per index case", side=2, line=2,cex=0.9)
@@ -131,7 +133,7 @@ inspect_summary <- function(project_dir)
   
   sec_cases_mean <- aggregate(sec_cases_formula,data=project_summary,mean)
   points(which(!is.na(bxplot$stats[1,])),sec_cases_mean$avg_num_sec_cases,pch=4,lwd=2)
-  abline(v=which(diff(sec_cases_mean$r0)>0)+0.5)
+  abline(v=(0:20)*num_subsets+0.5)
   legend('topleft','mean',pch=4,col=1,cex=0.8)
   title(paste('subset size:',mean(bxplot$n)))
   
