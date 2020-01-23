@@ -30,32 +30,12 @@ set(SRC
     ScenarioData.cpp
     ScenarioRuns.cpp
     #---
-    UnitCsvTest.cpp
-    UnitIsIterator.cpp
-    UnitPtreeUtils.cpp
-    UnitPtreeUtilsHelper.h
-    UnitRnEngine.cpp
-    UnitRnMan.cpp
-    UnitSVIterator.cpp
-    UnitSegmentedVector.cpp
-    UnitSlice1.cpp
-    UnitSlice2.cpp
-    #---
-    myhayai/DeliveryMan.cpp
-    myhayai/MyhayaiTests.cpp
-    myhayai/class_delivery.cpp
-    myhayai/flex_delivery.cpp
-    #---
     main.cpp
 )
 
-#if (OPENMP_FOUND)
-#        set(SRC ${SRC} ParallelRuns.cpp)
-#endif ()
-
 include_directories(${CMAKE_SOURCE_DIR}/test/cpp)
 add_executable(${EXEC} ${SRC})
-target_link_libraries(${EXEC} gtest libmyhayai libstride ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${EXEC} gtest libstride ${CMAKE_THREAD_LIBS_INIT})
 install(TARGETS ${EXEC}  DESTINATION   ${BIN_INSTALL_LOCATION})
 
 #============================================================================

@@ -27,9 +27,7 @@ add_test(NAME smoke_sim_defaultpop
 # Add subdirectories:
 #============================================================================
 if(STRIDE_BUILD_TEST_CASES)
-	add_subdirectory(btester)
 	add_subdirectory(gtester)
-	add_subdirectory(myhayai)
 endif()
 
 #############################################################################
