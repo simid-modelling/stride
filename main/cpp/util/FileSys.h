@@ -24,8 +24,9 @@
 #include <functional>
 #include <string>
 
-#include <filesystem>
-namespace filesys = std::filesystem;
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+namespace filesys = boost::filesystem;
 
 namespace stride {
 namespace util {

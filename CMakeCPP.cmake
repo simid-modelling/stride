@@ -103,7 +103,7 @@ set(LIBS ${LIBS} sha1)
 #----------------------------------------------------------------------------
 # Boost
 #----------------------------------------------------------------------------
-find_package(Boost COMPONENTS date_time)
+find_package(Boost COMPONENTS filesystem date_time)
 if (Boost_FOUND)
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
     add_compile_definitions(BOOST_FOUND)
