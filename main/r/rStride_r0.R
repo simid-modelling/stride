@@ -44,17 +44,17 @@ dir_postfix <- '_r0'
 num_seeds  <- 4
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(r0                            = seq(0,20,2),
+exp_design <- expand.grid(r0                            = seq(0,3,length=15),
                           num_days                      = c(20),
                           rng_seed                      = seq(num_seeds),
                           start_date                    = c('2017-01-01'),#,'2017-01-02','2017-01-03','2017-01-04','2017-01-05','2017-01-06','2017-01-07'),
-                          track_index_case              = 'true',
+                          track_index_case              = 'false',
                           contact_log_level             = 'Transmissions',
                           num_threads                   = 1,
                           seeding_rate                  = 1.7e-5,
-                          seeding_age_min               = 4,
-                          seeding_age_max               = 18,
-                          disease_config_file           = "disease_measles_adaptive_behavior.xml",
+                          seeding_age_min               = 1,
+                          seeding_age_max               = 99,
+                          disease_config_file           = "disease_covid19.xml",
                           population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           adaptive_symptomatic_behavior = 'true',

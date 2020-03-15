@@ -113,17 +113,20 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   sec_transm$R0_poly_fit <- round((.rstride$f_poly_r0(sec_transm$transmission_probability,fit_b0,fit_b1,fit_b2)),digits=1)
   
   # fix y-axis limits (default: 0-40)
-  y_lim <- range(c(0,36,sec_transm$sec_cases))
+  y_lim <- range(c(0,5,sec_transm$sec_cases))
   
   # open pdf stream
   .rstride$create_pdf(project_dir,'fit_r0')
   
   # plot secundary cases vs transmission probability 
   boxplot(round(sec_transm$sec_cases,digits=3) ~ round(sec_transm$transmission_probability,digits=3), 
-          xlab='Transmission probability',ylab='Secundary cases',
+          xlab='Transmission probability',
+          ylab='Secundary cases',
           at=sort(round(unique(sec_transm$transmission_probability),digits=3)),
           xlim=range(sec_transm$transmission_probability),
-          ylim=y_lim,boxwex=0.005)
+          ylim=y_lim,
+          boxwex=0.001
+          )
   
   lines(poly_input,R0_poly_fit,type='l',col=3,lwd=4)
   leg_text_model   <- paste0(c(paste0('b',0:2,': '),'R^2: '),round(c(fit_b0,fit_b1,fit_b2,mod$r.squared),digits=2))
@@ -133,7 +136,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   boxplot(sec_transm$sec_cases ~ sec_transm$R0_poly_fit,
           xlab='Predicted R0 (using updated transmission parameters)',ylab='Secundary cases',
           at=sort(unique(sec_transm$R0_poly_fit)),
-          ylim=y_lim,boxwex=0.5)
+          ylim=y_lim,boxwex=0.05)
   abline(0,1,col=2,lwd=2)
   legend('topleft',legend=leg_text_model,cex=0.8,title='b0+b1*x+b2*x^2')
   legend('topright',legend='x=y',cex=0.8,title='reference',col=2,lwd=2)

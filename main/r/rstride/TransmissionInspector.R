@@ -24,8 +24,8 @@ inspect_transmission_data <- function(project_dir)
   # command line message
   smd_print('INSPECT TRANSMISSION DYNAMICS...')
   
-  # inspect outbreaks (separate function)
-  inspect_outbreak_size(project_dir)
+  # # inspect outbreaks (separate function)
+  # inspect_outbreak_size(project_dir)
   
   # load project summary
   project_summary      <- .rstride$load_project_summary(project_dir)
@@ -61,7 +61,7 @@ inspect_transmission_data <- function(project_dir)
     if(nrow(input_opt_design)>0){ # add some param info to the legend
       legend_info <- c(legend_info,paste0(colnames(input_opt_design),': ',input_opt_design[i_config,]))
     }
-    legend('topright',legend_info,cex=0.8,bg='white')
+    legend('topleft',legend_info,cex=0.8,bg='white')
     
     # CUMMULATIVE INCIDENCE: AVERAGE
     boxplot(t(apply(tbl_transm_matrix,2,cumsum))/num_infected_seeds,
@@ -163,143 +163,151 @@ inspect_transmission_data <- function(project_dir)
       text(0,pos=3,'TRACK INDEX CASE ON == NO TERTIARY CASES')
     }
     
-    ## OUTBREAKS
-    data_transm$outbreak_id <- as.numeric(as.factor(data_transm$id_index_case))
-    outbreak_size_data      <- as.numeric(table(data_transm$outbreak_id))
-    outbreak_size_breaks    <- c(1,2,5,10,20,50,max(c(100,outbreak_size_data+1)))
-    outbreak_size_cat       <- cut(outbreak_size_data,breaks=outbreak_size_breaks,right = F)
+    # ## OUTBREAKS
+    # data_transm$outbreak_id <- as.numeric(as.factor(data_transm$id_index_case))
+    # outbreak_size_data      <- as.numeric(table(data_transm$outbreak_id))
+    # outbreak_size_breaks    <- c(1,2,5,10,20,50,max(c(100,outbreak_size_data+1)))
+    # outbreak_size_cat       <- cut(outbreak_size_data,breaks=outbreak_size_breaks,right = F)
+    # 
+    # # adjust labels
+    # levels(outbreak_size_cat) <- paste0('[',outbreak_size_breaks[-length(outbreak_size_breaks)],',',outbreak_size_breaks[-1]-1,']')
+    # levels(outbreak_size_cat)[1] <- "[1]"
+    # levels(outbreak_size_cat)[6] <- "[50,+]"
+    # 
+    # # plot
+    # percentage_plot <- round(table(outbreak_size_cat)/length(outbreak_size_cat)*100)
+    # bplot <- barplot(percentage_plot,
+    #                  ylab='%',
+    #                  xlab='outbreak size',
+    #                  main=paste0('outbreak size (n:',length(outbreak_size_data),')'),
+    #                  las=2,
+    #                  ylim=c(0,100),
+    #                  cex.names = 0.8)
+    # # add some info to the legend
+    # num_infected_seeds <- length(outbreak_size_data) / length(unique(data_transm$exp_id))
+    # legend('top',c(paste('num. runs',num_runs_exp),paste('outbreaks / run',num_infected_seeds)),cex=0.8)
+    # # add values
+    # label_plot    <- paste0(percentage_plot,'%')
+    # text(bplot,percentage_plot,label_plot,pos=3)
+    # 
+    # # add distribution
+    # boxplot(outbreak_size_data,
+    #         main='outbreak size (all)')
+    # points(1.3,mean(outbreak_size_data),pch=4,lwd=3)
+    # text(1.3,mean(outbreak_size_data),
+    #      paste0('mean\n(',round(mean(outbreak_size_data),digits=2),')'),pos=3)
+    # 
+    # bxplot <- boxplot(outbreak_size_data,
+    #         main='outbreak size (95% CI)',
+    #         outline = F)
+    # bool_outlier <- outbreak_size_data %in% bxplot$out
+    # points(1.3,mean(outbreak_size_data[!bool_outlier]),pch=4,lwd=3)
+    # text(1.3,mean(outbreak_size_data[!bool_outlier]),
+    #      paste0('mean\n(',round(mean(outbreak_size_data[!bool_outlier]),digits=2),')'),pos=3)
+    # 
+    # # count / day
+    # tbl_all <- table(data_transm$sim_day+1,data_transm$outbreak_id)
+    # 
+    # # insert this in standard matrix: [sim_day;outbreak_id]
+    # tbl_all_matrix <- matrix(0,nrow=max(project_summary$num_days),ncol=max(data_transm$outbreak_id))
+    # tbl_all_matrix[as.numeric(row.names(tbl_all)),] <- tbl_all
+    # rownames(tbl_all_matrix) <- 0:max(project_summary$num_days-1)
+    # 
+    # # take the inverse for the cummulative sum
+    # # and analyse the outbreaks over time
+    # tbl_all_inv  <- tbl_all_matrix[nrow(tbl_all_matrix):1,] 
+    # if(is.null(dim(tbl_all_inv))){
+    #   tbl_all_cum  <- cumsum(tbl_all_inv)
+    #   outbreaks_over_time <- data.frame(day = 1:length(tbl_all_cum),
+    #                                     count = tbl_all_cum)
+    # } else {
+    #   tbl_all_cum  <- apply(tbl_all_inv,2,cumsum)
+    #   outbreaks_over_time <- data.frame(day = as.numeric(rownames(tbl_all_cum)),
+    #                                     count = rowSums(tbl_all_cum > 0))
+    # }
+    # 
+    # 
+    # # plot outbreak size over time
+    # for(i in 2:length(levels(outbreak_size_cat))){
+    #   if(sum(as.numeric(outbreak_size_cat) == i) > 1){
+    #     tbl_selection <- t(apply(tbl_all[,as.numeric(outbreak_size_cat) == i],2,cumsum))  
+    #   } else {
+    #     tbl_selection <- t(cumsum(tbl_all[,as.numeric(outbreak_size_cat) == i]))
+    #   }
+    #   if(ncol(tbl_selection) > 0){
+    #     boxplot(tbl_selection,
+    #             at=as.numeric(colnames(tbl_selection)),
+    #             ylab='cummulative cases / outbreak',
+    #             main=paste0('cummulative cases / outbreak \nsize: ',levels(outbreak_size_cat)[i]),
+    #             xlab='time (day)')
+    #     legend('topleft',
+    #            paste0('absolute count: ',nrow(tbl_selection)),
+    #            cex=0.8)
+    #   }
+    # }
+    # 
     
-    # adjust labels
-    levels(outbreak_size_cat) <- paste0('[',outbreak_size_breaks[-length(outbreak_size_breaks)],',',outbreak_size_breaks[-1]-1,']')
-    levels(outbreak_size_cat)[1] <- "[1]"
-    levels(outbreak_size_cat)[6] <- "[50,+]"
-    
-    # plot
-    percentage_plot <- round(table(outbreak_size_cat)/length(outbreak_size_cat)*100)
-    bplot <- barplot(percentage_plot,
-                     ylab='%',
-                     xlab='outbreak size',
-                     main=paste0('outbreak size (n:',length(outbreak_size_data),')'),
-                     las=2,
-                     ylim=c(0,100),
-                     cex.names = 0.8)
-    # add some info to the legend
-    num_infected_seeds <- length(outbreak_size_data) / length(unique(data_transm$exp_id))
-    legend('top',c(paste('num. runs',num_runs_exp),paste('outbreaks / run',num_infected_seeds)),cex=0.8)
-    # add values
-    label_plot    <- paste0(percentage_plot,'%')
-    text(bplot,percentage_plot,label_plot,pos=3)
-    
-    # add distribution
-    boxplot(outbreak_size_data,
-            main='outbreak size (all)')
-    points(1.3,mean(outbreak_size_data),pch=4,lwd=3)
-    text(1.3,mean(outbreak_size_data),
-         paste0('mean\n(',round(mean(outbreak_size_data),digits=2),')'),pos=3)
-    
-    bxplot <- boxplot(outbreak_size_data,
-            main='outbreak size (95% CI)',
-            outline = F)
-    bool_outlier <- outbreak_size_data %in% bxplot$out
-    points(1.3,mean(outbreak_size_data[!bool_outlier]),pch=4,lwd=3)
-    text(1.3,mean(outbreak_size_data[!bool_outlier]),
-         paste0('mean\n(',round(mean(outbreak_size_data[!bool_outlier]),digits=2),')'),pos=3)
-    
-    # count / day
-    tbl_all <- table(data_transm$sim_day+1,data_transm$outbreak_id)
-    
-    # insert this in standard matrix: [sim_day;outbreak_id]
-    tbl_all_matrix <- matrix(0,nrow=max(project_summary$num_days),ncol=max(data_transm$outbreak_id))
-    tbl_all_matrix[as.numeric(row.names(tbl_all)),] <- tbl_all
-    rownames(tbl_all_matrix) <- 0:max(project_summary$num_days-1)
-    
-    # take the inverse for the cummulative sum
-    # and analyse the outbreaks over time
-    tbl_all_inv  <- tbl_all_matrix[nrow(tbl_all_matrix):1,] 
-    if(is.null(dim(tbl_all_inv))){
-      tbl_all_cum  <- cumsum(tbl_all_inv)
-      outbreaks_over_time <- data.frame(day = 1:length(tbl_all_cum),
-                                        count = tbl_all_cum)
-    } else {
-      tbl_all_cum  <- apply(tbl_all_inv,2,cumsum)
-      outbreaks_over_time <- data.frame(day = as.numeric(rownames(tbl_all_cum)),
-                                        count = rowSums(tbl_all_cum > 0))
-    }
-    
-
-    # plot outbreak size over time
-    for(i in 2:length(levels(outbreak_size_cat))){
-      if(sum(as.numeric(outbreak_size_cat) == i) > 1){
-        tbl_selection <- t(apply(tbl_all[,as.numeric(outbreak_size_cat) == i],2,cumsum))  
-      } else {
-        tbl_selection <- t(cumsum(tbl_all[,as.numeric(outbreak_size_cat) == i]))
-      }
-      if(ncol(tbl_selection) > 0){
-        boxplot(tbl_selection,
-                at=as.numeric(colnames(tbl_selection)),
-                ylab='cummulative cases / outbreak',
-                main=paste0('cummulative cases / outbreak \nsize: ',levels(outbreak_size_cat)[i]),
-                xlab='time (day)')
-        legend('topleft',
-               paste0('absolute count: ',nrow(tbl_selection)),
-               cex=0.8)
-      }
-    }
-    
-    
-    # plot the number of ongoing outbreaks over time
-    plot(outbreaks_over_time$day,outbreaks_over_time$count,
-         ylim=c(0,max(data_transm$outbreak_id)),
-         xlab='day of last infection',ylab='count (oubtreaks)',
-         main='number ongoing outbreaks over time')
+    # # plot the number of ongoing outbreaks over time
+    # plot(outbreaks_over_time$day,outbreaks_over_time$count,
+    #      ylim=c(0,max(data_transm$outbreak_id)),
+    #      xlab='day of last infection',ylab='count (oubtreaks)',
+    #      main='number ongoing outbreaks over time')
     
     # cases by age
     names(data_transm)
     hist(data_transm$part_age,unique(data_transm$part_age),right = F,
          freq = F,xlab='age of a case',
-         ylim = c(0,0.2),
+         ylim = c(0,0.025),
          main = 'incidence by age')  
     
-    # plot age-interval per outbreak
-    data_outbreak_tmp <- data_transm
-    data_outbreak_tmp$sim_day[is.na(data_outbreak_tmp$sim_day)] <- -10
-    bymedian <- with(data_outbreak_tmp, reorder(outbreak_id, -part_age, median))
-    boxplot(part_age ~ bymedian, data = data_outbreak_tmp,
-            xlab='outbreak id (sorted by the median age)',ylab='age of the cases')
+    # cases by age group
+    hist(data_transm$part_age,seq(0,100,5),right = F,
+         freq = F,
+         xlab='age of a case',
+         ylim = c(0,0.025),
+         main = 'incidence by age')  
+    
+    # # plot age-interval per outbreak
+    # data_outbreak_tmp <- data_transm
+    # data_outbreak_tmp$sim_day[is.na(data_outbreak_tmp$sim_day)] <- -10
+    # bymedian <- with(data_outbreak_tmp, reorder(outbreak_id, -part_age, median))
+    # boxplot(part_age ~ bymedian, data = data_outbreak_tmp,
+    #         xlab='outbreak id (sorted by the median age)',ylab='age of the cases')
     
     # plot age-interval over time
-    boxplot(part_age ~ sim_day, data=data_outbreak_tmp,
-            at=sort(unique(data_outbreak_tmp$sim_day)),
+    boxplot(part_age ~ sim_day, data=data_transm,
+            at=sort(unique(data_transm$sim_day)),
             xlab='time (days)',ylab='age of the cases',
             cex=0.8)  
     
     
-    ###############################
-    # incidence per age group  
-    ###############################
-    
-    # get age distribution in the (secondary) cases
-    data_case_age     <- cut(data_transm$part_age,c(0,1,5,10,15,20,25,30,100),right=F)
-    data_sec_case_age <- cut(data_transm$part_age[data_transm$sim_day>0],c(0,1,5,10,15,20,25,30,100),right=F)
-    
-    # define the number of outbreaks
-    num_outbreaks <- sum(data_transm$sim_day==0)
-    
-    # calculate the incidence 
-    inc_case_age     <- table(data_case_age) / num_outbreaks
-    inc_sec_case_age <- table(data_sec_case_age) / num_outbreaks
-    plot_ylim <- range((c(0,0.5,inc_case_age,inc_sec_case_age)*1.2))
-    
-    # plot the incidence per age group
-    barplot(inc_case_age,
-            las=2,xlab='age',ylab='Incidence',cex.names=0.8,
-            ylim=plot_ylim, main = 'Incidence per outbreak\nby age group')
-    
-    # plot the secondary incidence per age group
-    barplot(inc_sec_case_age,
-            las=2,xlab='age',ylab='Secondary incidence',cex.names=0.8,
-            ylim=plot_ylim, main = 'Secondary incidence per outbreak \nby age group')
-    
+    # ###############################
+    # # incidence per age group  
+    # ###############################
+    # 
+    # # get age distribution in the (secondary) cases
+    # age_breaks <- seq(0,100,10)
+    # data_case_age     <- cut(data_transm$part_age,age_breaks,right=F)
+    # #data_sec_case_age <- cut(data_transm$part_age[data_transm$sim_day>0],age_breaks,right=F)
+    # 
+    # # define the number of outbreaks
+    # num_outbreaks <- sum(data_transm$sim_day==0)
+    # 
+    # # calculate the incidence 
+    # inc_case_age     <- table(data_case_age) / num_outbreaks
+    # #inc_sec_case_age <- table(data_sec_case_age) / num_outbreaks
+    # plot_ylim <- range((c(0,0.5,inc_case_age,inc_sec_case_age)*1.2))
+    # 
+    # # plot the incidence per age group
+    # barplot(inc_case_age,
+    #         las=2,xlab='age',ylab='Incidence',cex.names=0.8,
+    #         ylim=plot_ylim, main = 'Incidence per outbreak\nby age group')
+    # 
+    # # # plot the secondary incidence per age group
+    # # barplot(inc_sec_case_age,
+    # #         las=2,xlab='age',ylab='Secondary incidence',cex.names=0.8,
+    # #         ylim=plot_ylim, main = 'Secondary incidence per outbreak \nby age group')
+    # 
     
   } # end for-loop to vary the input_opt_design
   
