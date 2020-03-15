@@ -33,7 +33,8 @@ library('simid.rtools',quietly = T)
 # ggplot2     to plot contact matrices
 # gridExtra   to plot contact matrices
 # mgcv        to sample uncertaint parameters from distributions
-smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv'))
+# data.table  to use convenience functions for range subsets (e.g. "between")
+smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table'))
 
 # load general help functions
 source('./bin/rstride/Misc.R')

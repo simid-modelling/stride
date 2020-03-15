@@ -24,6 +24,9 @@ inspect_transmission_data <- function(project_dir)
   # command line message
   smd_print('INSPECT TRANSMISSION DYNAMICS...')
   
+  # inspect outbreaks (separate function)
+  inspect_outbreak_size(project_dir)
+  
   # load project summary
   project_summary      <- .rstride$load_project_summary(project_dir)
   
@@ -88,15 +91,15 @@ inspect_transmission_data <- function(project_dir)
     incidence_days      <- as.numeric(row.names(tbl_loc_transm))
     incidence_day_total <- rowSums(tbl_loc_transm,na.rm = T)
     
-    plot(range(incidence_days),c(0,1.4),col=0,xlab='day',ylab='relative daily incidence',
-         main='transmission context over time',yaxt='n')
-    axis(2,seq(0,1,0.2),cex.axis=0.9)
-    for(i_loc in 1:ncol(tbl_loc_transm)){
-      points(incidence_days, tbl_loc_transm[,i_loc]/incidence_day_total,col=i_loc,lwd=4,pch=19)
-    }
-    if(!any(is.null(colnames(tbl_loc_transm)))) {
-      legend('topleft',c(colnames(tbl_loc_transm)),col=1:ncol(tbl_loc_transm),pch=19,cex=0.8,ncol=5)
-    }
+    # plot(range(incidence_days),c(0,1.4),col=0,xlab='day',ylab='relative daily incidence',
+    #      main='transmission context over time',yaxt='n')
+    # axis(2,seq(0,1,0.2),cex.axis=0.9)
+    # for(i_loc in 1:ncol(tbl_loc_transm)){
+    #   points(incidence_days, tbl_loc_transm[,i_loc]/incidence_day_total,col=i_loc,lwd=4,pch=19)
+    # }
+    # if(!any(is.null(colnames(tbl_loc_transm)))) {
+    #   legend('topleft',c(colnames(tbl_loc_transm)),col=1:ncol(tbl_loc_transm),pch=19,cex=0.8,ncol=5)
+    # }
     
     # REPRODUCTION NUMBER
     data_transm$sim_day[is.na(data_transm$sim_day)] <- 0
@@ -186,6 +189,21 @@ inspect_transmission_data <- function(project_dir)
     # add values
     label_plot    <- paste0(percentage_plot,'%')
     text(bplot,percentage_plot,label_plot,pos=3)
+    
+    # add distribution
+    boxplot(outbreak_size_data,
+            main='outbreak size (all)')
+    points(1.3,mean(outbreak_size_data),pch=4,lwd=3)
+    text(1.3,mean(outbreak_size_data),
+         paste0('mean\n(',round(mean(outbreak_size_data),digits=2),')'),pos=3)
+    
+    bxplot <- boxplot(outbreak_size_data,
+            main='outbreak size (95% CI)',
+            outline = F)
+    bool_outlier <- outbreak_size_data %in% bxplot$out
+    points(1.3,mean(outbreak_size_data[!bool_outlier]),pch=4,lwd=3)
+    text(1.3,mean(outbreak_size_data[!bool_outlier]),
+         paste0('mean\n(',round(mean(outbreak_size_data[!bool_outlier]),digits=2),')'),pos=3)
     
     # count / day
     tbl_all <- table(data_transm$sim_day+1,data_transm$outbreak_id)
@@ -293,4 +311,182 @@ inspect_transmission_data <- function(project_dir)
   
 } # function end
 
+
+inspect_outbreak_size <- function(project_dir){
+  
+  # load project summary
+  project_summary      <- .rstride$load_project_summary(project_dir)
+  
+  # retrieve all variable model parameters
+  input_opt_design     <- .rstride$get_variable_model_param(project_summary)
+  input_opt_param      <- names(input_opt_design)
+  
+  # add parameter tag
+  preferred_order <- c('r0','vaccine_rate','vaccine_profile','num_days')
+  preferred_order <- preferred_order[preferred_order %in% input_opt_param]
+  preferred_order <- c(preferred_order,input_opt_param[!input_opt_param %in% preferred_order])
+  project_summary$param_tag <- apply(project_summary[,preferred_order],1,paste0,collapse='_')
+
+  # open pdf stream
+  .rstride$create_pdf(project_dir,'outbreak_inspection',10,7)
+  par(mar =c(10,5,3,1))
+  
+  data_transm         <- .rstride$load_aggregated_output(project_dir,'data_transmission')
+  
+  # add (dummy) column
+  data_transm$outbreak_size <- 1
+  
+  # aggregate
+  outbreak_size_data <- aggregate(outbreak_size ~ id_index_case + exp_id, data= data_transm, sum)
+  
+  # add model parameter info
+  outbreak_size_data <- merge(outbreak_size_data,project_summary)
+
+  # create comparison function
+  param_fction <- formula(paste(c('outbreak_size ~ param_tag'),collapse=''))
+  param_fction
+  
+  size_mean_all <- aggregate(param_fction,data = outbreak_size_data,mean)
+  
+  #upper whisker = min(max(x), Q_3 + 1.5 * IQR) 
+  #lower whisker = max(min(x), Q_1 – 1.5 * IQR)
+  
+  size_q1 <- aggregate(param_fction,data = outbreak_size_data,quantile,0.25)$outbreak_size
+  size_q3 <- aggregate(param_fction,data = outbreak_size_data,quantile,0.75)$outbreak_size
+  size_min <- aggregate(param_fction,data = outbreak_size_data,min)$outbreak_size
+  size_max <- aggregate(param_fction,data = outbreak_size_data,max)$outbreak_size
+  
+  IQR <- size_q3 - size_q1
+  size_upper <- apply(cbind(size_max,size_q3 + 1.5*IQR),1,min)
+  size_lower <- apply(cbind(size_min,size_q1 - 1.5*IQR),1,max)
+  
+  boxplot(param_fction,
+          data = outbreak_size_data,
+          main='outbreak size',
+          ylab='size',las=2);grid()
+  points(x = 1:nrow(size_mean_all),
+         y = size_mean_all$outbreak_size,
+         pch = 4,
+         lwd=3,
+         col='blue')
+  legend('topleft','mean',pch=4,lwd=2,col='blue',lty=0,cex=0.7)
+  
+  bxplot <- boxplot(param_fction,
+                    data = outbreak_size_data,
+                    main='outbreak size (no outliers)',
+                    outline = F,
+                    #ylim = range(c(0,size_mean_all$outbreak_size)),
+                    las=2);grid()
+  points(x = 1:nrow(size_mean_all),
+         y = size_mean_all$outbreak_size,
+         pch = 4,
+         lwd=3,
+         col='blue')
+  legend('topleft','mean',pch=4,lwd=2,col='blue',lty=0,cex=0.7)
+  
+  i <- 1
+  size_mean_all$outbreak_size_iqr <- 0
+  for(i in 1:nrow(size_mean_all)){
+    bool_exp <- outbreak_size_data$param_tag == size_mean_all$param_tag[i] &
+                between(outbreak_size_data$outbreak_size,size_lower[i],size_upper[i])
+    
+    size_mean_all$outbreak_size_iqr[i] <- mean(outbreak_size_data$outbreak_size[bool_exp])
+  }
+  points(1:nrow(size_mean_all),size_mean_all$outbreak_size_iqr,
+         pch=4,col='red',lwd=2)
+  points(1:nrow(size_mean_all),size_mean_all$outbreak_size,
+         pch=4,col='blue',lwd=2)
+  legend('topleft',c('mean (all)','mean (iqr)'),pch=4,lwd=2,col=c(4,2),lty=0,cex=0.7)
+  
+  
+  ## DISTRIBUTION
+  names(outbreak_size_data)
+  head(outbreak_size_data)
+  
+  opt_r0  <- unique(outbreak_size_data$r0)
+  opt_param_tag <- unique(outbreak_size_data[,c('param_tag','r0','vaccine_rate','vaccine_profile')])
+  names(opt_param_tag)
+  opt_param_tag <- data.frame((apply(opt_param_tag,2,as.factor)))
+  
+  opt_param_tag$col = as.numeric(opt_param_tag$param_tag)
+  
+  #size_bin <- c(1:100,500,1000)
+  size_bin <- 10
+  
+  plot(y = c(0,4),
+       x = c(0,20),
+       col = 0,
+       ylab='log10(Frequency)',
+       xlab='outbreak size')
+  xlabels <- c(pretty(1:100),'500','1000')
+  #axis(1,at=100,'100+')
+  pretty(size_bin[1:100])
+  
+  i_param    <- 2
+  for(i_param in 1:nlevels(opt_param_tag$param_tag)){
+    
+    bool_param <- outbreak_size_data$param_tag == opt_param_tag$param_tag[i_param]
+    
+    hist_data  <- hist(outbreak_size_data$outbreak_size[bool_param],
+                       size_bin,
+                       plot = FALSE)
+    hist_data$counts[hist_data$counts==0] <- NA
+    hist_data$counts = (hist_data$counts)
+    
+    plot(hist_data$mids, 
+          hist_data$counts,
+          col = opt_param_tag$col[i_param])
+    
+  }
+  
+  dev.off() # close pdf stream
+  
+  ## MEAN OF MEANS
+  
+  # open pdf stream
+  .rstride$create_pdf(project_dir,'outbreak_mean_sample_random',10,10)
+  par(mfrow=c(2,3))
+  
+  bool_coverage <- outbreak_size_data$vaccine_rate == 0.7 & outbreak_size_data$vaccine_profile == 'Random'
+  bool_coverage <- outbreak_size_data$vaccine_rate == 0
+  
+  outbreak_size_sel <- outbreak_size_data[bool_coverage,]
+  
+  bin_opt <- c(10,25,50,100,250,1000)
+  sample_opt <- 1
+
+  num_bin <- 10
+  
+  overall_mean <- aggregate(outbreak_size ~ r0, data = outbreak_size_sel, mean) 
+  
+  for(num_bin in bin_opt){
+  for(i_sample in sample_opt){
+    
+    plot_title <- paste0(num_bin,'x n', nrow(outbreak_size_sel) / num_bin / 3)
+  
+    outbreak_size_sel$dummy <- paste(outbreak_size_sel$r0,sample(1:num_bin,nrow(outbreak_size_sel),replace = T),sep='_')
+    
+    sample_means <- aggregate(outbreak_size ~ r0 + dummy, data = outbreak_size_sel, mean)
+    nrow(sample_means)/3
+    
+    boxplot(outbreak_size ~ r0, data = sample_means,
+            ylim = c(0,max(c(100,sample_means$outbreak_size))),
+            #ylim = c(0,max(c(100,1))),
+            main=plot_title,
+            ylab='mean outbreak size (count)',
+            xlab='R0',
+            outline = T)
+    points(1:nrow(overall_mean),
+           overall_mean$outbreak_size,
+           pch=4,
+           col=4,
+           lwd=2)
+  }
+  }
+  
+  # close pdf stream
+  dev.off()
+  
+  
+}
 
