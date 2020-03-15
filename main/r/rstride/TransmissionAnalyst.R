@@ -119,7 +119,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   .rstride$create_pdf(project_dir,'fit_r0')
   
   # plot secundary cases vs transmission probability 
-  boxplot(round(sec_transm$sec_cases,digits=3) ~ round(sec_transm$transmission_probability,digits=2), 
+  boxplot(round(sec_transm$sec_cases,digits=3) ~ round(sec_transm$transmission_probability,digits=3), 
           xlab='Transmission probability',ylab='Secundary cases',
           at=sort(round(unique(sec_transm$transmission_probability),digits=3)),
           xlim=range(sec_transm$transmission_probability),

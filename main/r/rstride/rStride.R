@@ -165,6 +165,9 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                        summary_filename <- file.path(config_exp$output_prefix,'summary.csv')
                        run_summary      <- read.table(summary_filename,header=T,sep=',')
                        
+                       # remove R0 column... to prevent mismatch due to rounding (e.g. 0.33 and 0.333)
+                       run_summary$r0 <- NULL
+                       
                        # merge output summary with input param
                        config_df   <- as.data.frame(config_exp)
                        run_summary <- merge(run_summary,config_df)
