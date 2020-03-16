@@ -68,6 +68,7 @@ void Sim::TimeStep()
         const bool isWorkOff   = daysOff->IsWorkOff();
         const bool isSchoolOff = daysOff->IsSchoolOff();
         const bool isSoftLockdown = daysOff->isSoftLockdown();
+
         // To be used in update of population & contact pools.
         Population& population    = *m_population;
         auto&       poolSys       = population.RefPoolSys();
