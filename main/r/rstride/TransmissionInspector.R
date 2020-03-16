@@ -33,6 +33,7 @@ inspect_transmission_data <- function(project_dir)
   # retrieve all variable model parameters
   input_opt_design     <- .rstride$get_variable_model_param(project_summary)
   
+  
   # open pdf stream
   .rstride$create_pdf(project_dir,'transmission_inspection',10,7)
   
@@ -48,14 +49,26 @@ inspect_transmission_data <- function(project_dir)
     num_runs_exp        <- sum(flag_exp)
     num_infected_seeds  <- sum(is.na(data_transm$infector_id)) / num_runs_exp
     
-    # INCIDENCE
-    tbl_transm <- table(data_transm$sim_day,data_transm$exp_id)
-    tbl_transm_matrix <- matrix(c(tbl_transm),nrow=nrow(tbl_transm),dimnames=list(rownames(tbl_transm)))
-    if(nrow(tbl_transm_matrix)==0) tbl_transm_matrix <- matrix(0,nrow=1,ncol=1,dimnames=list(0))
-    boxplot(t(tbl_transm_matrix),at=as.numeric(rownames(tbl_transm_matrix)),
-            xlab='time (days)',ylab='new cases per run',
-            main='incidence: per day')
+    # get the simulated dates
+    # TODO: include checks!
+    start_date   <- as.Date(unique(project_summary$start_date[flag_exp]),'%Y-%m-%d')
+    num_days     <- unique(project_summary$num_days[flag_exp])
+    sim_day_date <- seq(start_date,start_date+num_days,1)
+    data_transm$sim_day_date <- sim_day_date[data_transm$sim_day+1]
     
+    # INCIDENCE
+    tbl_transm        <- table(data_transm$sim_day,data_transm$exp_id)
+    tbl_transm_matrix <- matrix(c(tbl_transm),nrow=nrow(tbl_transm),dimnames=list(rownames(tbl_transm)))
+    tbl_transm_date   <- sim_day_date[as.numeric(row.names(tbl_transm_matrix))]
+    if(nrow(tbl_transm_matrix)==0) tbl_transm_matrix <- matrix(0,nrow=1,ncol=1,dimnames=list(0))
+    boxplot(t(tbl_transm_matrix),
+            at=tbl_transm_date,
+            main='incidence: per day',
+            xlab='time (days)',ylab='new cases',
+            xaxt='n')
+    axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%b"))
+    
+
     legend_info <- c(paste('num. runs:',num_runs_exp),
                      paste('inf. seeds / run:',num_infected_seeds))
     if(nrow(input_opt_design)>0){ # add some param info to the legend
@@ -64,11 +77,12 @@ inspect_transmission_data <- function(project_dir)
     legend('topleft',legend_info,cex=0.8,bg='white')
     
     # CUMMULATIVE INCIDENCE: AVERAGE
-    boxplot(t(apply(tbl_transm_matrix,2,cumsum))/num_infected_seeds,
-            at=as.numeric(rownames(tbl_transm_matrix)),
-            xlab='time (days)',ylab='cummulative incidence per run',
-            main='incidence: cummulative\n[average per infected seed]')
-    
+    boxplot(t(apply(tbl_transm_matrix,2,cumsum)),
+            at=tbl_transm_date,
+            xlab='time (days)',ylab='cummulative incidence',
+            main='incidence: cummulative\n[average per infected seed]',
+            xaxt='n')
+    axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%b"))
     
     # LOCATION
     data_transm$cnt_location[data_transm$cnt_location == 'Household'] <- 'HH'
@@ -128,15 +142,19 @@ inspect_transmission_data <- function(project_dir)
     # merge secondary cases with time of infection
     sec_transm    <- merge(infection_time,data_infectors,all=T)
     sec_transm$sec_cases[is.na(sec_transm$sec_cases)] <- 0
+    sec_transm$infection_day_date <- sim_day_date[sec_transm$infection_day+1]
     
     # plot
     plot_xlim <- range(c(0,sec_transm$infection_day),na.rm=T)
     plot_ymax <- range(c(0,6,sec_transm$sec_cases))
-    boxplot(sec_cases ~ infection_day, data = sec_transm, outline = F,
-            at=sort(unique(sec_transm$infection_day)), xlim=plot_xlim,
+    boxplot(sec_cases ~ infection_day_date, data = sec_transm, outline = F,
+            at=sort(unique(sec_transm$infection_day_date)), 
+    #        xlim=plot_xlim,
             xlab='day',ylab='secondary infections',
             main='reproduction number',
-            ylim=plot_ymax)
+            ylim=plot_ymax,
+            xaxt='n')
+    axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%b'))
     
     ## GENERATION INTERVAL
     # note: the generation interval is the time between the infection time of an infected person and the infection time of his or her infector.
@@ -148,10 +166,13 @@ inspect_transmission_data <- function(project_dir)
     gen_interval <- sec_transm[!is.na(sec_transm$generation_interval),]
     #gen_interval[gen_interval$infection_day==18,]
     if(nrow(gen_interval)==0) gen_interval <- data.frame(matrix(rep(0,6),nrow=1)); names(gen_interval) <- names(sec_transm)
-    boxplot(generation_interval ~ infection_day, data = gen_interval,outline = F,
-            at=sort(unique(gen_interval$infection_day)),xlim=plot_xlim,
+    boxplot(generation_interval ~ infection_day_date, data = gen_interval,outline = F,
+            at=sort(unique(gen_interval$infection_day_date)),
             xlab='day',ylab='generation interval [infection]',
-            main='generation interval\n[infection]')
+            main='generation interval\n[infection]',
+            xaxt='n')
+    axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%b'))
+    
     if(unique(project_summary$track_index_case[flag_exp]) == 'true'){
       text(0,pos=4,'TRACK INDEX CASE ON == NO TERTIARY CASES')
     }
@@ -275,11 +296,12 @@ inspect_transmission_data <- function(project_dir)
     #         xlab='outbreak id (sorted by the median age)',ylab='age of the cases')
     
     # plot age-interval over time
-    boxplot(part_age ~ sim_day, data=data_transm,
-            at=sort(unique(data_transm$sim_day)),
+    boxplot(part_age ~ sim_day_date, data=data_transm,
+            at=sort(unique(data_transm$sim_day_date)),
             xlab='time (days)',ylab='age of the cases',
-            cex=0.8)  
-    
+            cex=0.8,
+            xaxt='n')  
+    axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%b'))
     
     # ###############################
     # # incidence per age group  

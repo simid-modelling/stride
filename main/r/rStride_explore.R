@@ -55,6 +55,8 @@ exp_design <- expand.grid(r0                            = seq(2,3,1),
                           population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           adaptive_symptomatic_behavior = 'true',
+                          start_date                    = c('2020-01-01'),
+                          holidays_file                 = "holidays_flanders_2020.json",
                           stringsAsFactors = F)
 
 # add a unique seed for each run

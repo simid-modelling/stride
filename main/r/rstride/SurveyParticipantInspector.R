@@ -61,16 +61,17 @@ inspect_participant_data <- function(project_dir)
       all_symp[i,data_part$start_symptomatic[i]:data_part$end_symptomatic[i]] <- 1
     }
     
-    plot(1:30,colMeans(all_inf),ylab='population fraction',xlab='day',type='b',lwd=3,col=2)
+    plot(1:30,colMeans(all_inf),ylab='population fraction',xlab='days since infection',type='b',lwd=3,col=2)
     points(1:30,colMeans(all_symp),lwd=3,col=4,type='b')
     legend('topright',c('infectious','symptomatic'),col=c(2,4),lwd=4,cex=0.8)
     abline(v=6:9,lty=3)
     
     f_data <- data_part$start_infectiousness; f_main <- 'debug'
-    plot_cum_distr <- function(f_data,f_main){
+    plot_cum_distr <- function(f_data,f_main,f_x_lab = 'period (days)'){
       tbl_data <- table(f_data)/length(f_data)
       tbl_data_cumm <- cumsum(tbl_data)
-      plot(tbl_data,xlim=c(0,20),ylim=0:1,xlab='day',ylab='frequency',main=f_main)
+      plot(tbl_data,xlim=c(0,20),ylim=0:1,
+           xlab=f_x_lab,ylab='frequency',main=f_main)
       lines(as.numeric(names(tbl_data_cumm)),tbl_data_cumm,col=4,lwd=2,type='b')
       
       legend_position <- 'topleft'
@@ -78,10 +79,10 @@ inspect_participant_data <- function(project_dir)
       legend(legend_position,c('per day','cummulative'),col=c(1,4),lwd=2,cex=0.8)
     }
     
-    plot_cum_distr(data_part$start_infectiousness,f_main='start_infectiousness')
+    plot_cum_distr(data_part$start_infectiousness,f_main='start_infectiousness',f_x_lab='time since infection (days)')
     plot_cum_distr(data_part$end_infectiousness-data_part$start_infectiousness,f_main='days infectious')
     plot_cum_distr(f_data=data_part$start_symptomatic-data_part$start_infectiousness,f_main='days infectious \n& not symptomatic')
-    plot_cum_distr(data_part$start_symptomatic,f_main='start_symptomatic')
+    plot_cum_distr(data_part$start_symptomatic,f_main='start_symptomatic',f_x_lab='time since infection (days)')
     plot_cum_distr(data_part$end_symptomatic-data_part$start_symptomatic,f_main='days symptomatic')
     
     
