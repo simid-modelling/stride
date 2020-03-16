@@ -69,6 +69,7 @@
   </time_asymptomatic>
   <time_infectious>
     <probability>0</probability>
+    <probability>0</probability>
     <probability>0.25</probability>
     <probability>0.50</probability>
     <probability>0.75</probability>
@@ -77,8 +78,8 @@
   <time_symptomatic>
     <probability>0</probability>
     <probability>0</probability>
-    <probability>0</probability>
-    <probability>0.5</probability>
+    <probability>0.33</probability>
+    <probability>0.66</probability>
     <probability>1</probability>
   </time_symptomatic>
   <transmission>
