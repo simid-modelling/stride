@@ -67,12 +67,6 @@ void DiseaseSeeder::Seed(std::shared_ptr<Population> pop)
 
         auto numInfected = static_cast<unsigned int>(floor(static_cast<double>(popSize) * sRate));
 
-        const auto   num_infect_seeds       = m_config.get<unsigned int>("run.num_infect_seeds",0U);
-
-        if(num_infect_seeds != 0){
-        	numInfected = num_infect_seeds;
-        }
-
         while (numInfected > 0) {
                 Person& p = pop->at(static_cast<size_t>(generator()));
                 if (p.GetHealth().IsSusceptible() && (p.GetAge() >= sAgeMin) && (p.GetAge() <= sAgeMax)) {

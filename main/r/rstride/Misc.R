@@ -223,7 +223,7 @@ if(!(exists('.rstride'))){
     
     if(length(names_id_columns)>0) {
       for(i_id_column in names_id_columns){
-        row_is_id  <- !is.na(data_all[,i_id_column]) & data_all[,i_id_column] != 0
+        row_is_id  <- !is.na(data_all[,i_id_column])
         data_all[row_is_id,i_id_column] <- as.numeric(sprintf(paste0('%d%0',num_exp_id_digits,'d'),
                                                               data_all[row_is_id,i_id_column],
                                                               data_all$exp_id[row_is_id]))

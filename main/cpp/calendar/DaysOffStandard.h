@@ -45,7 +45,7 @@ public:
                 return m_calendar->IsWeekend() || m_calendar->IsHoliday() || m_calendar->IsSchoolHoliday();
         }
 
-        /// Check if quarantine measures are in place
+        /// See DaysOffInterface.
         bool isSoftLockdown() override { return m_calendar->isSoftLockdown(); }
 
 private:

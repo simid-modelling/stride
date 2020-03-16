@@ -30,10 +30,8 @@ INSTALL(DIRECTORY
 # rStride analysis scripts
 INSTALL( FILES 			
             rStride_all.R
-            rStride_cea.R
             rStride_contacts.R
             rStride_explore.R
-            rStride_immunity.R
             rStride_r0.R 						 
 	DESTINATION ${BIN_INSTALL_LOCATION}  
 	PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_WRITE GROUP_READ

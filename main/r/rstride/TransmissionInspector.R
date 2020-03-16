@@ -135,8 +135,8 @@ inspect_transmission_data <- function(project_dir)
                                  infector_infection_day = data_transm$sim_day)
     
     
-    infection_time$infector_id[is.na(infection_time$infector_id)] <- 0
-    infector_time$infector_id[is.na(infector_time$infector_id)] <- 0
+    infection_time$infector_id[is.na(infection_time$infector_id)] <- -1
+    #infector_time$infector_id[is.na(infector_time$infector_id)] <- 0
     
     # merge case and infector timings
     infection_time <- merge(infection_time,infector_time, all.x = TRUE)
