@@ -49,6 +49,12 @@ inspect_transmission_data <- function(project_dir)
     num_runs_exp        <- sum(flag_exp)
     num_infected_seeds  <- sum(is.na(data_transm$infector_id)) / num_runs_exp
     
+    # get population size
+    pop_size            <- unique(project_summary$population_size[flag_exp])
+    pop_size_belgium    <- 11.6e6
+    pop_factor_100k     <- 1/pop_size*1e5
+    pop_factor_belgium  <- 1/pop_size*pop_size_belgium
+    
     # get the simulated dates
     # TODO: include checks!
     start_date   <- as.Date(unique(project_summary$start_date[flag_exp]),'%Y-%m-%d')
@@ -61,28 +67,30 @@ inspect_transmission_data <- function(project_dir)
     tbl_transm_matrix <- matrix(c(tbl_transm),nrow=nrow(tbl_transm),dimnames=list(rownames(tbl_transm)))
     tbl_transm_date   <- sim_day_date[as.numeric(row.names(tbl_transm_matrix))]
     if(nrow(tbl_transm_matrix)==0) tbl_transm_matrix <- matrix(0,nrow=1,ncol=1,dimnames=list(0))
-    boxplot(t(tbl_transm_matrix),
+    boxplot(t(tbl_transm_matrix)*pop_factor_100k,
             at=tbl_transm_date,
-            main='incidence: per day',
-            xlab='time (days)',ylab='new cases',
+            main='Incidence: per day / 100k',
+            xlab='time (days)',ylab='New cases (per 100k)',
             xaxt='n')
     axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
-    
-
+    grid()
     legend_info <- c(paste('num. runs:',num_runs_exp),
                      paste('inf. seeds / run:',num_infected_seeds))
+    
     if(nrow(input_opt_design)>0){ # add some param info to the legend
       legend_info <- c(legend_info,paste0(colnames(input_opt_design),': ',input_opt_design[i_config,]))
     }
     legend('topleft',legend_info,cex=0.8,bg='white')
     
     # CUMMULATIVE INCIDENCE: AVERAGE
-    boxplot(t(apply(tbl_transm_matrix,2,cumsum)),
+    boxplot(t(apply(tbl_transm_matrix,2,cumsum))*pop_factor_100k,
             at=tbl_transm_date,
-            xlab='time (days)',ylab='cummulative incidence',
-            main='incidence: cummulative\n[average per infected seed]',
+            xlab='Date',ylab='Cummulative incidence (per 100k)',
+            main='Incidence: cummulative (per 100k)',
             xaxt='n')
     axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
+    grid()
+    
     
     # LOCATION
     data_transm$cnt_location[data_transm$cnt_location == 'Household'] <- 'HH'
@@ -275,11 +283,11 @@ inspect_transmission_data <- function(project_dir)
     #      main='number ongoing outbreaks over time')
     
     # cases by age
-    names(data_transm)
-    hist(data_transm$part_age,unique(data_transm$part_age),right = F,
-         freq = F,xlab='age of a case',
-         ylim = c(0,0.025),
-         main = 'incidence by age')  
+    # names(data_transm)
+    # hist(data_transm$part_age,unique(data_transm$part_age),right = F,
+    #      freq = F,xlab='age of a case',
+    #      ylim = c(0,0.025),
+    #      main = 'incidence by age')  
     
     # cases by age group
     hist(data_transm$part_age,seq(0,100,5),right = F,
@@ -294,15 +302,15 @@ inspect_transmission_data <- function(project_dir)
     # bymedian <- with(data_outbreak_tmp, reorder(outbreak_id, -part_age, median))
     # boxplot(part_age ~ bymedian, data = data_outbreak_tmp,
     #         xlab='outbreak id (sorted by the median age)',ylab='age of the cases')
-    
-    # plot age-interval over time
-    boxplot(part_age ~ sim_day_date, data=data_transm,
-            at=sort(unique(data_transm$sim_day_date)),
-            xlab='time (days)',ylab='age of the cases',
-            cex=0.8,
-            xaxt='n')  
-    axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%d %b'))
-    
+    # 
+    # # plot age-interval over time
+    # boxplot(part_age ~ sim_day_date, data=data_transm,
+    #         at=sort(unique(data_transm$sim_day_date)),
+    #         xlab='time (days)',ylab='age of the cases',
+    #         cex=0.8,
+    #         xaxt='n')  
+    # axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%d %b'))
+    # 
     # ###############################
     # # incidence per age group  
     # ###############################
@@ -330,6 +338,32 @@ inspect_transmission_data <- function(project_dir)
     # #         las=2,xlab='age',ylab='Secondary incidence',cex.names=0.8,
     # #         ylim=plot_ylim, main = 'Secondary incidence per outbreak \nby age group')
     # 
+    
+    # PREDICTIONS FOR BELGIUM
+    
+    # DAILY INCIDENCE
+    inc_belgium <- t(tbl_transm_matrix)*pop_factor_belgium/1e3
+    plot_ylim <- range(inc_belgium,80)
+    boxplot(inc_belgium,
+            at=tbl_transm_date,
+            main='Incidence: per day (belgium)',
+            xlab='time (days)',ylab='New cases (1000x)',
+            xaxt='n',
+            ylim = plot_ylim)
+    axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
+    grid()
+    
+    # CUMMULATIVE INCIDENCE: predict for Belgium
+    inc_cum_belgium <- t(apply(tbl_transm_matrix,2,cumsum))*pop_factor_belgium/1e5
+    plot_ylim <- range(inc_cum_belgium,13)
+    boxplot(inc_cum_belgium,
+            at=tbl_transm_date,
+            xlab='Date',ylab='Cummulative incidence (100k)',
+            main='Incidence: cummulative (Belgium)',
+            xaxt='n',
+            ylim = plot_ylim)
+    axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
+    grid()
     
   } # end for-loop to vary the input_opt_design
   

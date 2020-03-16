@@ -50,12 +50,15 @@ exp_design <- expand.grid(r0                            = seq(2,3,1),
                           num_participants_survey       = 5000,
                           track_index_case              = 'false',
                           contact_log_level             = "Transmissions",
-                          seeding_rate                  = c(1.7e-4,1.7e-5),
+                          seeding_rate                  = 0, #disable this, and use "num_infect_seeds"
+                          num_infect_seeds              = 12,
                           disease_config_file           = "disease_covid19.xml",
-                          population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
+                          # population_file               = c("pop_belgium600k_c500_teachers_censushh.csv"),
+                           population_file               = c("pop_belgium600k_c500_teachers_censushh.csv",
+                                                             "pop_belgium1000k_c500_teachers_censushh.csv"),
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           adaptive_symptomatic_behavior = 'true',
-                          start_date                    = c('2020-01-01'),
+                          start_date                    = c('2020-02-01'),
                           holidays_file                 = "holidays_flanders_2020.json",
                           stringsAsFactors = F)
 

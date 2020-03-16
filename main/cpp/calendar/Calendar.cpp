@@ -34,7 +34,7 @@ using boost::property_tree::ptree;
 
 #ifdef BOOST_FOUND
 
-Calendar::Calendar(const ptree& configPt) : m_date(), m_holidays(), m_school_holidays(), m_day(0U)
+Calendar::Calendar(const ptree& configPt) : m_date(), m_holidays(), m_school_holidays(), m_soft_lockdown(), m_day(0U)
 {
         // Set start date
         m_date = boost::gregorian::from_simple_string(configPt.get<string>("run.start_date", "2016-01-01"));
@@ -112,7 +112,7 @@ date::year_month_day ConvertFromString(const string& day)
 }
 
 Calendar::Calendar(const boost::property_tree::ptree& configPt)
-    : m_date(), m_holidays(), m_school_holidays(), m_day(static_cast<size_t>(0))
+    : m_date(), m_holidays(), m_school_holidays(), m_soft_lockdown(), m_day(static_cast<size_t>(0))
 {
         const string start_date{configPt.get<string>("run.start_date", "2016-01-01")};
         // Set start date

@@ -61,7 +61,11 @@ inspect_participant_data <- function(project_dir)
       all_symp[i,data_part$start_symptomatic[i]:data_part$end_symptomatic[i]] <- 1
     }
     
-    plot(1:30,colMeans(all_inf),ylab='population fraction',xlab='days since infection',type='b',lwd=3,col=2)
+    plot(1:30,colMeans(all_inf),
+         ylab='population fraction',
+         xlab='days since infection',
+         type='b',lwd=3,col=2,
+         ylim=c(0,1))
     points(1:30,colMeans(all_symp),lwd=3,col=4,type='b')
     legend('topright',c('infectious','symptomatic'),col=c(2,4),lwd=4,cex=0.8)
     abline(v=6:9,lty=3)
@@ -80,11 +84,10 @@ inspect_participant_data <- function(project_dir)
     }
     
     plot_cum_distr(data_part$start_infectiousness,f_main='start_infectiousness',f_x_lab='time since infection (days)')
-    plot_cum_distr(data_part$end_infectiousness-data_part$start_infectiousness,f_main='days infectious')
-    plot_cum_distr(f_data=data_part$start_symptomatic-data_part$start_infectiousness,f_main='days infectious \n& not symptomatic')
     plot_cum_distr(data_part$start_symptomatic,f_main='start_symptomatic',f_x_lab='time since infection (days)')
+    plot_cum_distr(f_data=data_part$start_symptomatic-data_part$start_infectiousness,f_main='days infectious \n& not symptomatic')
+    plot_cum_distr(data_part$end_infectiousness-data_part$start_infectiousness,f_main='days infectious')
     plot_cum_distr(data_part$end_symptomatic-data_part$start_symptomatic,f_main='days symptomatic')
-    
     
     ## POPULATION
     population_age <- as.data.frame(table(part_age = data_part$part_age))
