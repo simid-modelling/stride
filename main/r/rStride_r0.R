@@ -44,7 +44,7 @@ dir_postfix <- '_r0'
 num_seeds  <- 4
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(r0                            = seq(0,3,length=15),
+exp_design <- expand.grid(r0                            = seq(1,5,length=15),
                           num_days                      = c(20),
                           rng_seed                      = seq(num_seeds),
                           start_date                    = c('2017-01-01'),#,'2017-01-02','2017-01-03','2017-01-04','2017-01-05','2017-01-06','2017-01-07'),
