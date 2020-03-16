@@ -71,7 +71,8 @@ class Infector
 public:
         ///
         static void Exec(ContactPool& pool, const AgeContactProfile& profile, const TransmissionProfile& transProfile,
-                         ContactHandler& cHandler, unsigned short int simDay, std::shared_ptr<spdlog::logger> cLogger);
+                         ContactHandler& cHandler, unsigned short int simDay, std::shared_ptr<spdlog::logger> cLogger,
+						 bool isSoftLockdown);
 };
 
 /// Time-optimized version (For NoLocalInformation && (None || Transmission logging)).
@@ -83,7 +84,8 @@ class Infector<LL, TIC, true>
 public:
         ///
         static void Exec(ContactPool& pool, const AgeContactProfile& profile, const TransmissionProfile& transProfile,
-                         ContactHandler& cHandler, unsigned short int simDay, std::shared_ptr<spdlog::logger> cLogger);
+                         ContactHandler& cHandler, unsigned short int simDay, std::shared_ptr<spdlog::logger> cLogger,
+						 bool isSoftLockdown);
 };
 
 /// Explicit instantiations in cpp file.

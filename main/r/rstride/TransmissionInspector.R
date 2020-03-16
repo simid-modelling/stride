@@ -66,7 +66,7 @@ inspect_transmission_data <- function(project_dir)
             main='incidence: per day',
             xlab='time (days)',ylab='new cases',
             xaxt='n')
-    axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%b"))
+    axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
     
 
     legend_info <- c(paste('num. runs:',num_runs_exp),
@@ -82,7 +82,7 @@ inspect_transmission_data <- function(project_dir)
             xlab='time (days)',ylab='cummulative incidence',
             main='incidence: cummulative\n[average per infected seed]',
             xaxt='n')
-    axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%b"))
+    axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
     
     # LOCATION
     data_transm$cnt_location[data_transm$cnt_location == 'Household'] <- 'HH'
@@ -154,7 +154,7 @@ inspect_transmission_data <- function(project_dir)
             main='reproduction number',
             ylim=plot_ymax,
             xaxt='n')
-    axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%b'))
+    axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%d %b'))
     
     ## GENERATION INTERVAL
     # note: the generation interval is the time between the infection time of an infected person and the infection time of his or her infector.
@@ -171,7 +171,7 @@ inspect_transmission_data <- function(project_dir)
             xlab='day',ylab='generation interval [infection]',
             main='generation interval\n[infection]',
             xaxt='n')
-    axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%b'))
+    axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%d %b'))
     
     if(unique(project_summary$track_index_case[flag_exp]) == 'true'){
       text(0,pos=4,'TRACK INDEX CASE ON == NO TERTIARY CASES')
@@ -301,7 +301,7 @@ inspect_transmission_data <- function(project_dir)
             xlab='time (days)',ylab='age of the cases',
             cex=0.8,
             xaxt='n')  
-    axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%b'))
+    axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%d %b'))
     
     # ###############################
     # # incidence per age group  

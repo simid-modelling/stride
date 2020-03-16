@@ -34,8 +34,13 @@ public:
         /// Whether today is school day.
         virtual bool IsSchoolOff() = 0;
 
+        /// Whether quarantine measures are in place
+        virtual bool isSoftLockdown() = 0;
+
         /// Virtual destructor.
         virtual ~DaysOffInterface() = default;
+
+
 };
 
 } // namespace stride

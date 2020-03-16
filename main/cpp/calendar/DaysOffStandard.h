@@ -45,6 +45,9 @@ public:
                 return m_calendar->IsWeekend() || m_calendar->IsHoliday() || m_calendar->IsSchoolHoliday();
         }
 
+        /// Check if quarantine measures are in place
+        bool isSoftLockdown() override { return m_calendar->isSoftLockdown(); }
+
 private:
         std::shared_ptr<Calendar> m_calendar; ///< Management of calendar.
 };

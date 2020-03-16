@@ -74,7 +74,7 @@ public:
         void ParticipateInSurvey() { m_is_participant = true; }
 
         /// Update the health status and presence in contact pools.
-        void Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBehavior);
+        void Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBehavior, bool isSoftLockdown);
 
         /// Set the age of the person
         void SetAge(unsigned int newAge) { m_age = newAge; }

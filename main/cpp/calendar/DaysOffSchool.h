@@ -39,6 +39,9 @@ public:
         /// See DaysOffInterface.
         bool IsSchoolOff() override { return true; }
 
+        /// See DaysOffInterface.
+        bool isSoftLockdown() override { return m_calendar->isSoftLockdown(); }
+
 private:
         std::shared_ptr<Calendar> m_calendar; ///< Management of calendar.
 };

@@ -67,7 +67,7 @@ void Sim::TimeStep()
         const auto daysOff     = std::make_shared<DaysOffStandard>(m_calendar);
         const bool isWorkOff   = daysOff->IsWorkOff();
         const bool isSchoolOff = daysOff->IsSchoolOff();
-
+        const bool isSoftLockdown = daysOff->isSoftLockdown();
         // To be used in update of population & contact pools.
         Population& population    = *m_population;
         auto&       poolSys       = population.RefPoolSys();
@@ -82,7 +82,7 @@ void Sim::TimeStep()
                 // we want to track index cases without adaptive behavior
 #pragma omp for schedule(static)
                 for (size_t i = 0; i < population.size(); ++i) {
-                        population[i].Update(isWorkOff, isSchoolOff, m_adaptive_symptomatic_behavior);
+                        population[i].Update(isWorkOff, isSchoolOff, m_adaptive_symptomatic_behavior, isSoftLockdown);
                 }
 
                 // Infector updates individuals for contacts & transmission within each pool.
@@ -97,7 +97,7 @@ void Sim::TimeStep()
 #pragma omp for schedule(static)
                         for (size_t i = 1; i < poolSys.RefPools(typ).size(); i++) { // NOLINT
                                 infector(poolSys.RefPools(typ)[i], m_contact_profiles[typ], m_transmission_profile,
-                                         m_handlers[thread_num], simDay, contactLogger);
+                                         m_handlers[thread_num], simDay, contactLogger, isSoftLockdown);
                         }
                 }
         }

@@ -64,17 +64,27 @@ public:
         std::size_t GetYear() const;
 
         /// Check if it's a holiday.
-        bool IsHoliday() const { return (std::find(m_holidays.begin(), m_holidays.end(), m_date) != m_holidays.end()); }
+        bool IsHoliday() const
+        {
+        	return (std::find(m_holidays.begin(), m_holidays.end(), m_date) != m_holidays.end());
+        }
 
         /// Check if it's a school holiday.
         bool IsSchoolHoliday() const
         {
-                return (std::find(m_school_holidays.begin(), m_school_holidays.end(), m_date) !=
+             return (std::find(m_school_holidays.begin(), m_school_holidays.end(), m_date) !=
                         m_school_holidays.end());
         }
 
         /// Check if it's the weekend.
         bool IsWeekend() const { return (GetDayOfTheWeek() == 6 || GetDayOfTheWeek() == 0); }
+
+        /// Check if quarantine measures are in place
+        bool isSoftLockdown() const
+        {
+			 return (std::find(m_soft_lockdown.begin(), m_soft_lockdown.end(), m_date) !=
+					 m_soft_lockdown.end());
+		}
 
 private:
         ///
@@ -85,10 +95,12 @@ private:
         boost::gregorian::date              m_date;            ///< Current simulated date.
         std::vector<boost::gregorian::date> m_holidays;        ///< Vector of general holidays
         std::vector<boost::gregorian::date> m_school_holidays; ///< Vector of school holidays
+        std::vector<boost::gregorian::date> m_soft_lockdown;   ///< Vector of lockdown days
 #else
         date::year_month_day              m_date;            ///< Current simulated date.
         std::vector<date::year_month_day> m_holidays;        ///< Vector of general holidays
         std::vector<date::year_month_day> m_school_holidays; ///< Vector of school holidays
+        std::vector<date::year_month_day> m_soft_lockdown;   ///< Vector of lockdown days
 #endif
         unsigned short int m_day; ///< Current day since start of simulation.
 };

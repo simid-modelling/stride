@@ -89,6 +89,13 @@ void Calendar::InitializeHolidays(const ptree& configPt)
                         const string d = string(lead).append(date.second.get_value<string>());
                         m_school_holidays.push_back(boost::gregorian::from_simple_string(d));
                 }
+                // read in soft lockdown data (if present)
+                if(holidaysPt.count("softLockdown") != 0){
+					for (const auto& date : holidaysPt.get_child("softLockdown." + month)) {
+							const string d = string(lead).append(date.second.get_value<string>());
+							m_soft_lockdown.push_back(boost::gregorian::from_simple_string(d));
+					}
+                }
         }
 }
 
@@ -133,7 +140,7 @@ void Calendar::InitializeHolidays(const ptree& configPt)
                 read_json(fPath.string(), holidaysPt);
         }
 
-        // Read in holidays
+        // Read in calendar data
         for (int i = 1; i < 13; i++) {
                 const auto month = to_string(i);
                 const auto year  = holidaysPt.get<string>("year", "2017");
@@ -155,6 +162,18 @@ void Calendar::InitializeHolidays(const ptree& configPt)
                           << date.second.get_value<string>();
                         m_school_holidays.push_back(ConvertFromString(d.str()));
                 }
+
+                // read in soft lockdown data (if present)
+                if(holidaysPt.count("softLockdown") != 0){
+                	for (const auto& date : holidaysPt.get_child("softLockdown." + month)) {
+							stringstream d;
+							/// Append zero's due to a bug in stdc++ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=45896
+							d << year << "-" << setw(2) << setfill('0') << month << "-" << setw(2) << setfill('0')
+							  << date.second.get_value<string>();
+							m_soft_lockdown.push_back(ConvertFromString(d.str()));
+					}
+                }
+
         }
 }
 

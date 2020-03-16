@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2017, Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2020, Kuylen E, Willem L, Broeckhove J
  */
 
 /**
@@ -28,7 +28,7 @@ namespace stride {
 using namespace std;
 using namespace stride::ContactType;
 
-void Person::Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBehavior)
+void Person::Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBehavior, bool isSoftLockdown)
 {
         // Update health and disease status
         m_health.Update();
@@ -52,6 +52,12 @@ void Person::Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBe
                 m_in_pools[Id::Workplace]          = true;
                 m_in_pools[Id::PrimaryCommunity]   = false;
                 m_in_pools[Id::SecondaryCommunity] = true;
+        }
+
+        // Quarantine measures
+        if(isSoftLockdown){
+            m_in_pools[Id::K12School]          = false;
+            m_in_pools[Id::College]            = false;
         }
 }
 

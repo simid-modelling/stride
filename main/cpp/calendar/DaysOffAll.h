@@ -41,6 +41,9 @@ public:
 
         /// See DaysOffInterface.
         bool IsSchoolOff() override { return true; }
+
+        /// See DaysOffInterface.
+        bool isSoftLockdown() override { return true; }
 };
 
 } // namespace stride

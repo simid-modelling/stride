@@ -99,7 +99,7 @@ using namespace stride;
 using namespace stride::ContactType;
 
 inline double GetContactProbability(const AgeContactProfile& profile, const Person* p1,const Person* p2,
-		size_t pool_size, const ContactType::Id pType)
+		size_t pool_size, const ContactType::Id pType, bool isSoftLockdown)
 {
         // get the reference number of contacts, given age and age-contact profile
 		const double reference_num_contacts_p1{profile[EffectiveAge(static_cast<unsigned int>(p1->GetAge()))]};
@@ -126,6 +126,12 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
         	contact_probability = 0.999;
         }
 
+        // soft lockdown: quarantine
+        if(isSoftLockdown && pType != Id::Household){
+        	contact_probability = contact_probability * 0.1;
+        }
+
+
         return contact_probability;
 }
 
@@ -140,7 +146,8 @@ namespace stride {
 template <ContactLogMode::Id LL, bool TIC, bool TO>
 void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& profile,
                                  const TransmissionProfile& transProfile, ContactHandler& cHandler,
-                                 unsigned short int simDay, shared_ptr<spdlog::logger> cLogger)
+                                 unsigned short int simDay, shared_ptr<spdlog::logger> cLogger,
+								 bool isSoftLockdown)
 {
         using LP = LOG_POLICY<LL>;
 
@@ -169,7 +176,7 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                                 continue;
                         }
                         // check for contact
-                        const double cProb = GetContactProbability(profile, p1, p2, pSize, pType);
+                        const double cProb = GetContactProbability(profile, p1, p2, pSize, pType, isSoftLockdown);
                         if (cHandler.HasContact(cProb)) {
                                 // log contact if person 1 is participating in survey
                                 LP::Contact(cLogger, p1, p2, pType, simDay, cProb, tProb);
@@ -205,7 +212,8 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
 template <ContactLogMode::Id LL, bool TIC>
 void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& profile,
                                    const TransmissionProfile& transProfile, ContactHandler& cHandler,
-                                   unsigned short int simDay, shared_ptr<spdlog::logger> cLogger)
+                                   unsigned short int simDay, shared_ptr<spdlog::logger> cLogger,
+								   bool isSoftLockdown)
 {
         using LP = LOG_POLICY<LL>;
 
@@ -241,7 +249,7 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                                 if (!p2->IsInPool(pType)) {
                                         continue;
                                 }
-                                const double cProb_p1 = GetContactProbability(profile, p1, p2, pSize, pType);
+                                const double cProb_p1 = GetContactProbability(profile, p1, p2, pSize, pType, isSoftLockdown);
                                 //const double cProb_p2 = GetContactProbability(profile, p2, p1, pSize, pType);
                                 const double cProb_p2 = 0.0;
                                 if (cHandler.HasContactAndTransmission(cProb_p1, tProb) ||
