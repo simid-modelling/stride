@@ -345,22 +345,21 @@ inspect_transmission_data <- function(project_dir)
     # DAILY INCIDENCE
     inc_belgium <- t(tbl_transm_matrix)*pop_factor_belgium/1e3
     plot_ylim <- range(inc_belgium,80)
-    plot(colMeans(inc_belgium),
+    plot(tbl_transm_date,colMeans(inc_belgium),
          type='l',lwd=3,
             main='Incidence: per day (Belgium, mean)',
             xlab='time (days)',ylab='New cases (1000x)',
-            xaxt='n',
             ylim = plot_ylim)
-    axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
     grid()
     
     # CUMMULATIVE INCIDENCE: predict for Belgium
+    tbl_transm_matrix
     inc_cum_belgium <- t(apply(tbl_transm_matrix,2,cumsum))*pop_factor_belgium/1e5
     plot_ylim <- range(inc_cum_belgium,30)
-    plot(colMeans(inc_cum_belgium),type='l',lwd=3,
+    plot(tbl_transm_date,colMeans(inc_cum_belgium),type='l',lwd=3,
             xlab='Date',ylab='Cummulative incidence (100k)',
             main='Incidence: cummulative (Belgium)',
-            xaxt='n',
+            #xaxt='n',
             ylim = plot_ylim)
     axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
     grid()
