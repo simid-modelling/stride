@@ -71,7 +71,7 @@ if(0==1){
     header_part         <- c('local_id', 'part_age', 'household_id', 'school_id', 'college_id','workplace_id',
                              'is_susceptible','is_infected','is_infectious','is_recovered','is_immune',
                              'start_infectiousness','start_symptomatic','end_infectiousness','end_symptomatic',
-                             'household_size','school_size','college_size','workplace_size','primarycommunity_size','secundarycommunity_size')
+                             'household_size','school_size','college_size','workplace_size','primarycommunity_size','secundarycommunity_size','is_teleworking')
     data_part           <- data_log[data_log[,1] == "[PART]",seq_len(length(header_part))+1]
     names(data_part)    <- header_part
     data_part[1,]

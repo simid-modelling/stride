@@ -35,14 +35,14 @@ class Person
 {
 public:
         /// Default construction (for population vector).
-        Person() : m_age(0.0), m_id(0), m_pool_ids(), m_health(), m_in_pools(), m_is_participant() {}
+        Person() : m_age(0.0), m_id(0), m_pool_ids(), m_health(), m_in_pools(), m_is_participant(), m_teleworking() {}
 
         /// Constructor: set the person data.
         Person(unsigned int id, float age, unsigned int householdId, unsigned int k12SchoolId, unsigned int collegeId,
                unsigned int workId, unsigned int primaryCommunityId, unsigned int secondaryCommunityId)
             : m_age(age), m_id(id), m_pool_ids{householdId, k12SchoolId,        collegeId,
                                                workId,      primaryCommunityId, secondaryCommunityId},
-              m_health(), m_in_pools(true), m_is_participant(false)
+              m_health(), m_in_pools(true), m_is_participant(false), m_teleworking(false)
         {
         }
 
@@ -89,8 +89,13 @@ public:
                 m_in_pools[type] = (poolId != 0); // Means present in Household, absent elsewhere.
         }
 
+        // define ability to telework
+        void SetTeleworking() { m_teleworking = true; }
+
+        bool IsTeleworking() const { return m_teleworking;}
+
 private:
-        float        m_age; ///< The age..
+        float        m_age; ///< The age.
         unsigned int m_id;  ///< The id.
 
         ///< Ids (school, work, etc) of pools you belong to Id value 0 means you do not belong to any
@@ -105,6 +110,9 @@ private:
 
         ///< Is this a participant in the social contact study?
         bool m_is_participant;
+
+        ///< Is the participant teleworking?
+        bool m_teleworking;
 };
 
 } // namespace stride

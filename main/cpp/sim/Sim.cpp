@@ -39,7 +39,7 @@ using namespace ContactLogMode;
 Sim::Sim()
     : m_config(), m_contact_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
       m_adaptive_symptomatic_behavior(false), m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
-      m_population(nullptr), m_rn_man(), m_transmission_profile()
+      m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_work(0), m_cnt_reduction_other(0)
 {
 }
 
@@ -98,7 +98,8 @@ void Sim::TimeStep()
 #pragma omp for schedule(static)
                         for (size_t i = 1; i < poolSys.RefPools(typ).size(); i++) { // NOLINT
                                 infector(poolSys.RefPools(typ)[i], m_contact_profiles[typ], m_transmission_profile,
-                                         m_handlers[thread_num], simDay, contactLogger, isSoftLockdown);
+                                         m_handlers[thread_num], simDay, contactLogger, isSoftLockdown,
+										 m_cnt_reduction_work, m_cnt_reduction_other);
                         }
                 }
         }

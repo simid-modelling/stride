@@ -98,6 +98,11 @@ private:
         util::RnMan                 m_rn_man;           ///< Random number generation management.
 
         TransmissionProfile m_transmission_profile; ///< Profile of disease.
+
+        // temporary...
+        double                      m_cnt_reduction_work;
+        double                      m_cnt_reduction_other;
+
 };
 
 } // namespace stride

@@ -42,7 +42,7 @@ inspect_participant_data <- function(project_dir)
   .rstride$create_pdf(project_dir,'survey_participant_inspection',10,7)
   par(mfrow=c(2,4))
   
-  i_config <- 1
+  i_config <- 2
   for(i_config in 1:nrow(input_opt_design))
   {
     # select the participant output subset, corresponding the 'input_opt_design' row
@@ -92,22 +92,37 @@ inspect_participant_data <- function(project_dir)
     ## POPULATION
     population_age <- as.data.frame(table(part_age = data_part$part_age))
     
-    ## POPULATION IMMUNITY
-    data_part$is_immune   <- data_part$is_immune == "TRUE"
+    # ## POPULATION IMMUNITY
+    # data_part$is_immune   <- data_part$is_immune == "TRUE"
+    # 
+    # immune_age <- data.frame(table(is_immune = data_part$is_immune, part_age = data_part$part_age),stringsAsFactors = F)
+    # immune_age$part_age <- as.numeric(levels(immune_age$part_age)[(immune_age$part_age)])
+    # names(immune_age)  
+    # flag <- immune_age$is_immune == FALSE
+    # plot(immune_age$part_age[flag],
+    #      immune_age$Freq[flag]/population_age$Freq,
+    #      xlab='age',
+    #      ylab='fraction susceptible',
+    #      main='population susceptibility',
+    #      pch=19, lwd=3, ylim=0:1
+    # )
+    # 
+    # names(data_part)
     
-    immune_age <- data.frame(table(is_immune = data_part$is_immune, part_age = data_part$part_age),stringsAsFactors = F)
-    immune_age$part_age <- as.numeric(levels(immune_age$part_age)[(immune_age$part_age)])
-    names(immune_age)  
-    flag <- immune_age$is_immune == FALSE
-    plot(immune_age$part_age[flag],
-         immune_age$Freq[flag]/population_age$Freq,
+    ## TELEWORKING
+    data_part$is_teleworking   <- data_part$is_teleworking == "TRUE"
+
+    telework_age <- data.frame(table(is_teleworking = data_part$is_teleworking, part_age = data_part$part_age),stringsAsFactors = F)
+    telework_age$part_age <- as.numeric(levels(telework_age$part_age)[(telework_age$part_age)])
+    names(telework_age)
+    flag <- telework_age$is_teleworking == FALSE
+    plot(telework_age$part_age[flag],
+         telework_age$Freq[flag]/population_age$Freq,
          xlab='age',
          ylab='fraction susceptible',
-         main='population susceptibility',
+         main='population teleworking',
          pch=19, lwd=3, ylim=0:1
     )
-    
-    names(data_part)
     
     ## SCHOOLING
     school_age <- data.frame(table(school_enrolled = data_part$school_id != 0,part_age = data_part$part_age))

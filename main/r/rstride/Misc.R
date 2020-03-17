@@ -169,14 +169,14 @@ if(!(exists('.rstride'))){
   data_type_all <- names(get(load(data_filenames[1])))
   
   # loop over the output data types
-  data_type <- data_type_all[3]
+  data_type <- data_type_all[1]
   for(data_type in data_type_all){
   
   # check cluster
   smd_check_cluster()
     
   # loop over all experiments, rbind
-    i_file <- 10
+    i_file <- 2
   data_all <- foreach(i_file = 1:length(data_filenames),
                       .combine='rbind') %dopar%
   {
@@ -224,6 +224,9 @@ if(!(exists('.rstride'))){
     if(length(names_id_columns)>0) {
       for(i_id_column in names_id_columns){
         row_is_id  <- !is.na(data_all[,i_id_column])
+        if(i_id_column %in% c('household_id','school_id','college_id','workplace_id')){
+          row_is_id <- row_is_id & data_all[,i_id_column] != 0
+        } 
         data_all[row_is_id,i_id_column] <- as.numeric(sprintf(paste0('%d%0',num_exp_id_digits,'d'),
                                                               data_all[row_is_id,i_id_column],
                                                               data_all$exp_id[row_is_id]))

@@ -33,19 +33,21 @@ inspect_transmission_data <- function(project_dir)
   # retrieve all variable model parameters
   input_opt_design     <- .rstride$get_variable_model_param(project_summary)
   
+  # get all transmission output
+  data_transm_all      <- .rstride$load_aggregated_output(project_dir,'data_transmission')
   
   # open pdf stream
   .rstride$create_pdf(project_dir,'transmission_inspection',10,7)
-  
+
   i_config <- 1
   for(i_config in 1:nrow(input_opt_design)){
     
     # reset figure arrangements... and start new plot
     par(mfrow=c(3,3))
     
-    # load the transmission output subset, corresponding the 'input_opt_design' row
+    # subset transmission output corresponding the 'input_opt_design' row
     flag_exp            <- .rstride$get_equal_rows(project_summary,input_opt_design[i_config,])
-    data_transm         <- .rstride$load_aggregated_output(project_dir,'data_transmission',project_summary$exp_id[flag_exp])
+    data_transm         <- data_transm_all[data_transm_all$exp_id %in% project_summary$exp_id[flag_exp],]
     num_runs_exp        <- sum(flag_exp)
     num_infected_seeds  <- sum(is.na(data_transm$infector_id)) / num_runs_exp
     
@@ -153,15 +155,14 @@ inspect_transmission_data <- function(project_dir)
     sec_transm$infection_day_date <- sim_day_date[sec_transm$infection_day+1]
     
     # plot
+    mean_sec_cases <- aggregate(sec_cases ~ infection_day_date, data = sec_transm,mean)
     plot_xlim <- range(c(0,sec_transm$infection_day),na.rm=T)
-    plot_ymax <- range(c(0,6,sec_transm$sec_cases))
-    boxplot(sec_cases ~ infection_day_date, data = sec_transm, outline = F,
-            at=sort(unique(sec_transm$infection_day_date)), 
-    #        xlim=plot_xlim,
-            xlab='day',ylab='secondary infections',
-            main='reproduction number',
-            ylim=plot_ymax,
-            xaxt='n')
+    plot_ymax <- range(c(0,4,mean_sec_cases$sec_cases))
+    plot(mean_sec_cases,type='b',
+         xlab='day',ylab='secondary infections',
+         main='reproduction number',
+         ylim=plot_ymax,
+         xaxt='n')
     axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%d %b'))
     
     ## GENERATION INTERVAL
@@ -174,11 +175,11 @@ inspect_transmission_data <- function(project_dir)
     gen_interval <- sec_transm[!is.na(sec_transm$generation_interval),]
     #gen_interval[gen_interval$infection_day==18,]
     if(nrow(gen_interval)==0) gen_interval <- data.frame(matrix(rep(0,6),nrow=1)); names(gen_interval) <- names(sec_transm)
-    boxplot(generation_interval ~ infection_day_date, data = gen_interval,outline = F,
-            at=sort(unique(gen_interval$infection_day_date)),
-            xlab='day',ylab='generation interval [infection]',
-            main='generation interval\n[infection]',
-            xaxt='n')
+    mean_generation_interval <- aggregate(generation_interval ~ infection_day_date, data = gen_interval,mean)
+    plot(mean_generation_interval,type='b',
+         xlab='day',ylab='generation interval [infection]',
+         main='generation interval\n[infection]',
+         xaxt='n')
     axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%d %b'))
     
     if(unique(project_summary$track_index_case[flag_exp]) == 'true'){
@@ -344,9 +345,9 @@ inspect_transmission_data <- function(project_dir)
     # DAILY INCIDENCE
     inc_belgium <- t(tbl_transm_matrix)*pop_factor_belgium/1e3
     plot_ylim <- range(inc_belgium,80)
-    boxplot(inc_belgium,
-            at=tbl_transm_date,
-            main='Incidence: per day (belgium)',
+    plot(colMeans(inc_belgium),
+         type='l',lwd=3,
+            main='Incidence: per day (Belgium, mean)',
             xlab='time (days)',ylab='New cases (1000x)',
             xaxt='n',
             ylim = plot_ylim)
@@ -355,9 +356,8 @@ inspect_transmission_data <- function(project_dir)
     
     # CUMMULATIVE INCIDENCE: predict for Belgium
     inc_cum_belgium <- t(apply(tbl_transm_matrix,2,cumsum))*pop_factor_belgium/1e5
-    plot_ylim <- range(inc_cum_belgium,13)
-    boxplot(inc_cum_belgium,
-            at=tbl_transm_date,
+    plot_ylim <- range(inc_cum_belgium,30)
+    plot(colMeans(inc_cum_belgium),type='l',lwd=3,
             xlab='Date',ylab='Cummulative incidence (100k)',
             main='Incidence: cummulative (Belgium)',
             xaxt='n',

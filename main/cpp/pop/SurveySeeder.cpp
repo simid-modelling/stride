@@ -75,7 +75,7 @@ shared_ptr<Population> SurveySeeder::Seed(shared_ptr<Population> pop)
 						// poolType-vector
 						//if (p.GetPoolId(Id::SecondaryCommunity) < poolSys[Id::SecondaryCommunity].size()) {
 						if (pSC < poolSys.CRefPools<Id::SecondaryCommunity>().size()) {
-								logger->info("[PART] {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p.GetId(),
+								logger->info("[PART] {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p.GetId(),
                                      p.GetAge(), pHH, pK12, pC, pW, h.IsSusceptible(), h.IsInfected(), h.IsInfectious(),
                                      h.IsRecovered(), h.IsImmune(), h.GetStartInfectiousness(), h.GetStartSymptomatic(),
                                      h.GetEndInfectiousness(), h.GetEndSymptomatic(),
@@ -84,13 +84,14 @@ shared_ptr<Population> SurveySeeder::Seed(shared_ptr<Population> pop)
 									 poolSys.CRefPools<Id::College>()[pC].GetPool().size(),
 									 poolSys.CRefPools<Id::Workplace>()[pW].GetPool().size(),
 									 poolSys.CRefPools<Id::PrimaryCommunity>()[pPC].GetPool().size(),
-									 poolSys.CRefPools<Id::SecondaryCommunity>()[pSC].GetPool().size());
+									 poolSys.CRefPools<Id::SecondaryCommunity>()[pSC].GetPool().size(),
+									 p.IsTeleworking());
                         } else {
-                        		logger->info("[PART] {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p.GetId(),
+                        		logger->info("[PART] {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p.GetId(),
 									 p.GetAge(), pHH, pK12, pC, pW, h.IsSusceptible(), h.IsInfected(), h.IsInfectious(),
 									 h.IsRecovered(), h.IsImmune(), h.GetStartInfectiousness(), h.GetStartSymptomatic(),
 									 h.GetEndInfectiousness(), h.GetEndSymptomatic(),
-									 -1, -1, -1, -1, -1, -1);
+									 -1, -1, -1, -1, -1, -1 -1 );
                         }
 
                         numSamples++;

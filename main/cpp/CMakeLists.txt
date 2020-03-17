@@ -35,6 +35,7 @@ set(STRIDE_SRC
     disease/Health.cpp
     disease/HealthSeeder.cpp
     disease/Immunizer.cpp
+    disease/PublicHealthAgency.cpp
     #---
     execs/ControlHelper.cpp
     execs/SimController.cpp

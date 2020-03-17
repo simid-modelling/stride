@@ -59,6 +59,10 @@ void Person::Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBe
             m_in_pools[Id::K12School]          = false;
             m_in_pools[Id::College]            = false;
         }
+
+        if(isSoftLockdown && IsTeleworking()){
+			m_in_pools[Id::Workplace]          = false;
+		}
 }
 
 } // namespace stride

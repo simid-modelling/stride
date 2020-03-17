@@ -33,6 +33,6 @@ class ContactHandler;
 typedef void(InfectorExec)(ContactPool& pool, const AgeContactProfile& profile,
                            const TransmissionProfile& trans_profile, ContactHandler& c_handler,
                            unsigned short int sim_day, std::shared_ptr<spdlog::logger> c_logger,
-						   bool isSoftLockdown);
+						   bool isSoftLockdown, double cnt_reduction_work, double cnt_reduction_other);
 
 } // namespace stride

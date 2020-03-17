@@ -24,6 +24,7 @@
 #include "contact/InfectorMap.h"
 #include "disease/DiseaseSeeder.h"
 #include "disease/HealthSeeder.h"
+#include "disease/PublicHealthAgency.h"
 #include "pop/SurveySeeder.h"
 #include "sim/Sim.h"
 #include "util/FileSys.h"
@@ -86,6 +87,13 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
         // Seed population with immunity/vaccination/infection.
         // --------------------------------------------------------------
         DiseaseSeeder(m_config, sim->m_rn_man).Seed(sim->m_population);
+
+        // --------------------------------------------------------------
+		// Set Public Health Agency
+		// --------------------------------------------------------------
+		PublicHealthAgency(m_config, sim->m_rn_man).SetTelework(sim->m_population);
+		sim->m_cnt_reduction_work   = m_config.get<double>("run.cnt_reduction_work",0);
+		sim->m_cnt_reduction_other  = m_config.get<double>("run.cnt_reduction_other",0);
 
         // --------------------------------------------------------------
         // Seed population with survey participants.
