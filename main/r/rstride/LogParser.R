@@ -101,10 +101,11 @@ if(0==1){
   if(any(c("[PRIM]","[TRAN]") %in% data_log[,1]))
   {
     header_transm       <- c('local_id', 'infector_id','part_age',
-                             'infector_age','cnt_location','sim_day','id_index_case')
+                             'infector_age','cnt_location','sim_day','id_index_case',
+                             'start_infectiousness','end_infectiousness','start_symptoms','end_symptoms')
     data_transm         <- data_log[data_log[,1] == "[PRIM]" | data_log[,1] == "[TRAN]",seq_len(length(header_transm))+1]
     names(data_transm)  <- header_transm
-    data_transm[1,]
+    data_transm[100,]
     
     # make sure, all values are stored as integers
     if(any(apply(data_transm, 2, typeof) != 'integer')){
@@ -119,6 +120,7 @@ if(0==1){
     # set local_id and cnt_location from the seed infected cases to NA (instead as -1)
     data_transm[data_transm == -1]   <- NA
     data_transm$cnt_location[data_transm$cnt_location == '<NA>'] <- NA
+    
     
     # add exp_id
     data_transm$exp_id <- exp_id

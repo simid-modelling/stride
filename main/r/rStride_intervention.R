@@ -33,6 +33,9 @@ source('./bin/rstride/rStride.R')
 # set directory postfix (optional)
 dir_postfix <- '_intervention'
 
+# store all transmission output
+store_transmission_data <- TRUE
+
 ##################################
 ## DESIGN OF EXPERIMENTS        ##
 ##################################
@@ -41,13 +44,13 @@ dir_postfix <- '_intervention'
 #names(xmlToList('./config/run_default.xml'))
 
 # set the number of realisations per configuration set
-num_seeds  <- 2
+num_seeds  <- 4
 
 # add parameters and values to combine in a full-factorial grid
 exp_design <- expand.grid(r0                            = 2.5,
-                          num_days                      = 150,
+                          num_days                      = 120,
                           rng_seed                      = seq(num_seeds),
-                          num_participants_survey       = 5000,
+                          num_participants_survey       = 10,
                           track_index_case              = 'false',
                           contact_log_level             = "Transmissions",
                           seeding_rate                  = 1.7e-5, 
@@ -58,9 +61,9 @@ exp_design <- expand.grid(r0                            = 2.5,
                           start_date                    = c('2020-02-01'),
                           holidays_file                 = c("holidays_flanders_2020.json",
                                                             "calendar_belgium_2020_covid19.json"),
-                          telework_probability          = c(0.40),
-                          cnt_reduction_work            = c(0.40),
-                          cnt_reduction_other           = 0,
+                          telework_probability          = c(0.50),
+                          cnt_reduction_work            = c(0.50),
+                          cnt_reduction_other           = c(0.70,0.9),
                           stringsAsFactors = F)
 
 # add a unique seed for each run
@@ -71,7 +74,8 @@ dim(exp_design)
 ##################################
 ## RUN rSTRIDE                  ##
 ##################################
-project_dir <- run_rStride(exp_design,dir_postfix)
+project_dir <- run_rStride(exp_design,dir_postfix,
+                           store_transmission_data=store_transmission_data)
 
 
 #####################################
@@ -91,5 +95,10 @@ inspect_participant_data(project_dir)
 ##################################
 inspect_transmission_data(project_dir)
 
+
+##################################
+## EXPLORE INCIDENCE DATA       ##
+##################################
+inspect_incidence_data(project_dir)
 
  

@@ -43,6 +43,7 @@ source('./bin/rstride/Misc.R')
 source('./bin/rstride/ContactInspector.R')
 source('./bin/rstride/HealthEconomist.R')
 source('./bin/rstride/LogParser.R')
+source('./bin/rstride/IncidenceInspector.R')
 source('./bin/rstride/SummaryInspector.R')
 source('./bin/rstride/SurveyParticipantInspector.R')
 source('./bin/rstride/TransmissionAnalyst.R')
@@ -50,7 +51,8 @@ source('./bin/rstride/TransmissionInspector.R')
 
 # Function to run rStride for a given design of experiment
 run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
-                        ignore_stride_stdout = TRUE, remove_tmp_output = TRUE)
+                        ignore_stride_stdout = TRUE, remove_tmp_output = TRUE,
+                        store_transmission_data = TRUE)
 {
   
   # command line message
@@ -107,7 +109,6 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   config_default$run_tag          <- run_tag
   config_default$num_cea_samples  <- 1e4
   
-  
   ################################
   ## PARALLEL SETUP             ##
   ################################
@@ -127,6 +128,7 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   project_dir_exp <- smd_file_path(project_dir,'exp_all')
   
   time_stamp_loop = Sys.time()
+  i_exp=1
   # run all experiments (in parallel)
   par_out <- foreach(i_exp=1:nrow(design_of_experiment),
                      .combine='rbind',
@@ -192,6 +194,43 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                          
                        } else {
                          rstride_out$data_prevalence = NA
+                       }
+                       
+                       # help function to get the daily incidence
+                       get_counts <- function(all_data,sim_day_max,output_col = "counts"){
+                         
+                         # get all bins (-0.5 to set the midpoint to 0,1,2,...)
+                         breaks <- (0:max(all_data+1,na.rm=T))-0.5
+                         
+                         # get statistics
+                         data_out <- unlist(hist(all_data,breaks,include.lowest = T,right=F,plot=F)[output_col])
+                       
+                         # limit to given number of days
+                         data_out <- data_out[1:sim_day_max]
+                           
+                         return(data_out)
+                       }
+                       
+                       # save incidence
+                       num_sim_days           <- config_exp$num_days
+                       new_infections         <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days)
+                       new_infectious_cases   <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_infectiousness,num_sim_days)
+                       new_symptomatic_cases  <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_symptoms,num_sim_days)
+                       new_recovered_cases    <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$end_symptoms,num_sim_days)
+                       sim_day                <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days,output_col = 'mids')
+                       sim_date               <- as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day
+                       
+                       rstride_out$data_incidence <- data.frame(sim_day               = sim_day,
+                                                                sim_date              = sim_date,
+                                                                new_infections        = new_infections,
+                                                                new_infectious_cases  = new_infectious_cases,
+                                                                new_symptomatic_cases = new_symptomatic_cases,
+                                                                new_recovered_cases   = new_recovered_cases,
+                                                                exp_id                = config_exp$exp_id)
+                       
+                       # if transmission data should not be stored, replace item by NA
+                       if(!store_transmission_data){
+                         rstride_out$data_transmission <- NA
                        }
                        
                        # save list with all results

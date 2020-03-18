@@ -36,6 +36,11 @@ inspect_transmission_data <- function(project_dir)
   # get all transmission output
   data_transm_all      <- .rstride$load_aggregated_output(project_dir,'data_transmission')
   
+  if(length(data_transm_all) == 1 && is.na(data_transm_all)){
+    smd_print('NO TRANSMISSION DATA AVAILABLE.')
+    return()
+  }
+  
   # open pdf stream
   .rstride$create_pdf(project_dir,'transmission_inspection',10,7)
 
@@ -62,7 +67,7 @@ inspect_transmission_data <- function(project_dir)
     start_date   <- as.Date(unique(project_summary$start_date[flag_exp]),'%Y-%m-%d')
     num_days     <- unique(project_summary$num_days[flag_exp])
     sim_day_date <- seq(start_date,start_date+num_days,1)
-    data_transm$sim_day_date <- sim_day_date[data_transm$sim_day+1]
+    data_transm$sim_day_date <- start_date + data_transm$sim_day
     
     # INCIDENCE
     tbl_transm        <- table(data_transm$sim_day,data_transm$exp_id)
