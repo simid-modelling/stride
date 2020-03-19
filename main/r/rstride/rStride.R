@@ -226,7 +226,8 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                                                                 new_infectious_cases  = new_infectious_cases,
                                                                 new_symptomatic_cases = new_symptomatic_cases,
                                                                 new_recovered_cases   = new_recovered_cases,
-                                                                exp_id                = config_exp$exp_id)
+                                                                exp_id                = config_exp$exp_id,
+                                                                row.names = NULL)
                        
                        # if transmission data should not be stored, replace item by NA
                        if(!store_transmission_data){
