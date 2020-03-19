@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2017, Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2020, Kuylen E, Willem L, Broeckhove J
  */
 
 /**
@@ -22,6 +22,7 @@
 
 #include "contact/ContactType.h"
 #include "contact/IdSubscriptArray.h"
+#include "contact/ContactHandler.h"
 #include "disease/Health.h"
 
 #include <cstddef>
@@ -74,7 +75,7 @@ public:
         void ParticipateInSurvey() { m_is_participant = true; }
 
         /// Update the health status and presence in contact pools.
-        void Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBehavior, bool isSoftLockdown);
+        void Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBehavior, bool isSoftLockdown, ContactHandler& cHandler);
 
         /// Set the age of the person
         void SetAge(unsigned int newAge) { m_age = newAge; }

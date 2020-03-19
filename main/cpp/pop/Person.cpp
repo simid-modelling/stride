@@ -28,19 +28,15 @@ namespace stride {
 using namespace std;
 using namespace stride::ContactType;
 
-void Person::Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBehavior, bool isSoftLockdown)
+void Person::Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBehavior, bool isSoftLockdown,
+		ContactHandler& cHandler)
+
 {
         // Update health and disease status
         m_health.Update();
 
-        // Update presence in contact pools.
-        if (m_health.IsSymptomatic() && adaptiveSymptomaticBehavior) {
-                m_in_pools[Id::K12School]          = false;
-                m_in_pools[Id::College]            = false;
-                m_in_pools[Id::Workplace]          = false;
-                m_in_pools[Id::PrimaryCommunity]   = false;
-                m_in_pools[Id::SecondaryCommunity] = false;
-        } else if (isWorkOff || (m_age <= MinAdultAge() && isSchoolOff)) {
+        // Update presence in contact pools by type of day
+        if (isWorkOff || (m_age <= MinAdultAge() && isSchoolOff)) {
                 m_in_pools[Id::K12School]          = false;
                 m_in_pools[Id::College]            = false;
                 m_in_pools[Id::Workplace]          = false;
@@ -54,6 +50,24 @@ void Person::Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBe
                 m_in_pools[Id::SecondaryCommunity] = true;
         }
 
+        // Update presence in contact pools by health state
+        if (m_health.IsSymptomatic() && adaptiveSymptomaticBehavior) {
+
+
+        	// 10% chance of still going to school/work
+        	if(cHandler() < (1.0 - 0.1)){
+        		m_in_pools[Id::K12School]          = false;
+				m_in_pools[Id::College]            = false;
+				m_in_pools[Id::Workplace]          = false;
+        	}
+
+            // 20% chance of still having community contacts
+        	if(cHandler() < (1.0 - 0.2)){
+				m_in_pools[Id::PrimaryCommunity]   = false;
+				m_in_pools[Id::SecondaryCommunity] = false;
+        	}
+        }
+
         // Quarantine measures
         if(isSoftLockdown){
             m_in_pools[Id::K12School]          = false;
@@ -63,6 +77,7 @@ void Person::Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBe
         if(isSoftLockdown && IsTeleworking()){
 			m_in_pools[Id::Workplace]          = false;
 		}
-}
+
+} // Person::Update()
 
 } // namespace stride

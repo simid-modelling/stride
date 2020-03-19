@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2017, 2018 Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2020, Kuylen E, Willem L, Broeckhove J
  */
 
 /**
@@ -76,19 +76,21 @@ void Sim::TimeStep()
         const auto  simDay        = m_calendar->GetSimulationDay();
         const auto& infector      = *m_infector;
 
+
 #pragma omp parallel num_threads(m_num_threads)
         {
                 // Update health status and presence/absence in contact pools
                 // depending on health status, work/school day and whether
                 // we want to track index cases without adaptive behavior
 #pragma omp for schedule(static)
-                for (size_t i = 0; i < population.size(); ++i) {
-                        population[i].Update(isWorkOff, isSchoolOff, m_adaptive_symptomatic_behavior, isSoftLockdown);
+            	const auto thread_num = static_cast<unsigned int>(omp_get_thread_num());
+            	for (size_t i = 0; i < population.size(); ++i) {
+                        population[i].Update(isWorkOff, isSchoolOff, m_adaptive_symptomatic_behavior,
+                        		isSoftLockdown, m_handlers[thread_num]);
                 }
 
                 // Infector updates individuals for contacts & transmission within each pool.
                 // Skip pools with id = 0, because it means Not Applicable.
-                const auto thread_num = static_cast<unsigned int>(omp_get_thread_num());
                 for (auto typ : ContactType::IdList) {
                         if ((typ == ContactType::Id::Workplace && isWorkOff) ||
                             (typ == ContactType::Id::K12School && isSchoolOff) ||
