@@ -76,8 +76,8 @@ inspect_transmission_data <- function(project_dir)
     if(nrow(tbl_transm_matrix)==0) tbl_transm_matrix <- matrix(0,nrow=1,ncol=1,dimnames=list(0))
     boxplot(t(tbl_transm_matrix)*pop_factor_100k,
             at=tbl_transm_date,
-            main='Incidence: per day / 100k',
-            xlab='time (days)',ylab='New cases (per 100k)',
+            main=paste0('Incidence: per day\n(total population ',pop_size/1e3,'k)'),
+            xlab='time (days)',ylab='New cases',
             xaxt='n')
     axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
     grid()
@@ -92,8 +92,8 @@ inspect_transmission_data <- function(project_dir)
     # CUMMULATIVE INCIDENCE: AVERAGE
     boxplot(t(apply(tbl_transm_matrix,2,cumsum))*pop_factor_100k,
             at=tbl_transm_date,
-            xlab='Date',ylab='Cummulative incidence (per 100k)',
-            main='Incidence: cummulative (per 100k)',
+            xlab='Date',ylab='Cummulative incidence',
+            main=paste0('Incidence: cummulative\n(total population ',pop_size/1e3,'k)'),
             xaxt='n')
     axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
     grid()

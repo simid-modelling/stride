@@ -55,6 +55,12 @@ private:
         std::vector<double> m_time_asymptomatic;
         std::vector<double> m_time_infectious;
         std::vector<double> m_time_symptomatic;
+
+        double             m_sympt_cnt_reduction_work_school;  ///< Proportional reduction of days in work/school pool when symptomatic
+        double             m_sympt_cnt_reduction_community;    ///< Proportional reduction of days in the community pools when symptomatic
+        double             m_rel_transmission_asymptomatic;	   ///< Relative reduction of transmission for asymptomatic cases
+        double             m_rel_transmission_children;	       ///< Relative reduction of transmission for children vs. adults
+
 };
 
 } // namespace stride

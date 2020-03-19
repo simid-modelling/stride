@@ -103,6 +103,7 @@ private:
         double                      m_cnt_reduction_work;
         double                      m_cnt_reduction_other;
 
+
 };
 
 } // namespace stride

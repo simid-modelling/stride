@@ -35,7 +35,7 @@ inspect_incidence_data <- function(project_dir)
   # get all transmission output
   data_incidence_all      <- .rstride$load_aggregated_output(project_dir,'data_incidence')
   
-  plot_ylim <- c(0,max(data_incidence_all[,grepl('new_',names(data_incidence_all))]))
+  plot_ylim <- c(0,max(data_incidence_all[,grepl('new_',names(data_incidence_all))],na.rm=T))
   
   if(length(data_incidence_all) == 1 && is.na(data_incidence_all)){
     smd_print('NO INCIDENCE DATA AVAILABLE.')

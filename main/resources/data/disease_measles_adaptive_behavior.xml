@@ -121,4 +121,19 @@
     <b1>40.9478086500468</b1>
     <b2>-14.6795617189893</b2>
   </transmission>
+  <sympt_cnt_reduction_work_school>
+      1.0
+  </sympt_cnt_reduction_work_school>
+  <sympt_cnt_reduction_community>
+      1.0
+  </sympt_cnt_reduction_community>
+  <rel_transmission_asymptomatic>
+      1.0
+  </rel_transmission_asymptomatic>
+  <rel_transmission_asymptomatic>
+      1.0
+  </rel_transmission_asymptomatic>
+  <rel_transmission_children>
+      1.0
+  </rel_transmission_children>
 </disease>

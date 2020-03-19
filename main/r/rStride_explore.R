@@ -89,4 +89,10 @@ inspect_participant_data(project_dir)
 inspect_transmission_data(project_dir)
 
 
+##################################
+## EXPLORE INCIDENCE DATA       ##
+##################################
+inspect_incidence_data(project_dir)
+
+
 

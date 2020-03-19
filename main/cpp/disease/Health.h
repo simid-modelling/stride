@@ -40,7 +40,9 @@ class Health
 public:
         ///
         explicit Health(unsigned short int start_infectiousness = 0U, unsigned int short start_symptomatic = 0U,
-                        unsigned short int time_infectious = 0U, unsigned short int time_symptomatic = 0U);
+                        unsigned short int time_infectious = 0U, unsigned short int time_symptomatic = 0U,
+						double sympt_cnt_reduction_work_school = 0U, double sympt_cnt_reduction_community=0U,
+						double rel_transmission_asymptomatic = 0U, double rel_transmission_children = 0U);
 
         ///
         unsigned short int GetEndInfectiousness() const { return m_end_infectiousness; }
@@ -103,6 +105,23 @@ public:
         /// Update progress of the disease.
         void Update();
 
+        /// Get contact reduction in school/work pools when symptomatic infected
+        double GetSymptomaticCntReductionWorkSchool() const { return m_sympt_cnt_reduction_work_school; };
+
+        /// Get contact reduction in community pools when symptomatic infected
+        double GetSymptomaticCntReductionCommunity() const { return m_sympt_cnt_reduction_community; };
+
+        /// Get relative infectiousness by age
+        double GetRelativeInfectiousness(unsigned int age) {
+
+        	if(!IsInfectious()) {return 0;}
+
+        	double rel_infectiousness = 1;
+        	if(age < 18)         { rel_infectiousness *= m_rel_transmission_children;}
+        	if(!IsSymptomatic()) { rel_infectiousness *= m_rel_transmission_asymptomatic;}
+        	return rel_infectiousness;
+        }
+
 private:
         /// Get the disease counter.
         unsigned short int GetDiseaseCounter() const { return m_disease_counter; }
@@ -123,6 +142,12 @@ private:
         unsigned short int m_end_symptomatic;      ///< Days after infection to end symptomatic state.
 
         unsigned int       m_id_index_case;        ///< ID of the index case, given infection
+
+        double             m_sympt_cnt_reduction_work_school;  ///< Proportional reduction of days in work/school pool when symptomatic
+        double             m_sympt_cnt_reduction_community;    ///< Proportional reduction of days in the community pools when symptomatic
+        double             m_rel_transmission_asymptomatic;	   ///< Relative reduction of transmission for asymptomatic cases
+        double             m_rel_transmission_children;	       ///< Relative reduction of transmission for children vs. adults
+
 };
 
 } // namespace stride

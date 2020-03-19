@@ -45,6 +45,12 @@ HealthSeeder::HealthSeeder(const boost::property_tree::ptree& diseasePt)
         AssertThrow((abs(m_time_asymptomatic.back() - 1.0) < 1.e-10), "Error in time_asymptomatic", nullptr);
         AssertThrow((abs(m_time_infectious.back() - 1.0) < 1.e-10), "Error in time_infectious", nullptr);
         AssertThrow((abs(m_time_symptomatic.back() - 1.0) < 1.e-10), "Error in time_symptomatic", nullptr);
+
+        m_sympt_cnt_reduction_work_school = diseasePt.get<double>("disease.sympt_cnt_reduction_work_school",1.0);
+        m_sympt_cnt_reduction_community   = diseasePt.get<double>("disease.sympt_cnt_reduction_community",1.0);
+        m_rel_transmission_asymptomatic   = diseasePt.get<double>("disease.rel_transmission_asymptomatic");
+        m_rel_transmission_children       = diseasePt.get<double>("disease.rel_transmission_children");
+std::cout << m_rel_transmission_children << std::endl;
 }
 
 void HealthSeeder::GetDistribution(vector<double>& distribution, const ptree& rootPt, const string& xmlTag)
@@ -81,7 +87,9 @@ void HealthSeeder::Seed(const std::shared_ptr<stride::Population>& pop, vector<C
                         const auto timeInfectious      = Sample(m_time_infectious, gen01());
                         const auto timeSymptomatic     = Sample(m_time_symptomatic, gen01());
                         population[i].GetHealth() =
-                            Health(startInfectiousness, startSymptomatic, timeInfectious, timeSymptomatic);
+                            Health(startInfectiousness, startSymptomatic, timeInfectious, timeSymptomatic,
+                            		m_sympt_cnt_reduction_work_school,m_sympt_cnt_reduction_community,
+									m_rel_transmission_asymptomatic,m_rel_transmission_children);
                 }
         }
 }

@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2017, 2018 Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2020 Kuylen E, Willem L, Broeckhove J
  */
 
 /**
@@ -25,10 +25,16 @@
 namespace stride {
 
 Health::Health(unsigned short int start_infectiousness, unsigned short int start_symptomatic,
-               unsigned short int time_infectious, unsigned short int time_symptomatic)
+               unsigned short int time_infectious, unsigned short int time_symptomatic,
+				double sympt_cnt_reduction_work_school, double sympt_cnt_reduction_community,
+				double rel_transmission_asymptomatic, double rel_transmission_children)
     : m_disease_counter(0U), m_status(HealthStatus::Susceptible), m_start_infectiousness(start_infectiousness),
       m_start_symptomatic(start_symptomatic), m_end_infectiousness(start_infectiousness + time_infectious),
-      m_end_symptomatic(start_symptomatic + time_symptomatic), m_id_index_case(0U)
+      m_end_symptomatic(start_symptomatic + time_symptomatic), m_id_index_case(0U),
+		m_sympt_cnt_reduction_work_school(sympt_cnt_reduction_work_school),
+		m_sympt_cnt_reduction_community(sympt_cnt_reduction_community),
+		m_rel_transmission_asymptomatic(rel_transmission_asymptomatic),
+		m_rel_transmission_children(rel_transmission_children)
 {
 }
 

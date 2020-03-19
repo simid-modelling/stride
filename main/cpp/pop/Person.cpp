@@ -54,15 +54,15 @@ void Person::Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBe
         if (m_health.IsSymptomatic() && adaptiveSymptomaticBehavior) {
 
 
-        	// 10% chance of still going to school/work
-        	if(cHandler() < (1.0 - 0.1)){
+        	// probability of staying home from school/work given symptoms
+        	if(cHandler() < m_health.GetSymptomaticCntReductionWorkSchool()){
         		m_in_pools[Id::K12School]          = false;
 				m_in_pools[Id::College]            = false;
 				m_in_pools[Id::Workplace]          = false;
         	}
 
-            // 20% chance of still having community contacts
-        	if(cHandler() < (1.0 - 0.2)){
+            // probability of staying home from community pools given symptoms
+        	if(cHandler() < m_health.GetSymptomaticCntReductionCommunity()){
 				m_in_pools[Id::PrimaryCommunity]   = false;
 				m_in_pools[Id::SecondaryCommunity] = false;
         	}

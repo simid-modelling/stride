@@ -82,7 +82,6 @@
     <probability>0</probability>
     <probability>0</probability>
     <probability>0</probability>
-    <probability>0</probability>
     <probability>0.33</probability>
     <probability>0.66</probability>
     <probability>1</probability>
@@ -96,12 +95,18 @@
   <time_infectious>
     <probability>0</probability>
     <probability>0</probability>
+    <probability>0</probability>
+    <probability>0</probability>
+    <probability>0</probability>
     <probability>0.25</probability>
     <probability>0.50</probability>
     <probability>0.75</probability>
     <probability>1</probability>
   </time_infectious>
   <time_symptomatic>
+    <probability>0</probability>
+    <probability>0</probability>
+    <probability>0</probability>
     <probability>0</probability>
     <probability>0</probability>
     <probability>0.33</probability>
@@ -113,4 +118,16 @@
     <b1>24.8537440695423</b1>
     <b2>-7.18524327709371</b2>
   </transmission>
+  <sympt_cnt_reduction_work_school>
+      0.9
+  </sympt_cnt_reduction_work_school>
+  <sympt_cnt_reduction_community>
+      0.8
+  </sympt_cnt_reduction_community>
+  <rel_transmission_asymptomatic>
+      0.5
+  </rel_transmission_asymptomatic>
+  <rel_transmission_children>
+      0.2
+  </rel_transmission_children>
 </disease>

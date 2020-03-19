@@ -44,26 +44,29 @@ store_transmission_data <- TRUE
 #names(xmlToList('./config/run_default.xml'))
 
 # set the number of realisations per configuration set
-num_seeds  <- 4
+num_seeds  <- 5
 
 # add parameters and values to combine in a full-factorial grid
 exp_design <- expand.grid(r0                            = 2.5,
                           num_days                      = 120,
                           rng_seed                      = seq(num_seeds),
-                          num_participants_survey       = 10,
+                          num_participants_survey       = 500,
                           track_index_case              = 'false',
                           contact_log_level             = "Transmissions",
                           seeding_rate                  = 1.7e-5, 
                           disease_config_file           = "disease_covid19.xml",
-                          population_file               = c("pop_belgium600k_c500_teachers_censushh.csv"),
+                          population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           adaptive_symptomatic_behavior = 'true',
                           start_date                    = c('2020-02-01'),
-                          holidays_file                 = c("holidays_flanders_2020.json",
-                                                            "calendar_belgium_2020_covid19.json"),
+                          holidays_file                 = "holidays_flanders_2020.json",
+                          # holidays_file                 = c("holidays_flanders_2020.json",
+                          #                                   "calendar_belgium_2020_covid19_march.json",
+                          #                                   "calendar_belgium_2020_covid19_april.json",
+                          #                                   "calendar_belgium_2020_covid19_may.json"),
                           telework_probability          = c(0.50),
                           cnt_reduction_work            = c(0.50),
-                          cnt_reduction_other           = c(0.70,0.9),
+                          cnt_reduction_other           = c(0.9),
                           stringsAsFactors = F)
 
 # add a unique seed for each run
