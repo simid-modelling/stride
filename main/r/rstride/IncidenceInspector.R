@@ -61,8 +61,8 @@ inspect_incidence_data <- function(project_dir)
     # get isolation info
     calendar_file <- unique(project_summary$holidays_file[flag_exp])
     opt_calendar <- 'none'
-    opt_calendar <- ifelse(grepl('calendar',calendar_file),'untill April 3th',opt_calendar)
-    opt_calendar <- ifelse(grepl('extended',calendar_file),'untill May 31th',opt_calendar)
+    opt_calendar <- ifelse(grepl('march',calendar_file),'untill April 3th',opt_calendar)
+    opt_calendar <- ifelse(grepl('may',calendar_file),'untill May 31th',opt_calendar)
     opt_calendar <- ifelse(grepl('april',calendar_file),'untill April 30th',opt_calendar)
     
     # get other run info: population, calendar, distancing measures

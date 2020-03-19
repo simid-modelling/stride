@@ -34,7 +34,9 @@ using namespace std;
 namespace stride {
 
 HealthSeeder::HealthSeeder(const boost::property_tree::ptree& diseasePt)
-    : m_start_symptomatic(), m_time_asymptomatic(), m_time_infectious(), m_time_symptomatic()
+    : m_start_symptomatic(), m_time_asymptomatic(), m_time_infectious(), m_time_symptomatic(),
+	  m_sympt_cnt_reduction_work_school(), m_sympt_cnt_reduction_community(),m_rel_transmission_asymptomatic(),
+	  m_rel_transmission_children()
 {
         GetDistribution(m_start_symptomatic, diseasePt, "disease.start_symptomatic");
         GetDistribution(m_time_asymptomatic, diseasePt, "disease.time_asymptomatic");
@@ -50,6 +52,7 @@ HealthSeeder::HealthSeeder(const boost::property_tree::ptree& diseasePt)
         m_sympt_cnt_reduction_community   = diseasePt.get<double>("disease.sympt_cnt_reduction_community",1.0);
         m_rel_transmission_asymptomatic   = diseasePt.get<double>("disease.rel_transmission_asymptomatic");
         m_rel_transmission_children       = diseasePt.get<double>("disease.rel_transmission_children");
+
 std::cout << m_rel_transmission_children << std::endl;
 }
 

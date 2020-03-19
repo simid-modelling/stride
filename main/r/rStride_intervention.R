@@ -59,11 +59,11 @@ exp_design <- expand.grid(r0                            = 2.5,
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           adaptive_symptomatic_behavior = 'true',
                           start_date                    = c('2020-02-01'),
-                          holidays_file                 = "holidays_flanders_2020.json",
-                          # holidays_file                 = c("holidays_flanders_2020.json",
-                          #                                   "calendar_belgium_2020_covid19_march.json",
-                          #                                   "calendar_belgium_2020_covid19_april.json",
-                          #                                   "calendar_belgium_2020_covid19_may.json"),
+                          # holidays_file                 = "holidays_flanders_2020.json",
+                          holidays_file                 = c("holidays_flanders_2020.json",
+                                                            "calendar_belgium_2020_covid19_march.json",
+                                                            "calendar_belgium_2020_covid19_april.json",
+                                                            "calendar_belgium_2020_covid19_may.json"),
                           telework_probability          = c(0.50),
                           cnt_reduction_work            = c(0.50),
                           cnt_reduction_other           = c(0.9),
@@ -77,8 +77,9 @@ dim(exp_design)
 ##################################
 ## RUN rSTRIDE                  ##
 ##################################
-project_dir <- run_rStride(exp_design,dir_postfix,
-                           store_transmission_data=store_transmission_data)
+project_dir <- run_rStride(exp_design              = exp_design,
+                           dir_postfix             = dir_postfix, 
+                           store_transmission_data = store_transmission_data)
 
 
 #####################################
