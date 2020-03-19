@@ -50,7 +50,7 @@ source('./bin/rstride/TransmissionAnalyst.R')
 source('./bin/rstride/TransmissionInspector.R')
 
 # Function to run rStride for a given design of experiment
-run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
+run_rStride <- function(exp_design = exp_design , dir_postfix = '',
                         ignore_stride_stdout = TRUE, remove_tmp_output = TRUE,
                         store_transmission_data = TRUE)
 {
@@ -61,11 +61,11 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   ################################
   ## CHECK DESIGN OF EXPERIMENT ##
   ################################
-  if(.rstride$data_files_exist(design_of_experiment) == FALSE ||
-     .rstride$log_levels_exist(design_of_experiment) == FALSE ||
-     .rstride$valid_r0_values(design_of_experiment)  == FALSE ||
-     .rstride$valid_immunity_profiles(design_of_experiment)  == FALSE ||
-     .rstride$valid_seed_infected(design_of_experiment) == FALSE){
+  if(.rstride$data_files_exist(exp_design) == FALSE ||
+     .rstride$log_levels_exist(exp_design) == FALSE ||
+     .rstride$valid_r0_values(exp_design)  == FALSE ||
+     .rstride$valid_immunity_profiles(exp_design)  == FALSE ||
+     .rstride$valid_seed_infected(exp_design) == FALSE){
     
     .rstride$cli_abort()
     return(.rstride$no_return_value())
@@ -119,10 +119,10 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   ##################################
   
   # command line message
-  smd_print('READY TO RUN',nrow(design_of_experiment),'EXPERIMENT(S)')
+  smd_print('READY TO RUN',nrow(exp_design),'EXPERIMENT(S)')
   
   # add an "experiment id" to the design of experiment matrix
-  design_of_experiment$exp_id <- 1:nrow(design_of_experiment) 
+  exp_design$exp_id <- 1:nrow(exp_design) 
   
   # create temporary directory to store experiment results
   project_dir_exp <- smd_file_path(project_dir,'exp_all')
@@ -130,7 +130,7 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   time_stamp_loop = Sys.time()
   i_exp=1
   # run all experiments (in parallel)
-  par_out <- foreach(i_exp=1:nrow(design_of_experiment),
+  par_out <- foreach(i_exp=1:nrow(exp_design),
                      .combine='rbind',
                      .packages=c('XML','simid.rtools'),
                      .export = c('.rstride','par_nodes_info'),
@@ -141,7 +141,7 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                        #par_nodes_info <- .rstride$par_nodes_info
                        
                        # print progress (only slave1)
-                       smd_print_progress(i_exp,nrow(design_of_experiment),time_stamp_loop,par_nodes_info)
+                       smd_print_progress(i_exp,nrow(exp_design),time_stamp_loop,par_nodes_info)
 
                        # create experiment tag
                        exp_tag <- .rstride$create_exp_tag(i_exp)
@@ -150,8 +150,8 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                        config_exp <-   config_default
                        
                        # add design parameters
-                       for(i_param in 1:ncol(design_of_experiment)){
-                         config_exp[names(design_of_experiment)[i_param]] <- design_of_experiment[i_exp,i_param]
+                       for(i_param in 1:ncol(exp_design)){
+                         config_exp[names(exp_design)[i_param]] <- exp_design[i_exp,i_param]
                        }  
                        
                        # update experiment output prefix
@@ -248,7 +248,7 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                      }
   
   # print final statement
-  smd_print_progress(nrow(design_of_experiment),nrow(design_of_experiment),time_stamp_loop,par_nodes_info)
+  smd_print_progress(nrow(exp_design),nrow(exp_design),time_stamp_loop,par_nodes_info)
   
   # save overal summary
   write.table(par_out,file=file.path(project_dir,paste0(run_tag,'_summary.csv')),sep=',',row.names=F)

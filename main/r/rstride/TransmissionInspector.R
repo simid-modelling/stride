@@ -58,9 +58,9 @@ inspect_transmission_data <- function(project_dir)
     
     # get population size
     pop_size            <- unique(project_summary$population_size[flag_exp])
-    pop_size_belgium    <- 11.6e6
+    # pop_size_belgium    <- 11.6e6
     pop_factor_100k     <- 1/pop_size*1e5
-    pop_factor_belgium  <- 1/pop_size*pop_size_belgium
+    # pop_factor_belgium  <- 1/pop_size*pop_size_belgium
     
     # get the simulated dates
     # TODO: include checks!
@@ -345,29 +345,37 @@ inspect_transmission_data <- function(project_dir)
     # #         ylim=plot_ylim, main = 'Secondary incidence per outbreak \nby age group')
     # 
     
-    # PREDICTIONS FOR BELGIUM
+    # # PREDICTIONS FOR BELGIUM
+    # 
+    # # DAILY INCIDENCE
+    # inc_belgium <- t(tbl_transm_matrix)*pop_factor_belgium/1e3
+    # plot_ylim <- range(inc_belgium,80)
+    # plot(tbl_transm_date,colMeans(inc_belgium),
+    #      type='l',lwd=3,
+    #         main='Incidence: per day (Belgium, mean)',
+    #         xlab='time (days)',ylab='New cases (1000x)',
+    #         ylim = plot_ylim)
+    # grid()
+    # 
+    # # CUMMULATIVE INCIDENCE: predict for Belgium
+    # tbl_transm_matrix
+    # inc_cum_belgium <- t(apply(tbl_transm_matrix,2,cumsum))*pop_factor_belgium/1e5
+    # plot_ylim <- range(inc_cum_belgium,30)
+    # plot(tbl_transm_date,colMeans(inc_cum_belgium),type='l',lwd=3,
+    #         xlab='Date',ylab='Cummulative incidence (100k)',
+    #         main='Incidence: cummulative (Belgium)',
+    #         #xaxt='n',
+    #         ylim = plot_ylim)
+    # axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
+    # grid()
     
-    # DAILY INCIDENCE
-    inc_belgium <- t(tbl_transm_matrix)*pop_factor_belgium/1e3
-    plot_ylim <- range(inc_belgium,80)
-    plot(tbl_transm_date,colMeans(inc_belgium),
-         type='l',lwd=3,
-            main='Incidence: per day (Belgium, mean)',
-            xlab='time (days)',ylab='New cases (1000x)',
-            ylim = plot_ylim)
-    grid()
-    
-    # CUMMULATIVE INCIDENCE: predict for Belgium
-    tbl_transm_matrix
-    inc_cum_belgium <- t(apply(tbl_transm_matrix,2,cumsum))*pop_factor_belgium/1e5
-    plot_ylim <- range(inc_cum_belgium,30)
-    plot(tbl_transm_date,colMeans(inc_cum_belgium),type='l',lwd=3,
-            xlab='Date',ylab='Cummulative incidence (100k)',
-            main='Incidence: cummulative (Belgium)',
-            #xaxt='n',
-            ylim = plot_ylim)
-    axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
-    grid()
+    tbl_symptomatic_transmission <- table(data_transm$infector_is_symptomatic)
+    barplot(tbl_symptomatic_transmission/sum(tbl_symptomatic_transmission),
+            ylab='fraction',
+            xlab='symptomatic transmission?',
+            ylim=0:1,
+            main="SYMPTOMATIC TRANSMISSION")
+    grid(nx=NA,ny=NULL)  
     
   } # end for-loop to vary the input_opt_design
   

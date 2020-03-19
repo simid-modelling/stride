@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2019, Willem L, Kuylen E, Broeckhove J
+ *  Copyright 2020, Willem L, Kuylen E, Broeckhove J
  */
 
 /**
@@ -58,10 +58,11 @@ public:
         static void Trans(const std::shared_ptr<spdlog::logger>& logger, const Person* p1, const Person* p2,
                           ContactType::Id type, unsigned short int sim_day, unsigned int id_index_case)
         {
-                logger->info("[TRAN] {} {} {} {} {} {} {} {} {} {} {}", p2->GetId(), p1->GetId(), p2->GetAge(), p1->GetAge(),
+                logger->info("[TRAN] {} {} {} {} {} {} {} {} {} {} {} {}", p2->GetId(), p1->GetId(), p2->GetAge(), p1->GetAge(),
                              ToString(type), sim_day, id_index_case,
 							 p2->GetHealth().GetStartInfectiousness(),p2->GetHealth().GetEndInfectiousness(),
-							 p2->GetHealth().GetStartSymptomatic(),p2->GetHealth().GetEndSymptomatic());
+							 p2->GetHealth().GetStartSymptomatic(),p2->GetHealth().GetEndSymptomatic(),
+							 p1->GetHealth().IsSymptomatic());
         }
 };
 
@@ -88,10 +89,11 @@ public:
         static void Trans(const std::shared_ptr<spdlog::logger>& logger, const Person* p1, const Person* p2,
                           ContactType::Id type, unsigned short int sim_day, unsigned int id_index_case)
         {
-                logger->info("[TRAN] {} {} {} {} {} {} {} {} {} {} {}", p2->GetId(), p1->GetId(), p2->GetAge(), p1->GetAge(),
+                logger->info("[TRAN] {} {} {} {} {} {} {} {} {} {} {}  {}", p2->GetId(), p1->GetId(), p2->GetAge(), p1->GetAge(),
                              ToString(type), sim_day, id_index_case,
 							 p2->GetHealth().GetStartInfectiousness(),p2->GetHealth().GetEndInfectiousness(),
-							 p2->GetHealth().GetStartSymptomatic(),p2->GetHealth().GetEndSymptomatic());
+							 p2->GetHealth().GetStartSymptomatic(),p2->GetHealth().GetEndSymptomatic(),
+							 p1->GetHealth().IsSymptomatic());
         }
 };
 
