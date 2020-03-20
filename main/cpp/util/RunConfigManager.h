@@ -57,20 +57,14 @@ public:
         static std::string ToShortSha1(const boost::property_tree::ptree& pt, unsigned int n = 7U);
 
 private:
-        /// Produce Influenza config for Benchmarking.
-        static std::string CreateBenchInfluenza();
-
-        /// Produce Measles config for Benchmarking.
-        static std::string CreateBenchMeasles();
-
-        /// Produce the deefault config.
-        static std::string CreateDefault();
-
         /// Produce Influenza config for scenario tests.
         static std::string CreateTestsInfluenza();
 
         /// Produce Measles config for scenario tests.
         static std::string CreateTestsMeasles();
+
+        /// Produce Covid19 config for scenario tests.
+        static std::string CreateTestsCovid19();
 };
 
 } // namespace util

@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2019 Willem L, Kuylen E, Stijven S & Broeckhove J
+ *  Copyright 2020 Willem L, Kuylen E, Stijven S & Broeckhove J
  */
 
 /**
@@ -118,7 +118,11 @@ const char* tags_measles[] = {"measles_16", "measles_26"};
 
 const char* tags_r0[] = {"r0_0", "r0_4", "r0_8", "r0_12", "r0_16"};
 
+const char* tags_covid19[] = {"covid19_all", "covid19_15min", "covid19_daily", "covid19_distancing"};
+
 } // namespace
+
+INSTANTIATE_TEST_CASE_P(covid19, RunsDefault, ValuesIn(tags_covid19));
 
 INSTANTIATE_TEST_CASE_P(influenza, RunsDefault, ValuesIn(tags_influenza));
 

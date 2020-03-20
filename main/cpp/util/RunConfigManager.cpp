@@ -50,121 +50,13 @@ ptree RunConfigManager::Create(const std::string& configName)
 {
         static map<string, string (*)()> creators{
             // clang-format off
-                make_pair("BenchInfluenza",  &CreateBenchInfluenza),
-                make_pair("BenchMeasles",    &CreateBenchMeasles),
-                make_pair("Default",         &CreateDefault),
                 make_pair("TestsInfluenza",  &CreateTestsInfluenza),
-                make_pair("TestsMeasles",    &CreateTestsMeasles)
+                make_pair("TestsMeasles",    &CreateTestsMeasles),
+				make_pair("TestsCovid19",    &CreateTestsCovid19)
         }; // clang-format on
         return FromString(creators.at(configName)());
 }
 
-
-string RunConfigManager::CreateBenchInfluenza()
-{
-        return R"###(
-<?xml version="1.0" encoding="utf-8"?>
-<run>
-        <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
-        <contact_log_level>None</contact_log_level>
-        <contact_output_file>false</contact_output_file>
-        <disease_config_file>disease_influenza.xml</disease_config_file>
-        <holidays_file>holidays_none.json</holidays_file>
-        <immunity_link_probability>0</immunity_link_probability>
-        <immunity_profile>Random</immunity_profile>
-        <immunity_rate>0</immunity_rate>
-        <num_days>10</num_days>
-        <num_participants_survey>10</num_participants_survey>
-        <num_threads>1</num_threads>
-        <output_prefix></output_prefix>
-        <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
-        <population_type>default</geopopulation_type>
-        <rng_seed>4730214</rng_seed>
-        <r0>1.5</r0>
-        <seeding_rate>0.001</seeding_rate>
-        <seeding_age_min>1</seeding_age_min>
-        <seeding_age_max>99</seeding_age_max>
-        <start_date>2017-01-01</start_date>
-        <stride_log_level>info</stride_log_level>
-        <track_index_case>false</track_index_case>
-        <use_install_dirs>true</use_install_dirs>
-        <vaccine_profile>None</vaccine_profile>
-</run>
-        )###";
-}
-
-string RunConfigManager::CreateBenchMeasles()
-{
-        return R"###(
-<?xml version="1.0" encoding="utf-8"?>
-<run>
-        <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
-        <contact_log_level>None</contact_log_level>
-        <contact_output_file>false</contact_output_file>
-        <disease_config_file>disease_measles_adaptive_behavior.xml</disease_config_file>
-        <holidays_file>holidays_none.json</holidays_file>
-        <immunity_profile>None</immunity_profile>
-        <immunity_rate>0.01</immunity_rate>
-        <num_days>30</num_days>
-        <num_participants_survey>10</num_participants_survey>
-        <num_threads>1</num_threads>
-        <output_prefix></output_prefix>
-        <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
-        <population_type>default</geopopulation_type>
-        <rng_seed>4730214</rng_seed>
-        <r0>16</r0>
-        <seeding_age_max>99</seeding_age_max>
-        <seeding_age_min>1</seeding_age_min>
-        <seeding_rate>0.05</seeding_rate>
-        <start_date>2017-01-01</start_date>
-        <stride_log_level>info</stride_log_level>
-        <track_index_case>false</track_index_case>
-        <use_install_dirs>true</use_install_dirs>
-        <vaccine_link_probability>0</vaccine_link_probability>
-        <vaccine_profile>Random</vaccine_profile>
-        <vaccine_rate>0</vaccine_rate>
-</run>
-        )###";
-}
-
-string RunConfigManager::CreateDefault()
-{
-        return R"###(
-<?xml version="1.0" encoding="utf-8"?>
-<run>
-        <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
-        <contact_log_level>Transmissions</contact_log_level>
-        <contact_output_file>true</contact_output_file>
-        <disease_config_file>disease_measles_adaptive_behavior.xml</disease_config_file>
-        <global_information_policy>NoGlobalInformation</global_information_policy>
-        <holidays_file>holidays_none.json</holidays_file>
-        <immunity_profile>None</immunity_profile>
-        <immunity_rate>0.8</immunity_rate>
-        <num_days>30</num_days>
-        <num_participants_survey>10</num_participants_survey>
-        <num_threads>1</num_threads>
-        <output_adopted>false</output_adopted>
-        <output_cases>true</output_cases>
-        <output_persons>false</output_persons>
-        <output_prefix></output_prefix>
-        <output_summary>false</output_summary>
-        <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
-        <population_type>default</geopopulation_type>
-        <rng_seed>4730214</rng_seed>
-        <r0>11</r0>
-        <seeding_age_max>99</seeding_age_max>
-        <seeding_age_min>1</seeding_age_min>
-        <seeding_rate>0.003</seeding_rate>
-        <start_date>2017-01-01</start_date>
-        <stride_log_level>info</stride_log_level>
-        <track_index_case>false</track_index_case>
-        <use_install_dirs>true</use_install_dirs>
-        <vaccine_link_probability>0</vaccine_link_probability>
-        <vaccine_profile>Random</vaccine_profile>
-        <vaccine_rate>0.8</vaccine_rate>
-</run>
-        )###";
-}
 
 vector<unsigned int> RunConfigManager::CreateNumThreads(unsigned int maxNum)
 {
@@ -260,6 +152,40 @@ string RunConfigManager::CreateTestsMeasles()
         <vaccine_link_probability>0</vaccine_link_probability>
         <vaccine_profile>Random</vaccine_profile>
         <vaccine_rate>0.80000000000000004</vaccine_rate>
+</run>
+        )###";
+}
+
+string RunConfigManager::CreateTestsCovid19()
+{
+        return R"###(
+<?xml version="1.0" encoding="utf-8"?>
+<run>
+        <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
+        <contact_log_level>None</contact_log_level>
+        <contact_output_file>false</contact_output_file>
+        <disease_config_file>disease_covid19.xml</disease_config_file>
+        <holidays_file>holidays_flanders_2020.json</holidays_file>
+        <immunity_link_probability>0</immunity_link_probability>
+        <immunity_profile>Random</immunity_profile>
+        <immunity_rate>0</immunity_rate>
+        <num_days>30</num_days>
+        <num_participants_survey>10</num_participants_survey>
+        <num_threads>1</num_threads>
+        <output_prefix></output_prefix>
+        <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
+        <population_type>default</geopopulation_type>
+        <rng_seed>4730214</rng_seed>
+        <r0>2.5</r0>
+        <seeding_rate>0.00089999999999999998</seeding_rate>
+        <seeding_age_min>1</seeding_age_min>
+        <seeding_age_max>99</seeding_age_max>
+        <start_date>2020-03-05</start_date>
+        <stride_log_level>info</stride_log_level>
+        <track_index_case>false</track_index_case>
+        <use_install_dirs>true</use_install_dirs>
+        <vaccine_profile>None</vaccine_profile>
+        <num_daily_imported_cases>0</num_daily_imported_cases>
 </run>
         )###";
 }

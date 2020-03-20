@@ -53,7 +53,6 @@ HealthSeeder::HealthSeeder(const boost::property_tree::ptree& diseasePt)
         m_rel_transmission_asymptomatic   = diseasePt.get<double>("disease.rel_transmission_asymptomatic");
         m_rel_transmission_children       = diseasePt.get<double>("disease.rel_transmission_children");
 
-std::cout << m_rel_transmission_children << std::endl;
 }
 
 void HealthSeeder::GetDistribution(vector<double>& distribution, const ptree& rootPt, const string& xmlTag)
