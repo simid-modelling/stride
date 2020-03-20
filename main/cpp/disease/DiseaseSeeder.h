@@ -33,7 +33,7 @@ class Population;
 class Sim;
 
 /**
- * Seeds population w.r.t immunity (natural immunity, vaccination, ...) and infection.
+ * Seeds population w.r.t infection.
  */
 class DiseaseSeeder
 {
@@ -44,10 +44,9 @@ public:
         /// Build the simulator.
         void Seed(std::shared_ptr<Population> pop);
 
-private:
-        /// Seed for vaccination/natural immunity.
-        void Vaccinate(const std::string& immunityType, const std::string& immunizationProfile,
-                       const util::SegmentedVector<ContactPool>& immunityPools, std::shared_ptr<Population> pop);
+        /// Import infected cases into the population
+        void ImportInfectedCases(std::shared_ptr<Population> pop, unsigned int numInfected, unsigned int simDay);
+
 
 private:
         const boost::property_tree::ptree& m_config; ///< Run config.

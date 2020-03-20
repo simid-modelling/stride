@@ -102,6 +102,7 @@ private:
         // temporary...
         double                      m_cnt_reduction_work;
         double                      m_cnt_reduction_other;
+        unsigned int                m_num_daily_imported_cases;
 
 
 };

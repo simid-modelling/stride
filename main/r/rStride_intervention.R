@@ -59,7 +59,6 @@ exp_design <- expand.grid(r0                            = 2.5,
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           adaptive_symptomatic_behavior = 'true',
                           start_date                    = c('2020-02-01'),
-                          # holidays_file                 = "holidays_flanders_2020.json",
                           holidays_file                 = c("holidays_flanders_2020.json",
                                                             "calendar_belgium_2020_covid19_march.json",
                                                             "calendar_belgium_2020_covid19_april.json",
@@ -67,6 +66,7 @@ exp_design <- expand.grid(r0                            = 2.5,
                           telework_probability          = c(0.50),
                           cnt_reduction_work            = c(0.50),
                           cnt_reduction_other           = c(0.9),
+                          num_daily_imported_cases      = c(0,5),
                           stringsAsFactors = F)
 
 # add a unique seed for each run

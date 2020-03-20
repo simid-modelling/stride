@@ -59,7 +59,7 @@ inspect_transmission_data <- function(project_dir)
     # get population size
     pop_size            <- unique(project_summary$population_size[flag_exp])
     # pop_size_belgium    <- 11.6e6
-    pop_factor_100k     <- 1/pop_size*1e5
+    #pop_factor_100k     <- 1/pop_size*1e5
     # pop_factor_belgium  <- 1/pop_size*pop_size_belgium
     
     # get the simulated dates
@@ -72,9 +72,9 @@ inspect_transmission_data <- function(project_dir)
     # INCIDENCE
     tbl_transm        <- table(data_transm$sim_day,data_transm$exp_id)
     tbl_transm_matrix <- matrix(c(tbl_transm),nrow=nrow(tbl_transm),dimnames=list(rownames(tbl_transm)))
-    tbl_transm_date   <- sim_day_date[as.numeric(row.names(tbl_transm_matrix))]
+    tbl_transm_date   <- sim_day_date[as.numeric(row.names(tbl_transm_matrix))+1]
     if(nrow(tbl_transm_matrix)==0) tbl_transm_matrix <- matrix(0,nrow=1,ncol=1,dimnames=list(0))
-    boxplot(t(tbl_transm_matrix)*pop_factor_100k,
+    boxplot(t(tbl_transm_matrix),
             at=tbl_transm_date,
             main=paste0('Incidence: per day\n(total population ',pop_size/1e3,'k)'),
             xlab='time (days)',ylab='New cases',
@@ -89,8 +89,11 @@ inspect_transmission_data <- function(project_dir)
     }
     legend('topleft',legend_info,cex=0.8,bg='white')
     
+    abline(v=sim_day_date[sim_day_date == '2020-03-15'])
+    abline(v=sim_day_date[sim_day_date == '2020-04-06'])
+    
     # CUMMULATIVE INCIDENCE: AVERAGE
-    boxplot(t(apply(tbl_transm_matrix,2,cumsum))*pop_factor_100k,
+    boxplot(t(apply(tbl_transm_matrix,2,cumsum)),
             at=tbl_transm_date,
             xlab='Date',ylab='Cummulative incidence',
             main=paste0('Incidence: cummulative\n(total population ',pop_size/1e3,'k)'),
@@ -98,6 +101,8 @@ inspect_transmission_data <- function(project_dir)
     axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
     grid()
     
+    abline(v=sim_day_date[sim_day_date == '2020-03-15'])
+    abline(v=sim_day_date[sim_day_date == '2020-04-06'])
     
     # LOCATION
     data_transm$cnt_location[data_transm$cnt_location == 'Household'] <- 'HH'

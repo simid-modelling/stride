@@ -67,7 +67,7 @@ inspect_incidence_data <- function(project_dir)
     
     # get other run info: population, calendar, distancing measures
     sel_run_id <- which(flag_exp)[1]
-    run_info <- c(paste0('pop_size = ',project_summary$population_size[sel_run_id]),
+    run_info <- c(paste0('pop_size = ',project_summary$population_size[sel_run_id]/1e3,'k'),
                   paste0('distancing = ',opt_calendar),
                   paste0('telework_prob = ',project_summary$telework_probability[sel_run_id]),
                   paste0('cnt_reduction_work = ',project_summary$cnt_reduction_work[sel_run_id]),

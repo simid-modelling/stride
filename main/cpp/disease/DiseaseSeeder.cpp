@@ -20,7 +20,6 @@
 
 #include "DiseaseSeeder.h"
 
-#include "disease/Immunizer.h"
 #include "pop/Population.h"
 #include "util/FileSys.h"
 #include "util/LogUtils.h"
@@ -39,24 +38,26 @@ DiseaseSeeder::DiseaseSeeder(const ptree& config, RnMan& rnMan) : m_config(confi
 
 void DiseaseSeeder::Seed(std::shared_ptr<Population> pop)
 {
-        // --------------------------------------------------------------
-        // Population immunity (natural & vaccine induced immunity).
-        // --------------------------------------------------------------
-        const auto immunityProfile = m_config.get<std::string>("run.immunity_profile");
-        Vaccinate("immunity", immunityProfile, pop->CRefPoolSys().CRefPools<Id::Household>(),pop);
-
-        const auto vaccinationProfile = m_config.get<std::string>("run.vaccine_profile");
-        if(vaccinationProfile == "Teachers"){
-        	Vaccinate("vaccine", "Random", pop->CRefPoolSys().CRefPools<Id::K12School>(),pop);
-        } else {
-        	Vaccinate("vaccine", vaccinationProfile, pop->CRefPoolSys().CRefPools<Id::Household>(),pop);
-        }
-
 
         // --------------------------------------------------------------
-        // Seed infected persons.
+        // Get number of infected persons to seed
         // --------------------------------------------------------------
         const auto   sRate       = m_config.get<double>("run.seeding_rate",0);
+        const auto   popSize     = pop->size();
+        auto numInfected = static_cast<unsigned int>(floor(static_cast<double>(popSize) * sRate));
+
+        // --------------------------------------------------------------
+        // Add infected seeds to the population
+        // --------------------------------------------------------------
+        ImportInfectedCases(pop, numInfected, 0);
+}
+
+void DiseaseSeeder::ImportInfectedCases(std::shared_ptr<Population> pop, unsigned int numInfected, unsigned int simDay)
+{
+
+        // --------------------------------------------------------------
+        // Add infected persons.
+        // --------------------------------------------------------------
         const auto   sAgeMin     = m_config.get<double>("run.seeding_age_min", 1);
         const auto   sAgeMax     = m_config.get<double>("run.seeding_age_max", 99);
         const auto   popSize     = pop->size();
@@ -65,7 +66,6 @@ void DiseaseSeeder::Seed(std::shared_ptr<Population> pop)
         auto&        logger      = pop->RefContactLogger();
         const string log_level   = m_config.get<string>("run.contact_log_level", "None");
 
-        auto numInfected = static_cast<unsigned int>(floor(static_cast<double>(popSize) * sRate));
 
         while (numInfected > 0) {
                 Person& p = pop->at(static_cast<size_t>(generator()));
@@ -73,66 +73,11 @@ void DiseaseSeeder::Seed(std::shared_ptr<Population> pop)
                         p.GetHealth().StartInfection(p.GetId());
                         numInfected--;
                         if (log_level != "None") {
-                                logger->info("[PRIM] {} {} {} {} {} {} {}", p.GetId(), -1, p.GetAge(), -1, -1, -1, p.GetId());
+                                logger->info("[PRIM] {} {} {} {} {} {} {}", p.GetId(), -1, p.GetAge(), -1, -1, simDay, p.GetId());
                         }
                 }
         }
 }
 
-void DiseaseSeeder::Vaccinate(const std::string& immunityType, const std::string& immunizationProfile,
-                              const SegmentedVector<ContactPool>& immunityPools,std::shared_ptr<Population> pop)
-{
-        std::vector<double> immunityDistribution;
-        double              linkProbability = 0;
-        Immunizer           immunizer(m_rn_man);
-
-        // retrieve the maximum age in the population
-        unsigned int maxAge = pop->GetMaxAge();
-
-        if (immunizationProfile == "AgeDependent") {
-                        const auto   immunityFile = m_config.get<string>("run." + ToLower(immunityType) + "_distribution_file");
-                        const ptree& immunity_pt  = FileSys::ReadPtreeFile(immunityFile);
-
-                        linkProbability = m_config.get<double>("run." + ToLower(immunityType) + "_link_probability");
-
-                        for (unsigned int index_age = 0; index_age <= maxAge; index_age++) {
-                                auto immunityRate = immunity_pt.get<double>("immunity.age" + std::to_string(index_age));
-                                immunityDistribution.push_back(immunityRate);
-                        }
-                        immunizer.Random(immunityPools, immunityDistribution, linkProbability, pop, false);
-
-		} else if(immunizationProfile == "Random" || immunizationProfile == "Cocoon") {
-
-			// Initialize new ContactPool vector
-			SegmentedVector<ContactPool> immunityPools_selection;
-
-			// immunizationProfile == Random: copy all contact pools
-			// immunizationProfile == Cocoon: copy all contact pools with an infant
-			for (auto& c : immunityPools) {
-				if(immunizationProfile == "Random" || c.HasInfant()){
-					immunityPools_selection.push_back(c);
-				}
-			}
-
-			// get immunity rate and
-			const auto immunityRate     = m_config.get<double>("run." + ToLower(immunityType) + "_rate");
-			const auto immunity_min_age = m_config.get<double>("run." + ToLower(immunityType) + "_min_age",0);
-			const auto immunity_max_age = m_config.get<double>("run." + ToLower(immunityType) + "_max_age",maxAge);
-
-			// Initialize a vector to store the immunity rate per age class [0-maxAge].
-			for (unsigned int index_age = 0; index_age <= maxAge; index_age++) {
-					if(index_age >= immunity_min_age && index_age <= immunity_max_age){
-						immunityDistribution.push_back(immunityRate);
-					} else{
-						immunityDistribution.push_back(0);
-					}
-			}
-
-			immunizer.Random(immunityPools_selection, immunityDistribution, linkProbability, pop, true);
-
-		}
-
-
-}
 
 } // namespace stride

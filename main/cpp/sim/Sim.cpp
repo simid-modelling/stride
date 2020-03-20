@@ -23,6 +23,7 @@
 #include "calendar/DaysOffStandard.h"
 #include "contact/ContactType.h"
 #include "contact/InfectorExec.h"
+#include "disease/DiseaseSeeder.h"
 #include "pop/Population.h"
 #include "sim/SimBuilder.h"
 #include "util/RunConfigManager.h"
@@ -39,7 +40,8 @@ using namespace ContactLogMode;
 Sim::Sim()
     : m_config(), m_contact_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
       m_adaptive_symptomatic_behavior(false), m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
-      m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_work(0), m_cnt_reduction_other(0)
+      m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_work(0), m_cnt_reduction_other(0),
+	  m_num_daily_imported_cases(0)
 {
 }
 
@@ -76,34 +78,38 @@ void Sim::TimeStep()
         const auto  simDay        = m_calendar->GetSimulationDay();
         const auto& infector      = *m_infector;
 
+        // Import infected cases into the population
+        if(m_num_daily_imported_cases > 0){
+        	DiseaseSeeder(m_config, m_rn_man).ImportInfectedCases(m_population, m_num_daily_imported_cases, simDay);
+        }
 
 #pragma omp parallel num_threads(m_num_threads)
         {
-                // Update health status and presence/absence in contact pools
-                // depending on health status, work/school day and whether
-                // we want to track index cases without adaptive behavior
+        	const auto thread_num = static_cast<unsigned int>(omp_get_thread_num());
+			// Update health status and presence/absence in contact pools
+			// depending on health status, work/school day and whether
+			// we want to track index cases without adaptive behavior
 #pragma omp for schedule(static)
-            	const auto thread_num = static_cast<unsigned int>(omp_get_thread_num());
-            	for (size_t i = 0; i < population.size(); ++i) {
-                        population[i].Update(isWorkOff, isSchoolOff, m_adaptive_symptomatic_behavior,
-                        		isSoftLockdown, m_handlers[thread_num]);
-                }
+			for (size_t i = 0; i < population.size(); ++i) {
+					population[i].Update(isWorkOff, isSchoolOff, m_adaptive_symptomatic_behavior,
+							isSoftLockdown, m_handlers[thread_num]);
+			}
 
-                // Infector updates individuals for contacts & transmission within each pool.
-                // Skip pools with id = 0, because it means Not Applicable.
-                for (auto typ : ContactType::IdList) {
-                        if ((typ == ContactType::Id::Workplace && isWorkOff) ||
-                            (typ == ContactType::Id::K12School && isSchoolOff) ||
-                            (typ == ContactType::Id::College && isSchoolOff)) {
-                                continue;
-                        }
+			// Infector updates individuals for contacts & transmission within each pool.
+			// Skip pools with id = 0, because it means Not Applicable.
+			for (auto typ : ContactType::IdList) {
+					if ((typ == ContactType::Id::Workplace && isWorkOff) ||
+						(typ == ContactType::Id::K12School && isSchoolOff) ||
+						(typ == ContactType::Id::College && isSchoolOff)) {
+							continue;
+					}
 #pragma omp for schedule(static)
-                        for (size_t i = 1; i < poolSys.RefPools(typ).size(); i++) { // NOLINT
-                                infector(poolSys.RefPools(typ)[i], m_contact_profiles[typ], m_transmission_profile,
-                                         m_handlers[thread_num], simDay, contactLogger, isSoftLockdown,
-										 m_cnt_reduction_work, m_cnt_reduction_other);
-                        }
-                }
+					for (size_t i = 1; i < poolSys.RefPools(typ).size(); i++) { // NOLINT
+							infector(poolSys.RefPools(typ)[i], m_contact_profiles[typ], m_transmission_profile,
+									 m_handlers[thread_num], simDay, contactLogger, isSoftLockdown,
+									 m_cnt_reduction_work, m_cnt_reduction_other);
+					}
+			}
         }
 
         m_population->RefContactLogger()->flush();

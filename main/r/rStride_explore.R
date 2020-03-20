@@ -60,11 +60,13 @@ exp_design <- expand.grid(r0                            = seq(2,3,1),
                           adaptive_symptomatic_behavior = 'true',
                           start_date                    = c('2020-02-01'),
                           holidays_file                 = "holidays_flanders_2020.json",
+                          num_daily_imported_cases      = c(0,5),
                           stringsAsFactors = F)
 
 # add a unique seed for each run
 set.seed(125)
 exp_design$rng_seed <- sample(nrow(exp_design))
+dim(exp_design)
 
 ##################################
 ## RUN rSTRIDE                  ##

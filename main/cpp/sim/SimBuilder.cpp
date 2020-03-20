@@ -24,6 +24,7 @@
 #include "contact/InfectorMap.h"
 #include "disease/DiseaseSeeder.h"
 #include "disease/HealthSeeder.h"
+#include "disease/ImmunitySeeder.h"
 #include "disease/PublicHealthAgency.h"
 #include "pop/SurveySeeder.h"
 #include "sim/Sim.h"
@@ -84,9 +85,16 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
         HealthSeeder(diseasePt).Seed(sim->m_population, sim->m_handlers);
 
         // --------------------------------------------------------------
-        // Seed population with immunity/vaccination/infection.
+		// Seed population with immunity: naturally or vaccine-induced.
+		// --------------------------------------------------------------
+        ImmunitySeeder(m_config, sim->m_rn_man).Seed(sim->m_population);
+
+
+        // --------------------------------------------------------------
+        // Seed population with infection.
         // --------------------------------------------------------------
         DiseaseSeeder(m_config, sim->m_rn_man).Seed(sim->m_population);
+        sim->m_num_daily_imported_cases = m_config.get<double>("run.num_daily_imported_cases",0);
 
         // --------------------------------------------------------------
 		// Set Public Health Agency

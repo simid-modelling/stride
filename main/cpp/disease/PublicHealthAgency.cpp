@@ -20,7 +20,6 @@
 
 #include "PublicHealthAgency.h"
 
-#include "disease/Immunizer.h"
 #include "pop/Population.h"
 #include "util/FileSys.h"
 #include "util/LogUtils.h"
