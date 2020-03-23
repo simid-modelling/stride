@@ -52,7 +52,7 @@ source('./bin/rstride/TransmissionInspector.R')
 # Function to run rStride for a given design of experiment
 run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                         ignore_stride_stdout = TRUE, remove_tmp_output = TRUE,
-                        store_transmission_data = TRUE)
+                        store_transmission_data = TRUE, use_prefix = TRUE)
 {
   
   # command line message
@@ -83,8 +83,11 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
   ## RUN TAG AND DIRECTORY      ##
   ################################
   
-  # create run tag using the current time
-  run_tag <- format(Sys.time(), format="%Y%m%d_%H%M%S")
+  run_tag <- ''
+  if (use_prefix) {
+    # create run tag using the current time
+    run_tag <- format(Sys.time(), format="%Y%m%d_%H%M%S")
+  }
   
   # add dir_postfix
   run_tag <- paste0(run_tag,dir_postfix)
@@ -212,21 +215,21 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                        }
                        
                        # save incidence
-                       num_sim_days           <- config_exp$num_days
-                       new_infections         <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days)
-                       new_infectious_cases   <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_infectiousness,num_sim_days)
-                       new_symptomatic_cases  <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_symptoms,num_sim_days)
-                       new_recovered_cases    <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$end_symptoms,num_sim_days)
-                       sim_day                <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days,output_col = 'mids')
-                       sim_date               <- as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day
+                       #num_sim_days           <- config_exp$num_days
+                       #new_infections         <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days)
+                       #new_infectious_cases   <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_infectiousness,num_sim_days)
+                       #new_symptomatic_cases  <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_symptoms,num_sim_days)
+                       #new_recovered_cases    <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$end_symptoms,num_sim_days)
+                       #sim_day                <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days,output_col = 'mids')
+                       #sim_date               <- as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day
                        
-                       rstride_out$data_incidence <- data.frame(sim_day               = sim_day,
-                                                                sim_date              = sim_date,
-                                                                new_infections        = new_infections,
-                                                                new_infectious_cases  = new_infectious_cases,
-                                                                new_symptomatic_cases = new_symptomatic_cases,
-                                                                new_recovered_cases   = new_recovered_cases,
-                                                                exp_id                = config_exp$exp_id)
+                       #rstride_out$data_incidence <- data.frame(sim_day               = sim_day,
+                        #                                        sim_date              = sim_date,
+                        #                                        new_infections        = new_infections,
+                        #                                        new_infectious_cases  = new_infectious_cases,
+                        #                                        new_symptomatic_cases = new_symptomatic_cases,
+                        #                                        new_recovered_cases   = new_recovered_cases,
+                        #                                        exp_id                = config_exp$exp_id)
                        
                        # if transmission data should not be stored, replace item by NA
                        if(!store_transmission_data){
@@ -234,7 +237,7 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                        }
                        
                        # save list with all results
-                       save(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.RData')))
+                       #save(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.RData')))
                        
                        # remove experiment output and config
                        if(remove_tmp_output){
@@ -247,15 +250,15 @@ run_rStride <- function(design_of_experiment = exp_design , dir_postfix = '',
                      }
   
   # print final statement
-  smd_print_progress(nrow(design_of_experiment),nrow(design_of_experiment),time_stamp_loop,par_nodes_info)
+  #smd_print_progress(nrow(design_of_experiment),nrow(design_of_experiment),time_stamp_loop,par_nodes_info)
   
   # save overal summary
-  write.table(par_out,file=file.path(project_dir,paste0(run_tag,'_summary.csv')),sep=',',row.names=F)
+  #write.table(par_out,file=file.path(project_dir,paste0(run_tag,'_summary.csv')),sep=',',row.names=F)
   
   ###############################
   ## AGGREGATE OUTPUT          ##
   ###############################
-  .rstride$aggregate_compressed_output(project_dir)
+  #.rstride$aggregate_compressed_output(project_dir)
   
   
   # remove project output
