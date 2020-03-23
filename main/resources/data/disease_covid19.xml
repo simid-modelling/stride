@@ -1,4 +1,4 @@
-<!-- This file is part of the Stride software [2020-03-20 03:06:50]-->
+<!-- This file is part of the Stride software [2020-03-23 13:56:16]-->
 <disease>
   <label>
     <pathogen>covid19</pathogen>
@@ -7,8 +7,8 @@
     <num_rng_seeds>10500</num_rng_seeds>
     <dim_exp_design>11025</dim_exp_design>
     <num_realisations>100</num_realisations>
-    <fit_r0_limit>10</fit_r0_limit>
-    <fit_r0_range>1-5</fit_r0_range>
+    <fit_r0_limit>10.43</fit_r0_limit>
+    <fit_r0_range>1.5-3.5</fit_r0_range>
     <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
     <num_days>20</num_days>
     <seeding_rate>1.7e-05</seeding_rate>
@@ -34,21 +34,21 @@
     <output_persons>false</output_persons>
     <output_summary>true</output_summary>
     <population_type>default</population_type>
-    <r01>1</r01>
-    <r02>1.28571428571429</r02>
-    <r03>1.57142857142857</r03>
-    <r04>1.85714285714286</r04>
-    <r05>2.14285714285714</r05>
-    <r06>2.42857142857143</r06>
-    <r07>2.71428571428571</r07>
-    <r08>3</r08>
-    <r09>3.28571428571429</r09>
-    <r010>3.57142857142857</r010>
-    <r011>3.85714285714286</r011>
-    <r012>4.14285714285714</r012>
-    <r013>4.42857142857143</r013>
-    <r014>4.71428571428571</r014>
-    <r015>5</r015>
+    <r01>1.5</r01>
+    <r02>1.64285714285714</r02>
+    <r03>1.78571428571429</r03>
+    <r04>1.92857142857143</r04>
+    <r05>2.07142857142857</r05>
+    <r06>2.21428571428571</r06>
+    <r07>2.35714285714286</r07>
+    <r08>2.5</r08>
+    <r09>2.64285714285714</r09>
+    <r010>2.78571428571429</r010>
+    <r011>2.92857142857143</r011>
+    <r012>3.07142857142857</r012>
+    <r013>3.21428571428571</r013>
+    <r014>3.35714285714286</r014>
+    <r015>3.5</r015>
     <seeding_age_max>99</seeding_age_max>
     <seeding_age_min>1</seeding_age_min>
     <stride_log_level>info</stride_log_level>
@@ -57,7 +57,7 @@
     <vaccine_link_probability>0</vaccine_link_probability>
     <vaccine_profile>None</vaccine_profile>
     <vaccine_rate>0</vaccine_rate>
-    <run_tag>20200320_021431_r0</run_tag>
+    <run_tag>20200323_125558_r0_all</run_tag>
     <num_cea_samples>10000</num_cea_samples>
     <adaptive_symptomatic_behavior>true</adaptive_symptomatic_behavior>
   </label>
@@ -96,9 +96,9 @@
     <probability>1</probability>
   </time_symptomatic>
   <transmission>
-    <b0>-0.0164992995121087</b0>
-    <b1>30.1663941030244</b1>
-    <b2>-21.4072256429955</b2>
+    <b0>0.053947190183193</b0>
+    <b1>11.1791943128997</b1>
+    <b2>-0.804927674157355</b2>
   </transmission>
   <sympt_cnt_reduction_work_school>
       0.9
@@ -107,7 +107,7 @@
       0.75
   </sympt_cnt_reduction_community>
   <rel_transmission_asymptomatic>
-      0.1
+      0.2
   </rel_transmission_asymptomatic>
   <rel_transmission_children>
       0.2

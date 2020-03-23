@@ -133,6 +133,12 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   leg_text_fitting <- c(leg_text_model,paste0('R0 max:',round(R0_limit,digits=2)),paste0('R0 range: ',fit_r0_range))
   legend('topleft',legend=leg_text_fitting,cex=0.8,title='b0+b1*x+b2*x^2',ncol=2)
   
+  # add mean
+  mean_sec_cases <- aggregate(sec_cases ~ transmission_probability + R0_poly_fit, data=sec_transm,mean)
+  points(mean_sec_cases$transmission_probability,mean_sec_cases$sec_cases,col=4,pch=15)
+  legend('top','mean',pch=15,col=4,cex=0.8)
+  
+  # other x-scale
   boxplot(sec_transm$sec_cases ~ sec_transm$R0_poly_fit,
           xlab='Predicted R0 (using updated transmission parameters)',ylab='Secundary cases',
           at=sort(unique(sec_transm$R0_poly_fit)),
@@ -140,6 +146,9 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   abline(0,1,col=2,lwd=2)
   legend('topleft',legend=leg_text_model,cex=0.8,title='b0+b1*x+b2*x^2')
   legend('topright',legend='x=y',cex=0.8,title='reference',col=2,lwd=2)
+  
+  points(mean_sec_cases$R0_poly_fit ,mean_sec_cases$sec_cases,col=4,pch=15)
+  legend('left','mean',pch=15,col=4,cex=0.8)
   
   
   ###############################

@@ -58,7 +58,7 @@ exp_design <- expand.grid(r0                            = seq(2,3,1),
                           population_file               = c("pop_belgium600k_c500_teachers_censushh.csv"),
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           adaptive_symptomatic_behavior = 'true',
-                          start_date                    = c('2020-02-01'),
+                          start_date                    = c('2020-02-10'),
                           holidays_file                 = "holidays_flanders_2020.json",
                           num_daily_imported_cases      = c(0,5),
                           stringsAsFactors = F)
@@ -89,15 +89,17 @@ inspect_participant_data(project_dir)
 
 
 ##################################
+## EXPLORE INCIDENCE DATA       ##
+##################################
+inspect_incidence_data(project_dir)
+
+
+##################################
 ## EXPLORE TRANSMISSION         ##
 ##################################
 inspect_transmission_data(project_dir)
 
 
-##################################
-## EXPLORE INCIDENCE DATA       ##
-##################################
-inspect_incidence_data(project_dir)
 
 
 
