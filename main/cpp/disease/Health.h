@@ -112,14 +112,14 @@ public:
         double GetSymptomaticCntReductionCommunity() const { return m_sympt_cnt_reduction_community; };
 
         /// Get relative infectiousness by age
-        double GetRelativeInfectiousness(unsigned int age) {
+        double GetRelativeTransmission(unsigned int age1, unsigned int age2) {
 
         	if(!IsInfectious()) {return 0;}
 
-        	double rel_infectiousness = 1;
-        	if(age < 18)         { rel_infectiousness *= m_rel_transmission_children;}
-        	if(!IsSymptomatic()) { rel_infectiousness *= m_rel_transmission_asymptomatic;}
-        	return rel_infectiousness;
+        	double rel_transmission = 1;
+        	if(age1 < 18 || age2 < 18)         { rel_transmission *= m_rel_transmission_children;}
+        	if(!IsSymptomatic()) { rel_transmission *= m_rel_transmission_asymptomatic;}
+        	return rel_transmission;
         }
 
 private:

@@ -40,15 +40,11 @@ inspect_summary <- function(project_dir)
     # stop
     return(.rstride$no_return_value())
   }
-  # calculate a scale factor and ticks for the second y-axis [cases vs. incidence]
-  range_num_cases   <- range(project_summary$num_cases)
-  ticks_cases       <- seq(range_num_cases[1],range_num_cases[2],diff(range_num_cases)/5) 
   
-  r0_axis_factor     <- median(project_summary$num_cases / project_summary$AR)
-  r0_axis_scale      <- diff(range_num_cases)/r0_axis_factor
-  
-  num_digits        <- ceiling(abs(log10(r0_axis_scale)))
-  ticks_r0          <- round(ticks_cases/r0_axis_factor,digits=num_digits)
+  # calculate values and labels for the second y-axis [cases vs. incidence]
+  pop_size          <- median(project_summary$num_cases / project_summary$AR)
+  ticks_name        <- pretty(project_summary$num_cases/pop_size)
+  tick_value        <- ticks_name*pop_size
   
   # OPEN PDF STREAM
   .rstride$create_pdf(project_dir,'summary_inspection',10,7)
@@ -61,7 +57,7 @@ inspect_summary <- function(project_dir)
             data = project_summary,
             xlab = colnames(input_opt_design)[i],
             ylab = '',cex.axis=0.8,las=2)
-    axis(4, at = ticks_cases , labels = ticks_r0 )
+    axis(4, at = tick_value , labels = ticks_name )
     mtext("incidence", side=4, line=2,cex=0.9)
     mtext("number of cases", side=2, line=2,cex=0.9)
   }
@@ -72,7 +68,7 @@ inspect_summary <- function(project_dir)
           ylab = '',
           las=2,
           cex.axis=0.8)
-  axis(4, at = ticks_cases , labels = ticks_r0 )
+  axis(4, at = tick_value , labels = ticks_name )
   mtext("incidence", side=4, line=2,cex=0.9)
   mtext("total number of cases", side=2, line=2,cex=0.9)
   
@@ -85,7 +81,7 @@ inspect_summary <- function(project_dir)
             ylab = '',
             las=2,
             cex.axis=0.8)
-    axis(4, at = ticks_cases , labels = ticks_r0 )
+    axis(4, at = tick_value , labels = ticks_name )
     mtext("incidence", side=4, line=2,cex=0.9)
     mtext("total number of cases", side=2, line=2,cex=0.9)
   }

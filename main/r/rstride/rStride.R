@@ -211,6 +211,10 @@ run_rStride <- function(exp_design = exp_design , dir_postfix = '',
                          return(data_out)
                        }
                        
+                       # account for non-symptomatic cases
+                       flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
+                       rstride_out$data_transmission$start_symptoms[flag] <- NA
+                       
                        # save incidence
                        num_sim_days           <- config_exp$num_days
                        new_infections         <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days)

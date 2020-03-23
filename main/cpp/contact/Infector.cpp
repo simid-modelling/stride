@@ -189,12 +189,12 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                         		cnt_reduction_work, cnt_reduction_other);
                         if (cHandler.HasContact(cProb)) {
                                 // log contact if person 1 is participating in survey
-                                LP::Contact(cLogger, p1, p2, pType, simDay, cProb, tProb * p1->GetHealth().GetRelativeInfectiousness(p1->GetAge()));
+                                LP::Contact(cLogger, p1, p2, pType, simDay, cProb, tProb * p1->GetHealth().GetRelativeTransmission(p1->GetAge(),p2->GetAge()));
                                 // log contact if person 2 is participating in survey
-                                LP::Contact(cLogger, p2, p1, pType, simDay, cProb, tProb * p2->GetHealth().GetRelativeInfectiousness(p2->GetAge()));
+                                LP::Contact(cLogger, p2, p1, pType, simDay, cProb, tProb * p2->GetHealth().GetRelativeTransmission(p2->GetAge(),p1->GetAge()));
 
                                 // transmission & infection.
-                                if (cHandler.HasTransmission(tProb * p1->GetHealth().GetRelativeInfectiousness(p1->GetAge()))) {
+                                if (cHandler.HasTransmission(tProb * p1->GetHealth().GetRelativeTransmission(p1->GetAge(),p2->GetAge()))) {
                                         auto& h1 = p1->GetHealth();
                                         auto& h2 = p2->GetHealth();
                                         // No secondary infections with TIC; just mark p2 'recovered'
@@ -263,8 +263,8 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                                 		cnt_reduction_work, cnt_reduction_other);
                                 //const double cProb_p2 = GetContactProbability(profile, p2, p1, pSize, pType);
                                 const double cProb_p2 = 0.0;
-                                if (cHandler.HasContactAndTransmission(cProb_p1, tProb * p1->GetHealth().GetRelativeInfectiousness(p1->GetAge())) ||
-                                    cHandler.HasContactAndTransmission(cProb_p2, tProb * p2->GetHealth().GetRelativeInfectiousness(p2->GetAge()))) {
+                                if (cHandler.HasContactAndTransmission(cProb_p1, tProb * p1->GetHealth().GetRelativeTransmission(p1->GetAge(),p2->GetAge())) ||
+                                    cHandler.HasContactAndTransmission(cProb_p2, tProb * p2->GetHealth().GetRelativeTransmission(p2->GetAge(),p1->GetAge()))) {
                                         auto& h2 = p2->GetHealth();
                                         if (h1.IsInfectious() && h2.IsSusceptible()) {
                                                 h2.StartInfection(h1.GetIdIndexCase());

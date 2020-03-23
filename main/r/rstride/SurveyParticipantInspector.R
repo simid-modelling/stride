@@ -42,7 +42,7 @@ inspect_participant_data <- function(project_dir)
   .rstride$create_pdf(project_dir,'survey_participant_inspection',10,7)
   par(mfrow=c(2,4))
   
-  i_config <- 2
+  i_config <- 1
   for(i_config in 1:nrow(input_opt_design))
   {
     # select the participant output subset, corresponding the 'input_opt_design' row
@@ -50,17 +50,24 @@ inspect_participant_data <- function(project_dir)
     data_part           <- .rstride$load_aggregated_output(project_dir,'data_participants',project_summary$exp_id[flag_exp])
     num_runs_exp        <- sum(flag_exp)
     
+    # adjust for asymptomatic cases
+    flag_asymptomatic <- data_part$start_symptomatic == data_part$end_symptomatic
+    data_part$start_symptomatic[flag_asymptomatic] <- NA
+    data_part$end_symptomatic[flag_asymptomatic] <- NA
+    
     num_part <- nrow(data_part)
     freq_start_inf  <- table(data_part$start_infectiousness) / num_part
     freq_start_symp <- table(data_part$start_symptomatic)    / num_part
     data_part[1,]
     all_inf <- matrix(0,num_part,30)
     all_symp <- matrix(0,num_part,30)
+    #note: if start == end, no infectious/symptomatic stage has been present
     for(i in 1:num_part){
       all_inf[i,data_part$start_infectiousness[i]:data_part$end_infectiousness[i]] <- 1
+      if(!is.na(data_part$start_symptomatic[i]))
       all_symp[i,data_part$start_symptomatic[i]:data_part$end_symptomatic[i]] <- 1
     }
-    
+  
     plot(1:30,colMeans(all_inf),
          ylab='population fraction',
          xlab='days since infection',
@@ -70,7 +77,7 @@ inspect_participant_data <- function(project_dir)
     legend('topright',c('infectious','symptomatic'),col=c(2,4),lwd=4,cex=0.8)
     abline(v=6:9,lty=3)
     
-    f_data <- data_part$start_infectiousness; f_main <- 'debug'
+    f_data <- data_part$start_symptomatic; f_main <- 'debug'
     plot_cum_distr <- function(f_data,f_main,f_x_lab = 'period (days)'){
       tbl_data <- table(f_data)/length(f_data)
       tbl_data_cumm <- cumsum(tbl_data)
@@ -81,11 +88,19 @@ inspect_participant_data <- function(project_dir)
       legend_position <- 'topleft'
       if(max(as.numeric(names(tbl_data)))<10) {legend_position <- 'topright'}
       legend(legend_position,c('per day','cummulative'),col=c(1,4),lwd=2,cex=0.8)
+      grid()
+      abline(h=0.5)
     }
     
+    # days asymptomitic & infectious
+    start_symtomatic <- data_part$start_symptomatic
+    start_symtomatic[is.na(data_part$start_symptomatic)] <- data_part$end_infectiousness[is.na(data_part$start_symptomatic)]
+    days_asymptomatic_infectious <- start_symtomatic - data_part$start_infectiousness
+   
+    # plot distributions   
     plot_cum_distr(data_part$start_infectiousness,f_main='start_infectiousness',f_x_lab='time since infection (days)')
     plot_cum_distr(data_part$start_symptomatic,f_main='start_symptomatic',f_x_lab='time since infection (days)')
-    plot_cum_distr(f_data=data_part$start_symptomatic-data_part$start_infectiousness,f_main='days infectious \n& not symptomatic')
+    plot_cum_distr(days_asymptomatic_infectious,f_main='days infectious \n& not symptomatic')
     plot_cum_distr(data_part$end_infectiousness-data_part$start_infectiousness,f_main='days infectious')
     plot_cum_distr(data_part$end_symptomatic-data_part$start_symptomatic,f_main='days symptomatic')
     

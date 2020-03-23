@@ -89,7 +89,7 @@ inspect_transmission_data <- function(project_dir)
     }
     legend('topleft',legend_info,cex=0.8,bg='white')
     
-    abline(v=sim_day_date[sim_day_date == '2020-03-15'])
+    abline(v=sim_day_date[sim_day_date == '2020-03-14'])
     abline(v=sim_day_date[sim_day_date == '2020-04-06'])
     
     # CUMMULATIVE INCIDENCE: AVERAGE
@@ -101,7 +101,7 @@ inspect_transmission_data <- function(project_dir)
     axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
     grid()
     
-    abline(v=sim_day_date[sim_day_date == '2020-03-15'])
+    abline(v=sim_day_date[sim_day_date == '2020-03-14'])
     abline(v=sim_day_date[sim_day_date == '2020-04-06'])
     
     # LOCATION
@@ -169,7 +169,7 @@ inspect_transmission_data <- function(project_dir)
     plot_xlim <- range(c(0,sec_transm$infection_day),na.rm=T)
     plot_ymax <- range(c(0,4,mean_sec_cases$sec_cases))
     plot(mean_sec_cases,type='b',
-         xlab='day',ylab='secondary infections',
+         xlab='day of infection',ylab='secondary infections',
          main='reproduction number',
          ylim=plot_ymax,
          xaxt='n')
@@ -187,11 +187,11 @@ inspect_transmission_data <- function(project_dir)
     if(nrow(gen_interval)==0) gen_interval <- data.frame(matrix(rep(0,6),nrow=1)); names(gen_interval) <- names(sec_transm)
     mean_generation_interval <- aggregate(generation_interval ~ infection_day_date, data = gen_interval,mean)
     plot(mean_generation_interval,type='b',
-         xlab='day',ylab='generation interval [infection]',
+         xlab='day of infection',ylab='generation interval [infection]',
          main='generation interval\n[infection]',
          xaxt='n')
     axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%d %b'))
-    
+    abline(h=5.2)
     if(unique(project_summary$track_index_case[flag_exp]) == 'true'){
       text(0,pos=4,'TRACK INDEX CASE ON == NO TERTIARY CASES')
     }

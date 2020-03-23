@@ -74,8 +74,8 @@ void Health::Update()
                 if (GetDiseaseCounter() == m_end_symptomatic) {
                         if (m_status == HealthStatus::InfectiousAndSymptomatic) {
                                 m_status = HealthStatus::Infectious;
-                        } else {
-                                StopInfection();
+                        } else if (m_status != HealthStatus::Infectious) {
+                        	 StopInfection();
                         }
                 }
                 if (GetDiseaseCounter() == m_end_infectiousness) {
