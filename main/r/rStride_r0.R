@@ -63,6 +63,7 @@ exp_design <- expand.grid(r0                            = seq(1,5,length=15),
 # add a unique seed for each run
 set.seed(num_seeds)
 exp_design$rng_seed <- sample(nrow(exp_design))
+dim(exp_design)
 
 ##################################
 ## RUN rSTRIDE                  ##

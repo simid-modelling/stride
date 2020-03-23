@@ -199,6 +199,10 @@ run_rStride <- function(exp_design = exp_design , dir_postfix = '',
                        # help function to get the daily incidence
                        get_counts <- function(all_data,sim_day_max,output_col = "counts"){
                          
+                         if(all(is.na(all_data))){
+                           return( rep(0,sim_day_max))
+                         }
+                         
                          # get all bins (-0.5 to set the midpoint to 0,1,2,...)
                          breaks <- (0:max(all_data+1,na.rm=T))-0.5
                          

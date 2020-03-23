@@ -61,7 +61,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   sec_transm <- merge(sec_transm,project_summary[,c('exp_id','r0','transmission_probability')])
     
   # select index cases
-  flag       <- is.na(sec_transm$infection_day)
+  flag       <- sec_transm$infection_day == 0
   sec_transm <- sec_transm[flag,]
   dim(sec_transm)
   
