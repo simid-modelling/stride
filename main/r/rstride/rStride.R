@@ -52,7 +52,7 @@ source('./bin/rstride/TransmissionInspector.R')
 # Function to run rStride for a given design of experiment
 run_rStride <- function(exp_design = exp_design , dir_postfix = '',
                         ignore_stride_stdout = TRUE, remove_tmp_output = TRUE,
-                        store_transmission_data = TRUE)
+                        store_transmission_data = TRUE, use_prefix = TRUE)
 {
   
   # command line message
@@ -82,9 +82,9 @@ run_rStride <- function(exp_design = exp_design , dir_postfix = '',
   ################################
   ## RUN TAG AND DIRECTORY      ##
   ################################
-  
-  # create run tag using the current time
-  run_tag <- format(Sys.time(), format="%Y%m%d_%H%M%S")
+
+  # create run tag using the current time if use_prefix == TRUE
+  run_tag <- ifelse(use_prefix,format(Sys.time(), format="%Y%m%d_%H%M%S"),'')
   
   # add dir_postfix
   run_tag <- paste0(run_tag,dir_postfix)
