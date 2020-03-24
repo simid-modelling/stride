@@ -37,9 +37,6 @@ for (i in 1:length(popSizes)) {
   # set directory postfix (optional)
   dir_postfix <- paste0('popsizes_', popSizes[i])
   
-  # store all transmission output
-  store_transmission_data <- TRUE
-  
   # set parameters
   num_seeds <- 50 # Number of runs per scenario
 
@@ -70,8 +67,13 @@ for (i in 1:length(popSizes)) {
   # dim(exp_design)
   
   # run rStride 
-  project_dir <- run_rStride(exp_design,dir_postfix, remove_tmp_output= FALSE,
-                              store_transmission_data=store_transmission_data, use_prefix = FALSE)
+  project_dir <- run_rStride(exp_design               = exp_design,
+                             dir_postfix              = dir_postfix, 
+                             ignore_stdout            = TRUE,
+                             parse_log_data           = TRUE,    # parse txt log-files and aggregate
+                             get_csv_output           = TRUE,    # save aggregated log-data as csv files
+                             store_transmission_rdata = TRUE,
+                             use_date_prefix          = FALSE)
   
 
   

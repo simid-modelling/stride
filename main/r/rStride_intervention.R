@@ -34,7 +34,7 @@ source('./bin/rstride/rStride.R')
 dir_postfix <- '_intervention'
 
 # store all transmission output
-store_transmission_data <- TRUE
+store_transmission_rdata <- TRUE
 
 ##################################
 ## DESIGN OF EXPERIMENTS        ##
@@ -44,7 +44,7 @@ store_transmission_data <- TRUE
 #names(xmlToList('./config/run_default.xml'))
 
 # set the number of realisations per configuration set
-num_seeds  <- 10
+num_seeds  <- 5
 
 # add parameters and values to combine in a full-factorial grid
 exp_design <- expand.grid(r0                            = 2.5,
@@ -78,9 +78,9 @@ dim(exp_design)
 ##################################
 ## RUN rSTRIDE                  ##
 ##################################
-project_dir <- run_rStride(exp_design              = exp_design,
-                           dir_postfix             = dir_postfix, 
-                           store_transmission_data = store_transmission_data)
+project_dir <- run_rStride(exp_design               = exp_design,
+                           dir_postfix              = dir_postfix, 
+                           store_transmission_rdata = store_transmission_rdata)
 
 
 #####################################

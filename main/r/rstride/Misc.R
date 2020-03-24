@@ -156,7 +156,7 @@ if(!(exists('.rstride'))){
 ## AGGREGATE EXPERIMENT OUTPUT FILES  ##
 ########################################
 
-.rstride$aggregate_compressed_output <- function(project_dir){
+.rstride$aggregate_compressed_output <- function(project_dir,get_csv_output){
   
   # load project summary
   project_summary      <- .rstride$load_project_summary(project_dir)
@@ -171,72 +171,78 @@ if(!(exists('.rstride'))){
   # loop over the output data types
   data_type <- data_type_all[1]
   for(data_type in data_type_all){
+
+    # check cluster
+    smd_check_cluster()
+      
+    # loop over all experiments, rbind
+      i_file <- 2
+    data_all <- foreach(i_file = 1:length(data_filenames),
+                        .combine='rbind') %do%
+    {
+ 
+      # get file name
+      exp_file_name <- data_filenames[i_file]
+      
+      # load output data
+      data_exp_all    <- get(load(exp_file_name))
   
-  # check cluster
-  smd_check_cluster()
-    
-  # loop over all experiments, rbind
-    i_file <- 2
-  data_all <- foreach(i_file = 1:length(data_filenames),
-                      .combine='rbind') %dopar%
-  {
-        # get file name
-        exp_file_name <- data_filenames[i_file]
-        
-        # load output data
-        data_exp_all    <- get(load(exp_file_name))
-    
-        # check if data type present, if not, next experiment
-        #if(!data_type %in% names(data_exp_all)){
-        if(is.na(data_exp_all[[data_type]])){
-          return(NULL)
+      # check if data type present, if not, next experiment
+      #if(!data_type %in% names(data_exp_all)){
+      if(length(data_exp_all[[data_type]]) == 1 && is.na(data_exp_all[[data_type]])){
+        return(NULL)
+      }
+      
+      # select output type
+      data_exp        <- data_exp_all[[data_type]]
+      
+      # for prevalence data, check the number of days
+      if(grepl('prevalence',data_type)){
+
+        # create full-size data frame to include the maximum number of days
+        data_tmp        <- data.frame(matrix(NA,ncol=max(project_summary$num_days)+2)) # +1 for day 0 and +1 for exp_id
+        names(data_tmp) <-  c(paste0('day',0:max(project_summary$num_days)),
+                                'exp_id')
+
+        # insert the experiment data
+        data_tmp[names(data_exp)] <- data_exp
+
+          # replace the experiment data by the newly constructed data.frame
+          data_exp <- data_tmp
         }
         
-        # select output type
-        data_exp        <- data_exp_all[[data_type]]
-        
-        # for prevalence data, check the number of days
-        if(grepl('prevalence',data_type)){
-
-          # create full-size data frame to include the maximum number of days
-          data_tmp        <- data.frame(matrix(NA,ncol=max(project_summary$num_days)+2)) # +1 for day 0 and +1 for exp_id
-          names(data_tmp) <-  c(paste0('day',0:max(project_summary$num_days)),
-                                  'exp_id')
-
-          # insert the experiment data
-          data_tmp[names(data_exp)] <- data_exp
-
-            # replace the experiment data by the newly constructed data.frame
-            data_exp <- data_tmp
-          }
-          
-          # return
-          data_exp
-        } # end i_file loop
-    
-  # continue if data_all is not NULL
-  if(any(!is.null(data_all))){
-    
-    # make id's unique => by adding a exp_id tag with leading zero's
-    names_id_columns  <- names(data_all)[grepl('id',names(data_all)) & names(data_all) != 'exp_id']
-    num_exp_id_digits <- nchar(max(data_all$exp_id))+1
-    
-    if(length(names_id_columns)>0) {
-      for(i_id_column in names_id_columns){
-        row_is_id  <- !is.na(data_all[,i_id_column])
-        if(i_id_column %in% c('household_id','school_id','college_id','workplace_id')){
-          row_is_id <- row_is_id & data_all[,i_id_column] != 0
-        } 
-        data_all[row_is_id,i_id_column] <- as.numeric(sprintf(paste0('%d%0',num_exp_id_digits,'d'),
-                                                              data_all[row_is_id,i_id_column],
-                                                              data_all$exp_id[row_is_id]))
+        # return
+        data_exp
+      } # end i_file loop
+      
+    # continue if data_all is not NULL
+    if(any(!is.null(data_all))){
+      
+      # make id's unique => by adding a exp_id tag with leading zero's
+      names_id_columns  <- names(data_all)[grepl('id',names(data_all)) & names(data_all) != 'exp_id']
+      num_exp_id_digits <- nchar(max(data_all$exp_id))+1
+      
+      if(length(names_id_columns)>0) {
+        for(i_id_column in names_id_columns){
+          row_is_id  <- !is.na(data_all[,i_id_column])
+          if(i_id_column %in% c('household_id','school_id','college_id','workplace_id')){
+            row_is_id <- row_is_id & data_all[,i_id_column] != 0
+          } 
+          data_all[row_is_id,i_id_column] <- as.numeric(sprintf(paste0('%d%0',num_exp_id_digits,'d'),
+                                                                data_all[row_is_id,i_id_column],
+                                                                data_all$exp_id[row_is_id]))
+        }
       }
-    }
-    
-    # save
-    run_tag <- unique(project_summary$run_tag)
-    save(data_all,file=file.path(project_dir,paste0(run_tag,'_',data_type,'.RData')))
-    } # end if data_all is not NULL
+      
+      # save
+      run_tag <- unique(project_summary$run_tag)
+      save(data_all,file=file.path(project_dir,paste0(run_tag,'_',data_type,'.RData')))
+      
+      if(get_csv_output){
+        write.table(data_all,file=file.path(project_dir,paste0(run_tag,'_',data_type,'.csv')),sep=',',row.names=F)
+      }
+      
+      } # end if data_all is not NULL
   } # end data-type loop
 }
 

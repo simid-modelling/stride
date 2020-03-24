@@ -49,18 +49,32 @@ source('./bin/rstride/SurveyParticipantInspector.R')
 source('./bin/rstride/TransmissionAnalyst.R')
 source('./bin/rstride/TransmissionInspector.R')
 
-# Function to run rStride for a given design of experiment
-run_rStride <- function(exp_design = exp_design , dir_postfix = '',
-                        ignore_stride_stdout = TRUE, remove_tmp_output = TRUE,
-                        store_transmission_data = TRUE, use_prefix = TRUE)
+#' Main function to run rStride for a given design of experiment
+#' 
+#' @param exp_design                vector with experimental design with parameter names as column names
+#' @param dir_postfix               add postfix to output directory name (optional)
+#' @param ignore_stdout             hide standard STRIDE terminal output   
+#' @param remove_run_output         remove all run-specific output
+#' @param parse_log_data            parse log files and aggregate into RData files
+#' @param get_csv_output            store aggregated log data also in csv format
+#' @param store_transmission_rdata  parse and store transmission data as RData file
+#' @param use_date_prefix           add date tag as prefix to output directory and file names
+run_rStride <- function(exp_design               = exp_design, 
+                        dir_postfix              = '',
+                        ignore_stdout            = TRUE, 
+                        parse_log_data           = TRUE,
+                        get_csv_output           = FALSE,
+                        remove_run_output        = TRUE,
+                        store_transmission_rdata = TRUE, 
+                        use_date_prefix          = TRUE)
 {
   
   # command line message
   smd_print('STARTING rSTRIDE CONTROLLER')
 
-  ################################
-  ## CHECK DESIGN OF EXPERIMENT ##
-  ################################
+  #__________________________________#
+  ## CHECK DESIGN OF EXPERIMENT   ####
+  #__________________________________#
   if(.rstride$data_files_exist(exp_design) == FALSE ||
      .rstride$log_levels_exist(exp_design) == FALSE ||
      .rstride$valid_r0_values(exp_design)  == FALSE ||
@@ -71,20 +85,20 @@ run_rStride <- function(exp_design = exp_design , dir_postfix = '',
     return(.rstride$no_return_value())
   }
   
-  ################################
-  ## GENERAL OPTIONS            ##
-  ################################
+  #__________________________________#
+  ## GENERAL OPTIONS              ####
+  #__________________________________#
   stride_bin              <- './bin/stride'
   config_opt              <- '-c'
   config_default_filename <- './config/run_default.xml'
   output_dir              <- 'sim_output'
   
-  ################################
-  ## RUN TAG AND DIRECTORY      ##
-  ################################
+  #__________________________________#
+  ## RUN TAG AND DIRECTORY        ####
+  #__________________________________#
 
-  # create run tag using the current time if use_prefix == TRUE
-  run_tag <- ifelse(use_prefix,format(Sys.time(), format="%Y%m%d_%H%M%S"),'')
+  # create run tag using the current time if use_date_prefix == TRUE
+  run_tag <- ifelse(use_date_prefix,format(Sys.time(), format="%Y%m%d_%H%M%S"),'')
   
   # add dir_postfix
   run_tag <- paste0(run_tag,dir_postfix)
@@ -96,9 +110,9 @@ run_rStride <- function(exp_design = exp_design , dir_postfix = '',
   smd_print('WORKING DIR',getwd())
   smd_print('PROJECT DIR',project_dir)
   
-  ##################################
-  ## GENERAL CONFIG MODIFICATIONS ##
-  ##################################
+  #__________________________________#
+  ## GENERAL CONFIG MODIFICATIONS ####
+  #__________________________________#
   config_default                  <- xmlToList(config_default_filename)
   config_default$num_threads      <- 1
   config_default$vaccine_profile  <- 'None'
@@ -109,14 +123,14 @@ run_rStride <- function(exp_design = exp_design , dir_postfix = '',
   config_default$run_tag          <- run_tag
   config_default$num_cea_samples  <- 1e4
   
-  ################################
-  ## PARALLEL SETUP             ##
-  ################################
+  #__________________________________#
+  ## PARALLEL SETUP               ####
+  #__________________________________#
   smd_start_cluster(timeout = 360)
   
-  ##################################
-  ## RUN                          ##
-  ##################################
+  #__________________________________#
+  ## RUN                          ####
+  #__________________________________#
   
   # command line message
   smd_print('READY TO RUN',nrow(exp_design),'EXPERIMENT(S)')
@@ -161,19 +175,24 @@ run_rStride <- function(exp_design = exp_design , dir_postfix = '',
                        config_exp_filename <- .rstride$save_config_xml(config_exp,'run',config_exp$output_prefix)
 
                        # run stride (using the C++ Controller)
-                       system(paste(stride_bin,config_opt,paste0('../',config_exp_filename)),ignore.stdout=ignore_stride_stdout)
+                       system(paste(stride_bin,config_opt,paste0('../',config_exp_filename)),ignore.stdout=ignore_stdout)
 
                        # load output summary
                        summary_filename <- file.path(config_exp$output_prefix,'summary.csv')
                        run_summary      <- read.table(summary_filename,header=T,sep=',')
                        
-                       # remove R0 column... to prevent mismatch due to rounding (e.g. 0.33 and 0.333)
-                       run_summary$r0 <- NULL
-                       
                        # merge output summary with input param
+                       # note: do not use "merge" to prevent issues with decimal numbers
                        config_df   <- as.data.frame(config_exp)
-                       run_summary <- merge(run_summary,config_df)
+                       config_df   <- config_df[,!names(config_df) %in% names(run_summary)]
+                       run_summary <- cbind(run_summary,config_df)
                        
+                       # if we do not wat to parse log data, return run summary
+                       if(!parse_log_data){
+                           return(run_summary)
+                       }
+
+                       ## PARSE LOGFILE
                        # create rstride_out list
                        rstride_out <- list()
                        
@@ -238,7 +257,7 @@ run_rStride <- function(exp_design = exp_design , dir_postfix = '',
                                                                 row.names = NULL)
                        
                        # if transmission data should not be stored, replace item by NA
-                       if(!store_transmission_data){
+                       if(!store_transmission_rdata){
                          rstride_out$data_transmission <- NA
                        }
                        
@@ -246,12 +265,12 @@ run_rStride <- function(exp_design = exp_design , dir_postfix = '',
                        save(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.RData')))
                        
                        # remove experiment output and config
-                       if(remove_tmp_output){
-                         unlink(config_exp$output_prefix,recursive=T)
-                         unlink(config_exp_filename,recursive = T)
+                       if(remove_run_output){
+                         unlink(config_exp$output_prefix,recursive=TRUE)
+                         unlink(config_exp_filename,recursive = TRUE)
                        }
                        
-                       # return experiment output summary
+                       # Finally: return experiment output summary
                        return(run_summary)
                      }
   
@@ -261,21 +280,23 @@ run_rStride <- function(exp_design = exp_design , dir_postfix = '',
   # save overal summary
   write.table(par_out,file=file.path(project_dir,paste0(run_tag,'_summary.csv')),sep=',',row.names=F)
   
-  ###############################
-  ## AGGREGATE OUTPUT          ##
-  ###############################
-  .rstride$aggregate_compressed_output(project_dir)
+  #__________________________________#
+  ## AGGREGATE OUTPUT             ####
+  #__________________________________#
+  # if log data is parsed => aggregate
+  if(parse_log_data){
+    .rstride$aggregate_compressed_output(project_dir,get_csv_output)
+  }
   
-  
-  # remove project output
-  if(remove_tmp_output){
+    # remove project output
+  if(remove_run_output){
     unlink(project_dir_exp,recursive = T)
   }
   
   
-  ###############################
-  ## TERMINATE PARALLEL NODES  ##
-  ###############################
+  #__________________________________#
+  ## TERMINATE PARALLEL NODES     ####
+  #__________________________________#
   smd_stop_cluster()
   
   # command line message

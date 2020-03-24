@@ -228,7 +228,7 @@ inspect_incidence_data <- function(project_dir)
       points(hosp_cases_date,hosp_cases_cum,pch=15,col=8)
       
       legend('topleft',
-             c(paste0(hosp_fraction,'% symptomatic +',hosp_delay,'days'),
+             c(paste0(hosp_fraction*100,'% symptomatic +',hosp_delay,'days'),
                'hospital cases (BE)'),
              col=c(4,8),
              pch=c(NA,15),

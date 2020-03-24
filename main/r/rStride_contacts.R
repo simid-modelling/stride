@@ -59,7 +59,8 @@ exp_design$rng_seed <- sample(nrow(exp_design))
 ##################################
 ## RUN rSTRIDE                  ##
 ##################################
-project_dir <- run_rStride(exp_design,unique(exp_design$dir_postfix))
+project_dir <- run_rStride(exp_design  = exp_design,
+                           dir_postfix = unique(exp_design$dir_postfix))
 
 
 #####################################################

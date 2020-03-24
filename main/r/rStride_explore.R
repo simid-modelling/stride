@@ -34,7 +34,7 @@ source('./bin/rstride/rStride.R')
 dir_postfix <- '_expl'
 
 # store all transmission output
-store_transmission_data <- TRUE
+store_transmission_rdata <- TRUE
 
 ##################################
 ## DESIGN OF EXPERIMENTS        ##
@@ -71,9 +71,9 @@ dim(exp_design)
 ##################################
 ## RUN rSTRIDE                  ##
 ##################################
-project_dir <- run_rStride(exp_design              = exp_design,
-                           dir_postfix             = dir_postfix, 
-                           store_transmission_data = store_transmission_data)
+project_dir <- run_rStride(exp_design               = exp_design,
+                           dir_postfix              = dir_postfix, 
+                           store_transmission_rdata = store_transmission_rdata)
 
 
 #####################################
