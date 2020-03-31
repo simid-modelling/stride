@@ -97,11 +97,16 @@ private:
         std::shared_ptr<Population> m_population;       ///< Pointer to the Population.
         util::RnMan                 m_rn_man;           ///< Random number generation management.
 
-        TransmissionProfile m_transmission_profile; ///< Profile of disease.
+        TransmissionProfile         m_transmission_profile; ///< Profile of disease.
 
         // temporary...
         double                      m_cnt_reduction_work;
         double                      m_cnt_reduction_other;
+        unsigned int                m_compliance_delay;
+        unsigned int                m_day_of_lockdown;
+
+
+        // Introduce new infected cases on a daily basis?
         unsigned int                m_num_daily_imported_cases;
 
 

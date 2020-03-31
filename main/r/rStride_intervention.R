@@ -66,7 +66,8 @@ exp_design <- expand.grid(r0                            = 2.5,
                                                             # "calendar_belgium_2020_covid19_may.json"),
                           telework_probability          = c(0.40),
                           cnt_reduction_work            = c(0.40),
-                          cnt_reduction_other           = c(0.8),
+                          cnt_reduction_other           = c(0.7,0.6),
+                          compliance_delay              = c(5,7),
                           num_daily_imported_cases      = c(5),
                           stringsAsFactors = F)
 

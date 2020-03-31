@@ -51,7 +51,9 @@ inspect_transmission_data <- function(project_dir)
     flag_exp            <- .rstride$get_equal_rows(project_summary,input_opt_design[i_config,])
     data_transm         <- data_transm_all[data_transm_all$exp_id %in% project_summary$exp_id[flag_exp],]
     num_runs_exp        <- sum(flag_exp)
-    num_infected_seeds  <- sum(is.na(data_transm$infector_id)) / num_runs_exp
+    num_daily_seeds     <- sum(data_transm$sim_day == 1 & is.na(data_transm$infector_id)) / num_runs_exp
+    num_infected_seeds  <- sum(data_transm$sim_day==0) / num_runs_exp - num_daily_seeds
+  
     
     # get population size
     pop_size            <- unique(project_summary$population_size[flag_exp])
@@ -79,7 +81,8 @@ inspect_transmission_data <- function(project_dir)
     axis(1,pretty(tbl_transm_date),format(pretty(tbl_transm_date),"%d %b"))
     grid()
     legend_info <- c(paste('num. runs:',num_runs_exp),
-                     paste('inf. seeds / run:',num_infected_seeds))
+                     paste('inf. seeds / run:',num_infected_seeds),
+                     paste('daily inf. seeds:',num_daily_seeds))
     
     if(nrow(input_opt_design)>0){ # add some param info to the legend
       legend_info <- c(legend_info,paste0(colnames(input_opt_design),': ',input_opt_design[i_config,]))

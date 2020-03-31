@@ -41,7 +41,7 @@ Sim::Sim()
     : m_config(), m_contact_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
       m_adaptive_symptomatic_behavior(false), m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_work(0), m_cnt_reduction_other(0),
-	  m_num_daily_imported_cases(0)
+	  m_compliance_delay(0), m_day_of_lockdown(0), m_num_daily_imported_cases(0)
 {
 }
 
@@ -70,6 +70,19 @@ void Sim::TimeStep()
         const bool isWorkOff   = daysOff->IsWorkOff();
         const bool isSchoolOff = daysOff->IsSchoolOff();
         const bool isSoftLockdown = daysOff->isSoftLockdown();
+
+         // increment the number of days in lockdown and account for compliance
+        double lockdown_compliance = 1.0;
+        if(isSoftLockdown){
+        	m_day_of_lockdown += 1;
+
+        	if(m_day_of_lockdown < m_compliance_delay){
+				lockdown_compliance = 1.0 * m_day_of_lockdown / m_compliance_delay;
+
+			}
+            std::cout << m_day_of_lockdown << " - " << m_compliance_delay << " - " << lockdown_compliance << std::endl;
+        }
+
 
         // To be used in update of population & contact pools.
         Population& population    = *m_population;
@@ -107,7 +120,7 @@ void Sim::TimeStep()
 					for (size_t i = 1; i < poolSys.RefPools(typ).size(); i++) { // NOLINT
 							infector(poolSys.RefPools(typ)[i], m_contact_profiles[typ], m_transmission_profile,
 									 m_handlers[thread_num], simDay, contactLogger, isSoftLockdown,
-									 m_cnt_reduction_work, m_cnt_reduction_other);
+									 m_cnt_reduction_work, m_cnt_reduction_other*lockdown_compliance);
 					}
 			}
         }

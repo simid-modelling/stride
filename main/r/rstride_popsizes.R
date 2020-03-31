@@ -69,6 +69,7 @@ for (i in 1:length(popSizes)) {
   # run rStride 
   project_dir <- run_rStride(exp_design               = exp_design,
                              dir_postfix              = dir_postfix, 
+                             remove_run_output        = FALSE,
                              ignore_stdout            = TRUE,
                              parse_log_data           = TRUE,    # parse txt log-files and aggregate
                              get_csv_output           = TRUE,    # save aggregated log-data as csv files

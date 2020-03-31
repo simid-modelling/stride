@@ -35,18 +35,25 @@ inspect_incidence_data <- function(project_dir)
   # get all transmission output
   data_incidence_all      <- .rstride$load_aggregated_output(project_dir,'data_incidence')
   
-  plot_ylim <- c(0,max(data_incidence_all[,grepl('new_',names(data_incidence_all))]*1.2,na.rm=T))
-  
   if(length(data_incidence_all) == 1 && is.na(data_incidence_all)){
     smd_print('NO INCIDENCE DATA AVAILABLE.')
     return(NA)
   }
   
-  #TODO: read from file...
-  # REFERNCE DATA
-  hosp_cases_num  <- c(0,7,29,73,57,75,92,128,188,214,299,335,290)
-  hosp_cases_cum  <- cumsum(hosp_cases_num)
-  hosp_cases_date <- as.Date('2020-03-10') + 0:(length(hosp_cases_num)-1)
+  ## REFERENCE DATA COVID-19: new hospitalisation
+  file_name <- './data/COVID-19-BE-v2.xlsx'
+  if(file.exists(file_name))
+  {
+   burden_of_disaese <- read.xlsx(file_name,detectDates = T)
+   burden_of_disaese <- burden_of_disaese[!is.na(burden_of_disaese$Hosp.new),]
+   hosp_cases_num    <- burden_of_disaese$Hosp.new
+   hosp_cases_cum    <- cumsum(hosp_cases_num)
+   hosp_cases_date   <- burden_of_disaese$DateCase
+  } else{
+    hosp_cases_cum    <- 0
+    hosp_cases_date   <- Sys.Date()
+  }
+  
   
   # open pdf stream
   .rstride$create_pdf(project_dir,'incidence_inspection',12,7)
@@ -129,6 +136,10 @@ inspect_incidence_data <- function(project_dir)
     new_hospital_cases <- get_incidence_statistics('new_hospital_cases')
     new_hospital_cases$sim_date <- new_hospital_cases$sim_date + hosp_delay
     
+    # BE POP SIZE
+    pop_size_be <- 11e6
+    
+    plot_ylim <- c(0,max(data_incidence_all[,grepl('new_',names(data_incidence_all))]*1.2,na.rm=T))
     
     for(sel_ylim in list(plot_ylim,c(0,2000))){
       
@@ -151,7 +162,7 @@ inspect_incidence_data <- function(project_dir)
       lines(new_symptomatic_cases$sim_date,new_symptomatic_cases$cases_mean,col=4,lwd=3)
       
       # hospital proxy
-      lines(new_hospital_cases$sim_date,new_hospital_cases$cases_mean,col=4,lwd=3,lty=3)
+      lines(new_hospital_cases$sim_date,new_hospital_cases$cases_mean,col=4,lwd=3,lty=2)
       
       ## ADD HOSPITAL CASES FROM BELGIUM
       points(hosp_cases_date,hosp_cases_num,pch=15,col=8)
@@ -160,11 +171,18 @@ inspect_incidence_data <- function(project_dir)
       abline(v=sim_date_all[sim_date_all=='2020-04-05'])
       abline(v=Sys.Date())
       
+      # add axis on right-hand side with population/Belgian perspective
       y_ticks  <- pretty(sel_ylim)
-      y_labels <- format(y_ticks/pop_size*100,scientific = F,digits=1)
+      if(all(sel_ylim == plot_ylim)){
+        y_labels <- format(y_ticks/pop_size*100,scientific = F,digits=1)
+        mtext('simulated population (%)',side = 4,line=3,cex=0.8)
+      } else{
+        y_labels <- format(y_ticks/pop_size_be*100,scientific = F,digits=1)
+        mtext('Belgian population (%)',side = 4,line=3,cex=0.8)
+      }
       axis(4,y_ticks,y_labels,las=2)
-      mtext('simulated population (%)',side = 4,line=3)
       
+      # add legend
       legend('topleft',
              c('infections (mean)',
                'infectious (mean)',
@@ -191,7 +209,7 @@ inspect_incidence_data <- function(project_dir)
   
     # CUMMULATIVE
     plot_ylim <- range(cumsum(new_infections$cases_mean))
-    for(sel_ylim in list(plot_ylim,c(0,max(hosp_cases_num)*3))){
+    for(sel_ylim in list(plot_ylim,c(0,max(hosp_cases_cum)*1.2))){
       
       sel_x_values <- c(hosp_cases_date-7,hosp_cases_date+7)
       sel_xlim     <- range(sel_x_values)
@@ -213,16 +231,21 @@ inspect_incidence_data <- function(project_dir)
       abline(v=Sys.Date())
       
       y_ticks  <- pretty(sel_ylim)
-      y_labels <- format(y_ticks/pop_size*100,scientific = F,digits=1)
+      if(all(sel_ylim == plot_ylim)){
+        y_labels <- format(y_ticks/pop_size*100,scientific = F,digits=1)
+        mtext('simulated population (%)',side = 4,line=3,cex=0.8)
+      } else{
+        y_labels <- format(y_ticks/pop_size_be*100,scientific = F,digits=1)
+        mtext('Belgian population (%)',side = 4,line=3,cex=0.8)
+      }
       axis(4,y_ticks,y_labels,las=2)
-      mtext('simulated population (%)',side = 4,line=3,cex=0.8)
-  
+      
       lines(new_infections$sim_date,cumsum(new_infections$cases_mean),col=1,lwd=3)
       lines(new_infectious_cases$sim_date,cumsum(new_infectious_cases$cases_mean),col=2,lwd=3)
       lines(new_symptomatic_cases$sim_date,cumsum(new_symptomatic_cases$cases_mean),col=4,lwd=3)
     
       ## add hospital proxy
-      lines(new_hospital_cases$sim_date,cumsum(new_hospital_cases$cases_mean),col=4,lwd=3,lty=3)
+      lines(new_hospital_cases$sim_date,cumsum(new_hospital_cases$cases_mean),col=4,lwd=3,lty=2)
       
       ## ADD HOSPITAL CASES FROM BELGIUM
       points(hosp_cases_date,hosp_cases_cum,pch=15,col=8)
