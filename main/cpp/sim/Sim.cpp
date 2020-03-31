@@ -71,7 +71,7 @@ void Sim::TimeStep()
         const bool isSchoolOff = daysOff->IsSchoolOff();
         const bool isSoftLockdown = daysOff->isSoftLockdown();
 
-         // increment the number of days in lockdown and account for compliance
+         // increment the number of days in lock-down and account for compliance
         double lockdown_compliance = 1.0;
         if(isSoftLockdown){
         	m_day_of_lockdown += 1;

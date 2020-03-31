@@ -17,6 +17,9 @@ For license info, see LICENSE.txt.
 
 Current contributors are (in alphabetical order):
 
-* Jan Broeckhove (jan.broeckhove@uantwerpen.be)
-* Elise Kuylen (elise.kuylen@uantwerpen.be)
+* Philippe Beutels
+* Jan Broeckhove
+* Niel Hens
+* Elise Kuylen
+* Signe Mogelmose 
 * Lander Willem (lander.willem@uantwerpen.be)
