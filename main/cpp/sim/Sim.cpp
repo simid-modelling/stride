@@ -80,7 +80,6 @@ void Sim::TimeStep()
 				lockdown_compliance = 1.0 * m_day_of_lockdown / m_compliance_delay;
 
 			}
-            std::cout << m_day_of_lockdown << " - " << m_compliance_delay << " - " << lockdown_compliance << std::endl;
         }
 
 

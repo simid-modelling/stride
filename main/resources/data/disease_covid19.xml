@@ -1,17 +1,33 @@
-<!-- This file is part of the Stride software [2020-03-23 13:56:16]-->
+<!-- This file is part of the Stride software [2020-04-01 16:47:53]-->
 <disease>
   <label>
     <pathogen>covid19</pathogen>
     <num_infected_seeds>10</num_infected_seeds>
-    <total_num_index_cases>105000</total_num_index_cases>
-    <num_rng_seeds>10500</num_rng_seeds>
+    <total_num_index_cases>5250</total_num_index_cases>
+    <num_rng_seeds>525</num_rng_seeds>
     <dim_exp_design>11025</dim_exp_design>
-    <num_realisations>100</num_realisations>
-    <fit_r0_limit>10.43</fit_r0_limit>
-    <fit_r0_range>1.5-3.5</fit_r0_range>
+    <num_realisations>5</num_realisations>
+    <fit_r0_limit>6.9</fit_r0_limit>
+    <fit_r0_range>1-5</fit_r0_range>
     <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
     <num_days>20</num_days>
+    <population_size>600000</population_size>
     <seeding_rate>1.7e-05</seeding_rate>
+    <r01>1</r01>
+    <r02>1.28571</r02>
+    <r03>1.57143</r03>
+    <r04>1.85714</r04>
+    <r05>2.14286</r05>
+    <r06>2.42857</r06>
+    <r07>2.71429</r07>
+    <r08>3</r08>
+    <r09>3.28571</r09>
+    <r010>3.57143</r010>
+    <r011>3.85714</r011>
+    <r012>4.14286</r012>
+    <r013>4.42857</r013>
+    <r014>4.71429</r014>
+    <r015>5</r015>
     <immunity_rate>0</immunity_rate>
     <num_threads>1</num_threads>
     <start_date1>2017-01-01</start_date1>
@@ -24,7 +40,6 @@
     <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
     <num_participants_survey>10</num_participants_survey>
     <disease_config_file>disease_covid19.xml</disease_config_file>
-    <population_size>600000</population_size>
     <contact_log_level>Transmissions</contact_log_level>
     <contact_output_file>true</contact_output_file>
     <global_information_policy>NoGlobalInformation</global_information_policy>
@@ -34,21 +49,6 @@
     <output_persons>false</output_persons>
     <output_summary>true</output_summary>
     <population_type>default</population_type>
-    <r01>1.5</r01>
-    <r02>1.64285714285714</r02>
-    <r03>1.78571428571429</r03>
-    <r04>1.92857142857143</r04>
-    <r05>2.07142857142857</r05>
-    <r06>2.21428571428571</r06>
-    <r07>2.35714285714286</r07>
-    <r08>2.5</r08>
-    <r09>2.64285714285714</r09>
-    <r010>2.78571428571429</r010>
-    <r011>2.92857142857143</r011>
-    <r012>3.07142857142857</r012>
-    <r013>3.21428571428571</r013>
-    <r014>3.35714285714286</r014>
-    <r015>3.5</r015>
     <seeding_age_max>99</seeding_age_max>
     <seeding_age_min>1</seeding_age_min>
     <stride_log_level>info</stride_log_level>
@@ -57,7 +57,7 @@
     <vaccine_link_probability>0</vaccine_link_probability>
     <vaccine_profile>None</vaccine_profile>
     <vaccine_rate>0</vaccine_rate>
-    <run_tag>20200323_125558_r0_all</run_tag>
+    <run_tag>20200401_163940_r0</run_tag>
     <num_cea_samples>10000</num_cea_samples>
     <adaptive_symptomatic_behavior>true</adaptive_symptomatic_behavior>
   </label>
@@ -81,6 +81,8 @@
     <probability>0</probability>
     <probability>0</probability>
     <probability>0</probability>
+    <probability>0</probability>
+    <probability>0</probability>
     <probability>0.25</probability>
     <probability>0.50</probability>
     <probability>0.75</probability>
@@ -96,9 +98,9 @@
     <probability>1</probability>
   </time_symptomatic>
   <transmission>
-    <b0>0.053947190183193</b0>
-    <b1>11.1791943128997</b1>
-    <b2>-0.804927674157355</b2>
+    <b0>0.182422504098963</b0>
+    <b1>37.1795492757575</b1>
+    <b2>0</b2>
   </transmission>
   <sympt_cnt_reduction_work_school>
       0.9
@@ -107,9 +109,9 @@
       0.75
   </sympt_cnt_reduction_community>
   <rel_transmission_asymptomatic>
-      0.2
+      0.5
   </rel_transmission_asymptomatic>
-  <rel_transmission_children>
-      0.2
-  </rel_transmission_children>
+  <m_rel_susceptibility_children>
+      0.5
+  </m_rel_susceptibility_children>
 </disease>

@@ -29,24 +29,32 @@ using namespace boost::property_tree;
 
 void TransmissionProfile::Initialize(const ptree& configPt, const ptree& diseasePt)
 {
-        // Use a quadratic model, fitted to simulation data:
-        // Expected(R0) = (0 + b1*transm_prob + b2*transm_prob^2).
+		// parse config file
         const auto r0 = configPt.get<double>("run.r0");
         const auto b0 = diseasePt.get<double>("disease.transmission.b0");
         const auto b1 = diseasePt.get<double>("disease.transmission.b1");
         const auto b2 = diseasePt.get<double>("disease.transmission.b2");
 
-        // Find root
-        const auto a = b2;
-        const auto b = b1;
-        const auto c = b0 - r0;
+        // if linear model is fitted to simulation data:
+        if(b2 == 0){
+        	// Expected(R0) = (b0 + b1*transm_prob).
+        	m_transmission_probability = (r0 - b0) / b1;
 
-        // To obtain a real values (instead of complex)
-        if (r0 < (-(b * b) / (4 * a))) {
-                const double determ = (b * b) - 4 * a * c;
-                m_transmission_probability = (-b + sqrt(determ)) / (2 * a);
-        } else {
-                throw runtime_error("TransmissionProfile::Initialize> Illegal input values.");
+        } else{
+		// if quadratic model is fitted to simulation data:
+        	// Expected(R0) = (b0 + b1*transm_prob + b2*transm_prob^2).
+        	// Find root
+			const auto a = b2;
+			const auto b = b1;
+			const auto c = b0 - r0;
+
+			// To obtain a real values (instead of complex)
+			if (r0 < (-(b * b) / (4 * a))) {
+					const double determ = (b * b) - 4 * a * c;
+					m_transmission_probability = (-b + sqrt(determ)) / (2 * a);
+			} else {
+					throw runtime_error("TransmissionProfile::Initialize> Illegal input values.");
+			}
         }
 }
 

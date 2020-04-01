@@ -42,7 +42,7 @@ public:
         explicit Health(unsigned short int start_infectiousness = 0U, unsigned int short start_symptomatic = 0U,
                         unsigned short int time_infectious = 0U, unsigned short int time_symptomatic = 0U,
 						double sympt_cnt_reduction_work_school = 0U, double sympt_cnt_reduction_community=0U,
-						double rel_transmission_asymptomatic = 0U, double rel_transmission_children = 0U);
+						double rel_transmission_asymptomatic = 0U, double m_rel_susceptibility_children = 0U);
 
         ///
         unsigned short int GetEndInfectiousness() const { return m_end_infectiousness; }
@@ -111,14 +111,15 @@ public:
         /// Get contact reduction in community pools when symptomatic infected
         double GetSymptomaticCntReductionCommunity() const { return m_sympt_cnt_reduction_community; };
 
-        /// Get relative infectiousness by age
-        double GetRelativeTransmission(unsigned int age1, unsigned int age2) {
+        /// Get relative transmission based on health state and age of contact
+        double GetRelativeTransmission(unsigned int age_contact) {
 
-        	if(!IsInfectious()) {return 0;}
+        	//if(!IsInfectious()) {return 0;}
 
         	double rel_transmission = 1;
-        	if(age1 < 18 || age2 < 18)         { rel_transmission *= m_rel_transmission_children;}
+        	if(age_contact < 18) { rel_transmission *= m_rel_susceptibility_children;}
         	if(!IsSymptomatic()) { rel_transmission *= m_rel_transmission_asymptomatic;}
+
         	return rel_transmission;
         }
 
@@ -146,7 +147,7 @@ private:
         double             m_sympt_cnt_reduction_work_school;  ///< Proportional reduction of days in work/school pool when symptomatic
         double             m_sympt_cnt_reduction_community;    ///< Proportional reduction of days in the community pools when symptomatic
         double             m_rel_transmission_asymptomatic;	   ///< Relative reduction of transmission for asymptomatic cases
-        double             m_rel_transmission_children;	       ///< Relative reduction of transmission for children vs. adults
+        double             m_rel_susceptibility_children;	   ///< Relative reduction in susceptibility for children vs. adults
 
 };
 

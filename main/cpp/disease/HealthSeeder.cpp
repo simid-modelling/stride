@@ -36,7 +36,7 @@ namespace stride {
 HealthSeeder::HealthSeeder(const boost::property_tree::ptree& diseasePt)
     : m_start_symptomatic(), m_time_asymptomatic(), m_time_infectious(), m_time_symptomatic(),
 	  m_sympt_cnt_reduction_work_school(), m_sympt_cnt_reduction_community(),m_rel_transmission_asymptomatic(),
-	  m_rel_transmission_children()
+	  m_rel_susceptibility_children()
 {
         GetDistribution(m_start_symptomatic, diseasePt, "disease.start_symptomatic");
         GetDistribution(m_time_asymptomatic, diseasePt, "disease.time_asymptomatic");
@@ -50,8 +50,8 @@ HealthSeeder::HealthSeeder(const boost::property_tree::ptree& diseasePt)
 
         m_sympt_cnt_reduction_work_school = diseasePt.get<double>("disease.sympt_cnt_reduction_work_school",1.0);
         m_sympt_cnt_reduction_community   = diseasePt.get<double>("disease.sympt_cnt_reduction_community",1.0);
-        m_rel_transmission_asymptomatic   = diseasePt.get<double>("disease.rel_transmission_asymptomatic");
-        m_rel_transmission_children       = diseasePt.get<double>("disease.rel_transmission_children");
+        m_rel_transmission_asymptomatic   = diseasePt.get<double>("disease.rel_transmission_asymptomatic",1);
+        m_rel_susceptibility_children     = diseasePt.get<double>("disease.m_rel_susceptibility_children",1);
 
 }
 
@@ -91,7 +91,7 @@ void HealthSeeder::Seed(const std::shared_ptr<stride::Population>& pop, vector<C
                         population[i].GetHealth() =
                             Health(startInfectiousness, startSymptomatic, timeInfectious, timeSymptomatic,
                             		m_sympt_cnt_reduction_work_school,m_sympt_cnt_reduction_community,
-									m_rel_transmission_asymptomatic,m_rel_transmission_children);
+									m_rel_transmission_asymptomatic,m_rel_susceptibility_children);
                 }
         }
 }
