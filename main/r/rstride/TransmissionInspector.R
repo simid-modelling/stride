@@ -117,7 +117,7 @@ inspect_transmission_data <- function(project_dir)
       }
       
     }
-    plot(tbl_transm_date,mean_doubling_time,ylim=c(0,7),
+    plot(tbl_transm_date,mean_doubling_time,ylim=c(0,14),
          xlab='Date',
          ylab='Doubling time (infections)',
          main='Doubling time (infections)')

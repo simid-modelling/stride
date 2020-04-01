@@ -73,9 +73,13 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # boxplot(sec_cases ~ transmission_probability + is_adult, data = sec_transm)
   # grid()
   
-  # FIT SECOND ORDER POLYNOMIAL
+  # # FIT SECOND ORDER POLYNOMIAL
+  #temp <- data.frame(x=sec_transm$transmission_probability, y=sec_transm$sec_cases)
+  # mod <- summary(lm(y ~ x + I(x^2), data = temp))
+  
+  # # FIT FIRST ORDER POLYNOMIAL
   temp <- data.frame(x=sec_transm$transmission_probability, y=sec_transm$sec_cases)
-  mod <- summary(lm(y ~ x + I(x^2), data = temp))
+  mod <- summary(lm(y ~ x , data = temp))
   mod
   
   # # logistic model
@@ -89,28 +93,33 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # Get parameters
   fit_b0 <- mod$coefficients[1,1]
   fit_b1 <- mod$coefficients[2,1]
-  fit_b2 <- mod$coefficients[3,1]
+  fit_b2 <- 0
+  # fit_b2 <- mod$coefficients[3,1]
+  # 
+  # 
+  # # check R0 limit: prevent upwards parabola and complex root values                
+  # R0_limit_fit           <- -fit_b1^2/(4*fit_b2) + fit_b0
+  # 
+  # # check R0 limit
+  # if(R0_limit_fit<0){
+  #   smd_print("FITTING NOT SUCCESFULL... THE PARABOLA OPENS UPWARDS",WARNING=TRUE)
+  #   smd_print("PLEASE INCREASE THE NUMBER OF REALISATIONS AND/OR TRANSMISSION PROBABILITIES",WARNING=TRUE)
+  #   return(.rstride$no_return_value())
+  # }
+  # 
+  # # check R0 limit: prevent complex roots and transmission probability >1
+  # transmission_limit_fit <- min(1,.rstride$f_poly_transm(floor(R0_limit_fit),fit_b0,fit_b1,fit_b2),na.rm = T)
+  # R0_limit               <- .rstride$f_poly_r0(transmission_limit_fit,fit_b0,fit_b1,fit_b2)
   
-  # check R0 limit: prevent upwards parabola and complex root values                
-  R0_limit_fit           <- -fit_b1^2/(4*fit_b2) + fit_b0
-  
-  # check R0 limit
-  if(R0_limit_fit<0){
-    smd_print("FITTING NOT SUCCESFULL... THE PARABOLA OPENS UPWARDS",WARNING=TRUE)
-    smd_print("PLEASE INCREASE THE NUMBER OF REALISATIONS AND/OR TRANSMISSION PROBABILITIES",WARNING=TRUE)
-    return(.rstride$no_return_value())
-  }
-  
-  # check R0 limit: prevent complex roots and transmission probability >1
-  transmission_limit_fit <- min(1,.rstride$f_poly_transm(floor(R0_limit_fit),fit_b0,fit_b1,fit_b2),na.rm = T)
-  R0_limit               <- .rstride$f_poly_r0(transmission_limit_fit,fit_b0,fit_b1,fit_b2)
-
   # Reformat fitted values to plot
   R2_poly2 <- round(mod$r.squared,digits=4)
   
   poly_input   <- sort(temp$x)
   R0_poly_fit  <- (.rstride$f_poly_r0(poly_input,fit_b0,fit_b1,fit_b2))
   sec_transm$R0_poly_fit <- round((.rstride$f_poly_r0(sec_transm$transmission_probability,fit_b0,fit_b1,fit_b2)),digits=1)
+  
+  # set maximum predicted value as R0 limit to prevent extrapolation
+  R0_limit <- max(sec_transm$R0_poly_fit)
   
   # fix y-axis limits (default: 0-40)
   y_lim <- range(c(0,5,sec_transm$sec_cases))
@@ -129,9 +138,13 @@ analyse_transmission_data_for_r0 <- function(project_dir)
           )
   
   lines(poly_input,R0_poly_fit,type='l',col=3,lwd=4)
-  leg_text_model   <- paste0(c(paste0('b',0:2,': '),'R^2: '),round(c(fit_b0,fit_b1,fit_b2,mod$r.squared),digits=2))
-  leg_text_fitting <- c(leg_text_model,paste0('R0 max:',round(R0_limit,digits=2)),paste0('R0 range: ',fit_r0_range))
-  legend('topleft',legend=leg_text_fitting,cex=0.8,title='b0+b1*x+b2*x^2',ncol=2)
+  # leg_text_model   <- paste0(c(paste0('b',0:2,': '),'R^2: '),round(c(fit_b0,fit_b1,fit_b2,mod$r.squared),digits=2))
+  # leg_text_fitting <- c(leg_text_model,paste0('R0 max:',round(R0_limit,digits=2)),paste0('R0 range: ',fit_r0_range))
+  # legend('topleft',legend=leg_text_fitting,cex=0.8,title='b0+b1*x+b2*x^2',ncol=2)
+  leg_text_model   <- paste0(c(paste0('b',0:1,': '),'R^2: '),round(c(fit_b0,fit_b1,mod$r.squared),digits=2))
+  leg_text_fitting <- c(leg_text_model,paste0('R0 range: ',fit_r0_range))
+  legend('topleft',legend=leg_text_fitting,cex=0.8,title='b0+b1*x',ncol=2)
+  
   
   # add mean
   mean_sec_cases <- aggregate(sec_cases ~ transmission_probability + R0_poly_fit, data=sec_transm,mean)
@@ -303,7 +316,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   c = b0 - r0
   b = b1
   a = b2
-  
+  print(paste(a,b,c))
   d <- b^2 - (4 * a * c)
   
   if(d < 0){

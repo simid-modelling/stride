@@ -48,19 +48,19 @@ num_seeds  <- 4
 
 # add parameters and values to combine in a full-factorial grid
 exp_design <- expand.grid(r0                            = seq(2,3,1),
-                          num_days                      = 60,
+                          num_days                      = 40,
                           rng_seed                      = seq(num_seeds),
-                          num_participants_survey       = 500,
+                          num_participants_survey       = 50000,
                           track_index_case              = 'false',
                           contact_log_level             = "Transmissions",
-                          seeding_rate                  = 1.7e-5, 
+                          seeding_rate                  = 30e-5, 
                           disease_config_file           = "disease_covid19.xml",
                           population_file               = c("pop_belgium600k_c500_teachers_censushh.csv"),
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           adaptive_symptomatic_behavior = 'true',
-                          start_date                    = c('2020-02-10'),
+                          start_date                    = c('2020-02-14'),
                           holidays_file                 = "holidays_flanders_2020.json",
-                          num_daily_imported_cases      = c(0,5),
+                          num_daily_imported_cases      = 0,
                           stringsAsFactors = F)
 
 # add a unique seed for each run

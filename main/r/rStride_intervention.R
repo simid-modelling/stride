@@ -44,31 +44,27 @@ store_transmission_rdata <- TRUE
 #names(xmlToList('./config/run_default.xml'))
 
 # set the number of realisations per configuration set
-num_seeds  <- 5
+num_seeds  <- 10
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(r0                            = 2.5,
-                          num_days                      = 50,
+exp_design <- expand.grid(r0                            = 2.85,
+                          num_days                      = 70,
                           rng_seed                      = seq(num_seeds),
                           num_participants_survey       = 500,
                           track_index_case              = 'false',
                           contact_log_level             = "Transmissions",
-                          seeding_rate                  = 1.7e-5, 
+                          seeding_rate                  = 30*1e-5, 
                           disease_config_file           = "disease_covid19.xml",
                           population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           adaptive_symptomatic_behavior = 'true',
-                          start_date                    = c('2020-02-10'),
-                          holidays_file                 = "calendar_belgium_2020_covid19_march.json",
-                          # holidays_file                 = c("holidays_flanders_2020.json",
-                          #                                    "calendar_belgium_2020_covid19_march.json"),
-                                                            # "calendar_belgium_2020_covid19_april.json",
-                                                            # "calendar_belgium_2020_covid19_may.json"),
-                          telework_probability          = c(0.40),
+                          start_date                    = c('2020-02-14'),
+                          holidays_file                 = "calendar_belgium_2020_covid19_april.json",
+                          telework_probability          = c(0.30),
                           cnt_reduction_work            = c(0.40),
-                          cnt_reduction_other           = c(0.7,0.6),
-                          compliance_delay              = c(5,7),
-                          num_daily_imported_cases      = c(5),
+                          cnt_reduction_other           = c(0.6),
+                          compliance_delay              = c(5),
+                          num_daily_imported_cases      = c(0),
                           stringsAsFactors = F)
 
 # add a unique seed for each run

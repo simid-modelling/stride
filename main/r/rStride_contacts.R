@@ -48,6 +48,7 @@ exp_design <- expand.grid(dir_postfix               = '_cnt_orig',
                           num_participants_survey   = 3000,
                           start_date                = c("2017-01-01","2017-01-02"),
                           rng_seed                  = 1:num_seeds,
+                          disease_config_file       = "disease_covid19.xml", 
                           population_file           = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file   = "contact_matrix_flanders_conditional_teachers.xml",
                           stringsAsFactors = F)

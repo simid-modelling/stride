@@ -56,7 +56,7 @@ inspect_incidence_data <- function(project_dir)
   
   
   # open pdf stream
-  .rstride$create_pdf(project_dir,'incidence_inspection',12,7)
+  .rstride$create_pdf(project_dir,'incidence_inspection',9,8)
   
   # reset figure arrangements... and start new plot
   # par(mfrow=c(2,4))
@@ -131,7 +131,7 @@ inspect_incidence_data <- function(project_dir)
     
     ## HOSPITAL PROXY: FRACTION SYMPTOMATIC AND DELAY
     hosp_fraction  <- 0.2
-    hosp_delay     <- 3 #days
+    hosp_delay     <- 7 #days
     data_incidence$new_hospital_cases <- data_incidence$new_symptomatic_cases * hosp_fraction
     new_hospital_cases <- get_incidence_statistics('new_hospital_cases')
     new_hospital_cases$sim_date <- new_hospital_cases$sim_date + hosp_delay
@@ -168,7 +168,7 @@ inspect_incidence_data <- function(project_dir)
       points(hosp_cases_date,hosp_cases_num,pch=15,col=8)
       
       abline(v=sim_date_all[sim_date_all=='2020-03-14'])
-      abline(v=sim_date_all[sim_date_all=='2020-04-05'])
+      #abline(v=sim_date_all[sim_date_all=='2020-04-05'])
       abline(v=Sys.Date())
       
       # add axis on right-hand side with population/Belgian perspective
@@ -198,7 +198,7 @@ inspect_incidence_data <- function(project_dir)
         )
         if(bool_legend)
         {
-          legend('left',
+          legend('topright',
                run_info,
                bg='white',
                cex=0.5
@@ -211,7 +211,10 @@ inspect_incidence_data <- function(project_dir)
     plot_ylim <- range(cumsum(new_infections$cases_mean))
     for(sel_ylim in list(plot_ylim,c(0,max(hosp_cases_cum)*1.2))){
       
-      sel_x_values <- c(hosp_cases_date-7,hosp_cases_date+7)
+      sel_x_values <- range(hosp_cases_date-7,hosp_cases_date+7)
+      if(all(sel_ylim == plot_ylim)){
+        sel_x_values <- range(new_infections$sim_date)
+      }
       sel_xlim     <- range(sel_x_values)
       
       plot_main <- gsub('zoom','cumulative',plot_main)
@@ -227,7 +230,7 @@ inspect_incidence_data <- function(project_dir)
       grid(nx=NA,ny=NULL,lty=3,col='lightgray')
       abline(v=sim_date_all,lty=3,col='lightgray')
       abline(v=sim_date_all[sim_date_all=='2020-03-14'])
-      abline(v=sim_date_all[sim_date_all=='2020-04-05'])
+      #abline(v=sim_date_all[sim_date_all=='2020-04-05'])
       abline(v=Sys.Date())
       
       y_ticks  <- pretty(sel_ylim)
@@ -250,7 +253,7 @@ inspect_incidence_data <- function(project_dir)
       ## ADD HOSPITAL CASES FROM BELGIUM
       points(hosp_cases_date,hosp_cases_cum,pch=15,col=8)
       
-      legend('topleft',
+      legend('left',
              c(paste0(hosp_fraction*100,'% symptomatic +',hosp_delay,'days'),
                'hospital cases (BE)'),
              col=c(4,8),
@@ -272,4 +275,49 @@ inspect_incidence_data <- function(project_dir)
   smd_print('INSPECTION OF INCIDENCE DATA COMPLETE')
   
 } # function end
+
+
+## TEMPORARY BACK CALCULATION
+if(0==1){
+  ## REFERENCE DATA COVID-19: new hospitalisation
+  file_name <- './data/COVID-19-BE-v2.xlsx'
+  burden_of_disaese <- read.xlsx(file_name,detectDates = T)
+  burden_of_disaese <- burden_of_disaese[!is.na(burden_of_disaese$Hosp.new),]
+  hosp_cases_num    <- burden_of_disaese$Hosp.new
+  hosp_cases_date   <- burden_of_disaese$DateCase
+  
+  confirmed_cases <- burden_of_disaese$CC.new
+
+  sympt_cases      <- hosp_cases_num * 5    # 20% of symptomatic cases is hospitalized
+  sympt_cases_date <- hosp_cases_date - 7   # 7 delay between start symptom onset and hospital admission
+  
+  infected_cases      <- sympt_cases * 2    # 50% of the cases is symptomatic
+  infected_cases_date <- sympt_cases_date - 5 # 5 day delay between infection and symptom onset
+
+  incidence_data <-  merge(merge(data.frame(date = infected_cases_date,infected_cases),
+                                 data.frame(date = sympt_cases_date,sympt_cases),all = T),
+                           data.frame(date=hosp_cases_date,hosp_cases_num),all=T)
+  
+  
+  plot(incidence_data$date,incidence_data$infected_cases,lwd=2,type='l', xlab='date',ylab='incidence')
+  lines(incidence_data$date,incidence_data$sympt_cases,lwd=2,col=2)
+  lines(incidence_data$date,incidence_data$hosp_cases_num,col=4,lwd=2)
+  lines(hosp_cases_date,confirmed_cases,col=5,lwd=2)
+  grid()  
+  legend('topleft',
+         c('total infections',
+           'symptomatic cases',
+           'hospitalisations',
+           'confirmed cases'),
+         lwd=2,
+         col=c(1,2,4,5),
+         cex=0.7)    
+
+  
+  
+  
+  
+  }
+
+  
 
