@@ -19,7 +19,7 @@
 #############################################################################
 # EXPLORE TRANSMISSION EVENTS, OUTBREAKS GENERATION INTERVALS AND R0       ##
 #############################################################################
-inspect_transmission_data <- function(project_dir)
+inspect_transmission_data <- function(project_dir,save_pdf = TRUE)
 {
   # command line message
   smd_print('INSPECT TRANSMISSION DYNAMICS...')
@@ -39,13 +39,13 @@ inspect_transmission_data <- function(project_dir)
   }
   
   # open pdf stream
-  .rstride$create_pdf(project_dir,'transmission_inspection',10,7)
+  if(save_pdf) .rstride$create_pdf(project_dir,'transmission_inspection',10,7)
 
   i_config <- 1
   for(i_config in 1:nrow(input_opt_design)){
     
     # reset figure arrangements... and start new plot
-    par(mfrow=c(3,3))
+    if(save_pdf) par(mfrow=c(3,3))
     
     # subset transmission output corresponding the 'input_opt_design' row
     flag_exp            <- .rstride$get_equal_rows(project_summary,input_opt_design[i_config,])
@@ -102,7 +102,7 @@ inspect_transmission_data <- function(project_dir)
     grid()
     
     abline(v=sim_day_date[sim_day_date == '2020-03-14'])
-    abline(v=sim_day_date[sim_day_date == '2020-04-06'])
+    abline(v=sim_day_date[sim_day_date == Sys.Date()])
     
     ## DOUBLING TIME      ----
     mean_cum_cases        <- cumsum(rowMeans(tbl_transm_matrix))
@@ -123,7 +123,7 @@ inspect_transmission_data <- function(project_dir)
          main='Doubling time (infections)')
     
     abline(v=sim_day_date[sim_day_date == '2020-03-14'])
-    abline(v=sim_day_date[sim_day_date == '2020-04-06'])
+    abline(v=sim_day_date[sim_day_date == Sys.Date()])
     
     # plot(range(incidence_days),c(0,1.4),col=0,xlab='day',ylab='relative daily incidence',
     #      main='transmission context over time',yaxt='n')
@@ -166,14 +166,18 @@ inspect_transmission_data <- function(project_dir)
     
     # plot
     mean_sec_cases <- aggregate(sec_cases ~ infection_day_date, data = sec_transm,mean)
-    plot_xlim <- range(c(0,sec_transm$infection_day),na.rm=T)
-    plot_ymax <- range(c(0,4,mean_sec_cases$sec_cases))
+    # remove last 14 days, since the infectious period of these cases is not fully covered
+    mean_sec_cases$sec_cases[(nrow(mean_sec_cases)-14):nrow(mean_sec_cases)] <- NA
+    plot_ymax <- range(c(0,4,mean_sec_cases$sec_cases),na.rm = T)
     plot(mean_sec_cases,type='b',
          xlab='day of infection',ylab='secondary infections',
          main='reproduction number',
          ylim=plot_ymax,
          xaxt='n')
     axis(1,pretty(sim_day_date),format(pretty(sim_day_date),'%d %b'))
+    
+    abline(v=sim_day_date[sim_day_date == '2020-03-14'])
+    abline(v=sim_day_date[sim_day_date == Sys.Date()])
     
     ## GENERATION INTERVAL   ----
     # note: the generation interval is the time between the infection time of an infected person and the infection time of his or her infector.
@@ -244,7 +248,7 @@ inspect_transmission_data <- function(project_dir)
   } # end for-loop to vary the input_opt_design
   
   # close PDF stream
-  dev.off()
+  if(save_pdf) dev.off()
   
   # command line message
   smd_print('INSPECTION OF TRANSMISSION DATA COMPLETE')

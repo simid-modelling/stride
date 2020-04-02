@@ -20,7 +20,7 @@
 #
 #############################################################################
 
-inspect_incidence_data <- function(project_dir)
+inspect_incidence_data <- function(project_dir,save_pdf = TRUE)
 {
   
   # command line message
@@ -56,11 +56,10 @@ inspect_incidence_data <- function(project_dir)
   
   
   # open pdf stream
-  .rstride$create_pdf(project_dir,'incidence_inspection',9,8)
+  if(save_pdf) .rstride$create_pdf(project_dir,'incidence_inspection',9,8)
   
   # reset figure arrangements... and start new plot
-  # par(mfrow=c(2,4))
-  par(mfrow=c(2,2))
+  if(save_pdf) par(mfrow=c(2,2))
   
   # change figure margins
   par(mar=c(5,5,5,5))
@@ -139,7 +138,7 @@ inspect_incidence_data <- function(project_dir)
     # BE POP SIZE
     pop_size_be <- 11e6
     
-    plot_ylim <- c(0,max(data_incidence_all[,grepl('new_',names(data_incidence_all))]*1.2,na.rm=T))
+    plot_ylim <- c(0,max(data_incidence_all[,grepl('new_',names(data_incidence_all))]*1.4,na.rm=T))
     
     for(sel_ylim in list(plot_ylim,c(0,2000))){
       
@@ -183,25 +182,27 @@ inspect_incidence_data <- function(project_dir)
       axis(4,y_ticks,y_labels,las=2)
       
       # add legend
-      legend('topleft',
-             c('infections (mean)',
-               'infectious (mean)',
-               'symptomatic (mean)',
-               paste0(hosp_fraction*100,'% symptomatic +',hosp_delay,'days'),
-               'hospital cases (BE)'),
-             col=c(1,2,4,4,8),
-             lty=c(1,1,1,3,NA),
-             pch=c(NA,NA,NA,NA,15),
-             bg='white',
-             lwd=2,
-             cex=0.7
-        )
+      
         if(bool_legend)
         {
+          legend('topleft',
+                 c('infections (mean)',
+                   'infectious (mean)',
+                   'symptomatic (mean)',
+                   paste0(hosp_fraction*100,'% symptomatic +',hosp_delay,'days'),
+                   'hospital cases (BE)'),
+                 col=c(1,2,4,4,8),
+                 lty=c(1,1,1,3,NA),
+                 pch=c(NA,NA,NA,NA,15),
+                 bg='white',
+                 lwd=2,
+                 cex=0.7
+          )
+          
           legend('topright',
                run_info,
                bg='white',
-               cex=0.5
+               cex=0.6
         )
       }
     }
@@ -253,23 +254,26 @@ inspect_incidence_data <- function(project_dir)
       ## ADD HOSPITAL CASES FROM BELGIUM
       points(hosp_cases_date,hosp_cases_cum,pch=15,col=8)
       
-      legend('left',
-             c(paste0(hosp_fraction*100,'% symptomatic +',hosp_delay,'days'),
-               'hospital cases (BE)'),
-             col=c(4,8),
-             pch=c(NA,15),
-             bg='white',
-             lty=c(3,0),
-             lwd=c(2,0),
-             cex=0.7
-      )
+      if(all(sel_ylim  == plot_ylim)){
+        legend('topleft',
+               c(paste0(hosp_fraction*100,'% symptomatic +',hosp_delay,'days'),
+                 'hospital cases (BE)'),
+               col=c(4,8),
+               pch=c(NA,15),
+               bg='white',
+               lty=c(3,0),
+               lwd=c(2,0),
+               cex=0.7
+        )
+      }
+      
       #}
     } # end for-loop: cumulative plot
     
   } # end for-loop to vary the input_opt_design
   
   # close PDF stream
-  dev.off()
+  if(save_pdf) dev.off()
   
   # command line message
   smd_print('INSPECTION OF INCIDENCE DATA COMPLETE')

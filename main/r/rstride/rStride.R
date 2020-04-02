@@ -20,10 +20,12 @@
 #
 #############################################################################
 
-# load simid.rtools package
-require(devtools,quietly = T)
-devtools::install_github("lwillem/simid_rtools",force=F,quiet=T)
-#devtools::uninstall(simid.rtools)
+# # load simid.rtools package (and install if not yet installed)
+if(!'simid.rtools' %in% installed.packages()[,1]){
+  require(devtools,quietly = T)
+  devtools::install_github("lwillem/simid_rtools",force=F,quiet=T)
+  #devtools::uninstall(simid.rtools)
+}
 library('simid.rtools',quietly = T)
 
 # LOAD R PACKAGES

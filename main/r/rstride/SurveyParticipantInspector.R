@@ -20,7 +20,7 @@
 # EXPLORE PARTICIPANT DATA                                                 ##
 #############################################################################
 
-inspect_participant_data <- function(project_dir)
+inspect_participant_data <- function(project_dir, save_pdf = TRUE)
 {
   # command line message
   smd_print('INSPECT PARTICIPANT DATA...')
@@ -39,8 +39,8 @@ inspect_participant_data <- function(project_dir)
   input_opt_design        <- .rstride$get_variable_model_param(project_summary)
   
   # open pdf stream
-  .rstride$create_pdf(project_dir,'survey_participant_inspection',10,7)
-  par(mfrow=c(2,4))
+  if(save_pdf) .rstride$create_pdf(project_dir,'survey_participant_inspection',10,7)
+  if(save_pdf) par(mfrow=c(2,4))
   
   i_config <- 1
   for(i_config in 1:nrow(input_opt_design))
@@ -160,7 +160,7 @@ inspect_participant_data <- function(project_dir)
   }
   
   # close PDF stream
-  dev.off()
+  if(save_pdf) dev.off()
   
   # command line message
   smd_print('INSPECTION OF PARTICIPANT DATA COMPLETE')
