@@ -57,10 +57,14 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   hosp_cases_cum    <- cumsum(hosp_cases_num)
   hosp_cases_date   <- burden_of_disaese$DateCase
   
+  # aggregate into one data.frame
   hosp_adm_data <- data.frame(date = hosp_cases_date,
                               num_adm = hosp_cases_num,
                               cum_adm = hosp_cases_cum)
   
+  # remove reference data if simulation period is shorter
+  flag_compare  <- hosp_adm_data$date %in% data_incidence_all$sim_date
+  hosp_adm_data <- hosp_adm_data[flag_compare,]
   
   # create columns for hosptical cases and least square score
   data_incidence_all$cummulative_hospital_cases <- NA
@@ -84,8 +88,8 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     data_incidence_all$cummulative_hospital_cases[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions[flag_exp])
     
     # Sum of Squares: score
-    flag_hosp_data       <- data_incidence_all$sim_date[flag_exp] %in% hosp_cases_date
-    ls_score_hosp        <- sum(sqrt((data_incidence_all$new_hospital_admissions[flag_hosp_data] - hosp_cases_num)^2))
+    flag_hosp_data       <- flag_exp & data_incidence_all$sim_date %in% hosp_adm_data$date
+    ls_score_hosp        <- sum(sqrt((data_incidence_all$new_hospital_admissions[flag_hosp_data] - hosp_adm_data$num_adm)^2))
     hosp_data_ls[i_exp,] <- sum(ls_score_hosp)
     hosp_data_tag[i_exp,]<- unique(data_incidence_all$config_id[flag_exp])
   }
@@ -159,8 +163,8 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     flag_param   <- input_opt_design$config_id %in% config_tag_sel$config_tag
     print(input_opt_design[flag_param,-ncol(input_opt_design)])
     
-    flag_param <- project_summary$config_id %in% config_tag_sel$config_tag
-    project_summary[flag_param,]
+    # flag_param <- project_summary$config_id %in% config_tag_sel$config_tag
+    # project_summary[flag_param,]
   }
   
   
@@ -352,9 +356,12 @@ add_legend_runinfo <- function(project_summary,input_opt_design,
                                             'holidays_file','config_id')
   names_exp_param <- names_exp_param[!flag_col]
   if(length(names_exp_param)>0){
-    run_info <- c(run_info,
-                  paste0(names_exp_param, ' = ',paste(unique(project_summary_sel[,names_exp_param]),collapse=', '))
-    )
+    for(i_name in names_exp_param){
+      run_info <- c(run_info,
+                    paste0(i_name, ' = ',paste(unique(project_summary_sel[,i_name]),collapse=', '))
+                    )
+    }
+    
   }
   
   # present info in legend
