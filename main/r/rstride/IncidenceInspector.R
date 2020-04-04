@@ -20,308 +20,349 @@
 #
 #############################################################################
 
-inspect_incidence_data <- function(project_dir,save_pdf = TRUE)
+#' @param project_dir   name of the project folder
+#' @param num_selection the number of experiments with minimal LS score to select and present
+inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_param=TRUE)
 {
   
-  # command line message
-  smd_print('INSPECT INCIDENCE DATA...')
-  
   # load project summary
-  project_summary      <- .rstride$load_project_summary(project_dir)
+  project_summary    <- .rstride$load_project_summary(project_dir)
   
   # retrieve all variable model parameters
-  input_opt_design     <- .rstride$get_variable_model_param(project_summary)
+  input_opt_design   <- .rstride$get_variable_model_param(project_summary)
   
   # get all transmission output
-  data_incidence_all      <- .rstride$load_aggregated_output(project_dir,'data_incidence')
+  data_incidence_all <- .rstride$load_aggregated_output(project_dir,'data_incidence')
   
   if(length(data_incidence_all) == 1 && is.na(data_incidence_all)){
     smd_print('NO INCIDENCE DATA AVAILABLE.')
     return(NA)
   }
   
-  ## REFERENCE DATA COVID-19: new hospitalisation
-  file_name <- './data/COVID-19-BE-v2.xlsx'
-  if(file.exists(file_name))
-  {
-   burden_of_disaese <- read.xlsx(file_name,detectDates = T)
-   burden_of_disaese <- burden_of_disaese[!is.na(burden_of_disaese$Hosp.new),]
-   hosp_cases_num    <- burden_of_disaese$Hosp.new
-   hosp_cases_cum    <- cumsum(hosp_cases_num)
-   hosp_cases_date   <- burden_of_disaese$DateCase
+  # add config_id
+  project_summary$config_id  <- apply(project_summary[,names(input_opt_design)],1,paste, collapse='_')
+  data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id')] )
+  if(length(input_opt_design)==1){
+    input_opt_design <- data.frame(input_opt_design,
+                                   config_id = c(input_opt_design))
   } else{
-    hosp_cases_cum    <- 0
-    hosp_cases_date   <- Sys.Date()
+    input_opt_design$config_id <- apply(input_opt_design,1,paste, collapse='_')
   }
   
-  
-  # open pdf stream
-  if(save_pdf) .rstride$create_pdf(project_dir,'incidence_inspection',9,8)
-  
-  # reset figure arrangements... and start new plot
-  if(save_pdf) par(mfrow=c(2,2))
-  
-  # change figure margins
-  par(mar=c(5,5,5,5))
-  
-  i_config <- 1
-  for(i_config in 1:nrow(input_opt_design)){
-    
-    # subset transmission output corresponding the 'input_opt_design' row
-    flag_exp            <- .rstride$get_equal_rows(project_summary,input_opt_design[i_config,])
-    data_incidence      <- data_incidence_all[data_incidence_all$exp_id %in% project_summary$exp_id[flag_exp],]
-    
-    # get population size
-    pop_size <- unique(project_summary$population_size[flag_exp])
-    
-    # get date info
-    sim_date_all <- data_incidence$sim_date[data_incidence$exp_id == data_incidence$exp_id[1]]
-    
-    # get isolation info
-    calendar_file <- unique(project_summary$holidays_file[flag_exp])
-    opt_calendar <- 'none'
-    opt_calendar <- ifelse(grepl('march',calendar_file),'untill April 5th',opt_calendar)
-    opt_calendar <- ifelse(grepl('may',calendar_file),'untill May 31th',opt_calendar)
-    opt_calendar <- ifelse(grepl('april',calendar_file),'untill April 30th',opt_calendar)
-    
-    # get other run info: population, calendar, distancing measures
-    sel_run_id <- which(flag_exp)[1]
-    run_info <- c(paste0('pop_size = ',project_summary$population_size[sel_run_id]/1e3,'k'),
-                  paste0('distancing = ',opt_calendar)
-    )
-    
-    if(opt_calendar != 'none'){
-      run_info <- c(run_info,
-                    paste0('telework_prob = ',project_summary$telework_probability[sel_run_id]),
-                    paste0('cnt_reduction_work = ',project_summary$cnt_reduction_work[sel_run_id]),
-                    paste0('cnt_reduction_other = ',project_summary$cnt_reduction_other[sel_run_id])
-      )
-    }
-    
-    
-    # remove holiday file from legend
-    input_no_holidays_file <- !grepl('holidays_file',colnames(input_opt_design))
-    if(sum(input_no_holidays_file) > 0 && nrow(input_opt_design)>0){ # add some param info to the legend
-      run_info <- c(run_info,paste0(colnames(input_opt_design)[input_no_holidays_file],': ',input_opt_design[i_config,input_no_holidays_file]))
-    }
-
-    ## HELP FUNCTION
-    get_incidence_statistics <- function(case_type){
-    
-      aggr_formula <- formula(paste(case_type,'~ sim_date'))  
-      cases_mean   <- aggregate(aggr_formula,data=data_incidence,mean)
-      cases_970p   <- aggregate(aggr_formula,data=data_incidence,quantile,0.975)
-      cases_025p   <- aggregate(aggr_formula,data=data_incidence,quantile,0.025)
-      
-      out <- data.frame(cases_mean,cases_970p[,2],cases_025p[,2])
-      names(out) <- c('sim_date','cases_mean','cases_975p','cases_025p')
-      
-      return(out)
-    }
-    
-    ## INFECTIONS
-    new_infections <- get_incidence_statistics('new_infections')
-    
-    ## INFECTIOUS
-    new_infectious_cases <- get_incidence_statistics('new_infectious_cases')
-    
-    ## SYMPTOMATIC
-    new_symptomatic_cases <- new_symptomatic_cases <- get_incidence_statistics('new_symptomatic_cases')
-    
-    ## HOSPITAL PROXY: FRACTION SYMPTOMATIC AND DELAY
-    hosp_fraction  <- 0.2
-    hosp_delay     <- 7 #days
-    data_incidence$new_hospital_cases <- data_incidence$new_symptomatic_cases * hosp_fraction
-    new_hospital_cases <- get_incidence_statistics('new_hospital_cases')
-    new_hospital_cases$sim_date <- new_hospital_cases$sim_date + hosp_delay
-    
-    # BE POP SIZE
-    pop_size_be <- 11e6
-    
-    plot_ylim <- c(0,max(data_incidence_all[,grepl('new_',names(data_incidence_all))]*1.4,na.rm=T))
-    
-    for(sel_ylim in list(plot_ylim,c(0,2000))){
-      
-      plot_main <- paste('Social distancing:',opt_calendar)
-      bool_legend <- TRUE
-      if(any(sel_ylim != plot_ylim)){
-        plot_main   <- paste(plot_main,'\n[zoom]')
-        bool_legend <- FALSE
-      }
-      
-      flag_plot <- new_infections$sim_date > as.Date('2020-03-01')
-      plot(new_infections$sim_date[flag_plot],new_infections$cases_mean[flag_plot],type='l',
-           xlab='Time',ylab='New cases',col=1,lwd=3,
-           ylim=sel_ylim,
-           main=plot_main)
-      grid(nx=NA,ny=NULL,lty=3,col='lightgray')
-      abline(v=sim_date_all,lty=3,col='lightgray')
-      lines(new_infections$sim_date,new_infections$cases_mean,col=1,lwd=3)
-      lines(new_infectious_cases$sim_date,new_infectious_cases$cases_mean,col=2,lwd=3)
-      lines(new_symptomatic_cases$sim_date,new_symptomatic_cases$cases_mean,col=4,lwd=3)
-      
-      # hospital proxy
-      lines(new_hospital_cases$sim_date,new_hospital_cases$cases_mean,col=4,lwd=3,lty=2)
-      
-      ## ADD HOSPITAL CASES FROM BELGIUM
-      points(hosp_cases_date,hosp_cases_num,pch=15,col=8)
-      
-      abline(v=sim_date_all[sim_date_all=='2020-03-14'])
-      #abline(v=sim_date_all[sim_date_all=='2020-04-05'])
-      abline(v=Sys.Date())
-      
-      # add axis on right-hand side with population/Belgian perspective
-      y_ticks  <- pretty(sel_ylim)
-      if(all(sel_ylim == plot_ylim)){
-        y_labels <- format(y_ticks/pop_size*100,scientific = F,digits=1)
-        mtext('simulated population (%)',side = 4,line=3,cex=0.8)
-      } else{
-        y_labels <- format(y_ticks/pop_size_be*100,scientific = F,digits=1)
-        mtext('Belgian population (%)',side = 4,line=3,cex=0.8)
-      }
-      axis(4,y_ticks,y_labels,las=2)
-      
-      # add legend
-      
-        if(bool_legend)
-        {
-          legend('topleft',
-                 c('infections (mean)',
-                   'infectious (mean)',
-                   'symptomatic (mean)',
-                   paste0(hosp_fraction*100,'% symptomatic +',hosp_delay,'days'),
-                   'hospital cases (BE)'),
-                 col=c(1,2,4,4,8),
-                 lty=c(1,1,1,3,NA),
-                 pch=c(NA,NA,NA,NA,15),
-                 bg='white',
-                 lwd=2,
-                 cex=0.7
-          )
-          
-          legend('topright',
-               run_info,
-               bg='white',
-               cex=0.6
-        )
-      }
-    }
-   
-  
-    # CUMMULATIVE
-    plot_ylim <- range(cumsum(new_infections$cases_mean))
-    for(sel_ylim in list(plot_ylim,c(0,max(hosp_cases_cum)*1.2))){
-      
-      sel_x_values <- range(hosp_cases_date-7,hosp_cases_date+7)
-      if(all(sel_ylim == plot_ylim)){
-        sel_x_values <- range(new_infections$sim_date)
-      }
-      sel_xlim     <- range(sel_x_values)
-      
-      plot_main <- gsub('zoom','cumulative',plot_main)
-      plot(new_infections$sim_date,cumsum(new_infections$cases_mean),type='l',
-           xlab='Time',
-           ylab='cumulative cases',
-           col=0,lwd=3,
-           ylim=sel_ylim,
-           xlim=range(sel_x_values),
-           main=plot_main,
-           xaxt='n')
-      axis(1,pretty(sel_x_values),pretty(sel_x_values))
-      grid(nx=NA,ny=NULL,lty=3,col='lightgray')
-      abline(v=sim_date_all,lty=3,col='lightgray')
-      abline(v=sim_date_all[sim_date_all=='2020-03-14'])
-      #abline(v=sim_date_all[sim_date_all=='2020-04-05'])
-      abline(v=Sys.Date())
-      
-      y_ticks  <- pretty(sel_ylim)
-      if(all(sel_ylim == plot_ylim)){
-        y_labels <- format(y_ticks/pop_size*100,scientific = F,digits=1)
-        mtext('simulated population (%)',side = 4,line=3,cex=0.8)
-      } else{
-        y_labels <- format(y_ticks/pop_size_be*100,scientific = F,digits=1)
-        mtext('Belgian population (%)',side = 4,line=3,cex=0.8)
-      }
-      axis(4,y_ticks,y_labels,las=2)
-      
-      lines(new_infections$sim_date,cumsum(new_infections$cases_mean),col=1,lwd=3)
-      lines(new_infectious_cases$sim_date,cumsum(new_infectious_cases$cases_mean),col=2,lwd=3)
-      lines(new_symptomatic_cases$sim_date,cumsum(new_symptomatic_cases$cases_mean),col=4,lwd=3)
-    
-      ## add hospital proxy
-      lines(new_hospital_cases$sim_date,cumsum(new_hospital_cases$cases_mean),col=4,lwd=3,lty=2)
-      
-      ## ADD HOSPITAL CASES FROM BELGIUM
-      points(hosp_cases_date,hosp_cases_cum,pch=15,col=8)
-      
-      if(all(sel_ylim  == plot_ylim)){
-        legend('topleft',
-               c(paste0(hosp_fraction*100,'% symptomatic +',hosp_delay,'days'),
-                 'hospital cases (BE)'),
-               col=c(4,8),
-               pch=c(NA,15),
-               bg='white',
-               lty=c(3,0),
-               lwd=c(2,0),
-               cex=0.7
-        )
-      }
-      
-      #}
-    } # end for-loop: cumulative plot
-    
-  } # end for-loop to vary the input_opt_design
-  
-  # close PDF stream
-  if(save_pdf) dev.off()
-  
-  # command line message
-  smd_print('INSPECTION OF INCIDENCE DATA COMPLETE')
-  
-} # function end
-
-
-## TEMPORARY BACK CALCULATION
-if(0==1){
   ## REFERENCE DATA COVID-19: new hospitalisation
   file_name <- './data/COVID-19-BE-v2.xlsx'
   burden_of_disaese <- read.xlsx(file_name,detectDates = T)
   burden_of_disaese <- burden_of_disaese[!is.na(burden_of_disaese$Hosp.new),]
   hosp_cases_num    <- burden_of_disaese$Hosp.new
+  hosp_cases_cum    <- cumsum(hosp_cases_num)
   hosp_cases_date   <- burden_of_disaese$DateCase
   
-  confirmed_cases <- burden_of_disaese$CC.new
-
-  sympt_cases      <- hosp_cases_num * 5    # 20% of symptomatic cases is hospitalized
-  sympt_cases_date <- hosp_cases_date - 7   # 7 delay between start symptom onset and hospital admission
-  
-  infected_cases      <- sympt_cases * 2    # 50% of the cases is symptomatic
-  infected_cases_date <- sympt_cases_date - 5 # 5 day delay between infection and symptom onset
-
-  incidence_data <-  merge(merge(data.frame(date = infected_cases_date,infected_cases),
-                                 data.frame(date = sympt_cases_date,sympt_cases),all = T),
-                           data.frame(date=hosp_cases_date,hosp_cases_num),all=T)
+  hosp_adm_data <- data.frame(date = hosp_cases_date,
+                              num_adm = hosp_cases_num,
+                              cum_adm = hosp_cases_cum)
   
   
-  plot(incidence_data$date,incidence_data$infected_cases,lwd=2,type='l', xlab='date',ylab='incidence')
-  lines(incidence_data$date,incidence_data$sympt_cases,lwd=2,col=2)
-  lines(incidence_data$date,incidence_data$hosp_cases_num,col=4,lwd=2)
-  lines(hosp_cases_date,confirmed_cases,col=5,lwd=2)
-  grid()  
-  legend('topleft',
-         c('total infections',
-           'symptomatic cases',
-           'hospitalisations',
-           'confirmed cases'),
-         lwd=2,
-         col=c(1,2,4,5),
-         cex=0.7)    
-
+  # create columns for hosptical cases and least square score
+  data_incidence_all$cummulative_hospital_cases <- NA
+  data_incidence_all$ls_score_hosp              <- NA
   
+  # create matrix to reformat hospital data
+  hosp_data_ls     <- matrix(NA, ncol = 1, nrow = nrow(project_summary))
+  hosp_data_tag    <- hosp_data_ls
   
-  
-  
+  i_exp <- 1  
+  # loop over each experiment
+  for(i_exp in unique(data_incidence_all$exp_id)){
+    
+    # select one run
+    flag_exp       <- data_incidence_all$exp_id == i_exp
+    
+    # calculate cummulative cases
+    data_incidence_all$cummulative_infections[flag_exp]        <- cumsum(data_incidence_all$new_infections[flag_exp])
+    data_incidence_all$cummulative_infectious_cases[flag_exp]  <- cumsum(data_incidence_all$new_infectious_cases[flag_exp])
+    data_incidence_all$cummulative_symptomatic_cases[flag_exp] <- cumsum(data_incidence_all$new_symptomatic_cases[flag_exp])
+    data_incidence_all$cummulative_hospital_cases[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions[flag_exp])
+    
+    # Sum of Squares: score
+    flag_hosp_data       <- data_incidence_all$sim_date[flag_exp] %in% hosp_cases_date
+    ls_score_hosp        <- sum(sqrt((data_incidence_all$new_hospital_admissions[flag_hosp_data] - hosp_cases_num)^2))
+    hosp_data_ls[i_exp,] <- sum(ls_score_hosp)
+    hosp_data_tag[i_exp,]<- unique(data_incidence_all$config_id[flag_exp])
   }
+  
+  # get mean ls per config id
+  ls_summary_config        <- aggregate(hosp_data_ls,list(hosp_data_tag) , mean, na.rm=T)
+  names(ls_summary_config) <- c('config_tag','ls_score_hosp')
+  
+  # select the 'num_selection' best parameter sets
+  num_selection  <- min(num_selection,length(ls_summary_config$ls_score_hosp))
+  ls_order       <- order(ls_summary_config$ls_score_hosp,decreasing = F)
+  config_tag_sel <- ls_summary_config[ls_order[1:num_selection],]
+  
+  # select incidence data
+  flag_plot               <- data_incidence_all$config_id %in% config_tag_sel$config_tag
+  data_incidence_ensemble <- data_incidence_all[flag_plot,]
+  
+  # open pdf stream (ENSEMBLE)
+  .rstride$create_pdf(project_dir,'incidence_ensemble',width = 6, height = 7)
+  par(mfrow=c(4,1))
+  
+  # plot temporal patterns (ensemble)
+  plot_incidence_data(data_incidence_ensemble,project_summary,
+                      hosp_adm_data,input_opt_design,bool_add_param
+  )
+  
+  # close pdf stream
+  dev.off()
+  
+  ## PER CONFIG: plot temporal patterns
+  .rstride$create_pdf(project_dir,'incidence_inspection',width = 6, height = 8)
+  par(mfrow=c(4,1))
+  
+  opt_config_id <- unique(data_incidence_all$config_id)
+  i_config <- opt_config_id[1]
+  for(i_config in opt_config_id){
+    
+    # select subset
+    data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
+    
+    # plot
+    plot_incidence_data(data_incidence_sel,project_summary,
+                        hosp_adm_data,input_opt_design,
+                        bool_add_param)
+  }
+  
+  # close pdf
+  dev.off()
+  #--------------------------#
+  
+  # ## AVERAGE
+  # num_runs <- unique(table(project_summary$config_id))
+  # tmp <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_sel, mean)
+  # tmp$new_hospital_admissions[tmp$sim_day == min(tmp$sim_day)] <- NA
+  # plot(tmp$sim_date,tmp$new_hospital_admissions,
+  #      type='l',
+  #      lwd=3,
+  #      col=pcolor$H,
+  #      ylab='New hospital admissions',
+  #      xlab='Time',
+  #      main = paste('Average of ', num_runs, 'realisations'))
+  # grid()
+  # points(hosp_cases_date,hosp_cases_num,col=1,pch=16)
+  # add_breakpoints()
+  # add_legend_hosp()
+  
+  #--------------------------#
+  # parameters
+  
+  if(nrow(input_opt_design)>1){
+    flag_param   <- input_opt_design$config_id %in% config_tag_sel$config_tag
+    print(input_opt_design[flag_param,-ncol(input_opt_design)])
+    
+    flag_param <- project_summary$config_id %in% config_tag_sel$config_tag
+    project_summary[flag_param,]
+  }
+  
+  
+} # end function
+
+plot_incidence_data <- function(data_incidence_sel,project_summary,
+                                hosp_adm_data,input_opt_design,bool_add_param){
+
+  # change figure margins
+  par(mar=c(5,5,1,5))
+  
+  # set color definitions and other layout definitions
+  pcolor <- data.frame(E = "black",  # exposed (or total infections)
+                       I = "darkgoldenrod3",  # infectious
+                       S = "red",  # symptomatic
+                       H = 'blue',  # hospitalized
+                       D = 'black',
+                       alpha = 0.1,
+                       lwd = 3,
+                       stringsAsFactors = F)  # data
+  
+  # change transparancey for low number of rng-runs
+  if(max(table(project_summary$config_id)) < 10){
+    pcolor$alpha <- 1
+  }
+  
+  # set Belgian population
+  pop_size_be <- 11e6
+  
+  ## FIX FOR PLOTTING: Set all values for the last sim_day to NA
+  data_incidence_sel[data_incidence_sel$sim_day %in% max(data_incidence_sel$sim_day,na.rm=T),] <- NA
+  
+  ## HOSPITAL ADMISSIONS ####
+  plot(data_incidence_sel$sim_date,
+       data_incidence_sel$new_hospital_admissions,
+       type='l',
+       col=alpha(pcolor$H,pcolor$alpha),
+       ylab='New cases',
+       xlab='Time')
+  grid()
+  points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=16)
+  add_breakpoints()
+  add_legend_hosp(pcolor)
+  
+  
+  ## CUMMULATIVE: HOSPITAL ####
+  y_lim <- pretty(data_incidence_sel$cummulative_hospital_cases)
+  plot(data_incidence_sel$sim_date,
+       data_incidence_sel$cummulative_hospital_cases,
+       type='l',
+       col=alpha(pcolor$H,pcolor$alpha),
+       ylab='Total cases (x1000)',
+       xlab='Time',
+       yaxt='n')
+  axis(2,y_lim,y_lim/1e3)
+  axis(4,y_lim,round(y_lim/pop_size_be*100,digits=2))
+  mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
+  grid()
+  points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=16)
+  add_breakpoints()
+  add_legend_hosp(pcolor)
+  
+  ## INCIDENCE: ALL ####
+  plot(data_incidence_sel$sim_date,
+       data_incidence_sel$new_infections,
+       type='l',
+       col=alpha(pcolor$E,pcolor$alpha),
+       ylab='New cases',
+       xlab='Time')
+  grid()
+  lines(data_incidence_sel$sim_date,
+        data_incidence_sel$new_infectious_cases,
+        col=alpha(pcolor$I,pcolor$alpha))
+  
+  lines(data_incidence_sel$sim_date,
+        data_incidence_sel$new_symptomatic_cases,
+        col=alpha(pcolor$S,pcolor$alpha))
+  
+  lines(data_incidence_sel$sim_date,
+        data_incidence_sel$new_hospital_admissions,
+        col=alpha(pcolor$H,pcolor$alpha))
+  points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=16)
+  add_breakpoints()
+  add_legend_all(pcolor)
+  
+  ## CUMMULATIVE: ALL STATES ####
+  y_lim <- pretty(data_incidence_sel$cummulative_infections)
+  plot(data_incidence_sel$sim_date,
+       data_incidence_sel$cummulative_infections,
+       type='l',
+       col=alpha(pcolor$E,pcolor$alpha),
+       ylab='Total cases (x1000)',
+       xlab='Time',
+       yaxt='n')
+  axis(2,y_lim,y_lim/1e3)
+  axis(4,y_lim,round(y_lim/pop_size_be*100,digits=1))
+  grid()
+  mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
+  lines(data_incidence_sel$sim_date,
+        data_incidence_sel$cummulative_infectious_cases,
+        col=alpha(pcolor$I,pcolor$alpha))
+  lines(data_incidence_sel$sim_date,
+        data_incidence_sel$cummulative_symptomatic_cases,
+        col=alpha(pcolor$S,pcolor$alpha))
+  lines(data_incidence_sel$sim_date,
+        data_incidence_sel$cummulative_hospital_cases,
+        col=alpha(pcolor$H,pcolor$alpha))
+  points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=16)
+  add_breakpoints()
+  if(bool_add_param) {
+    add_legend_runinfo(project_summary,input_opt_design,
+                       unique(data_incidence_sel$config_id))
+  } else {
+    add_legend_all(pcolor)
+  }
+  
+  
+  
+  
+} # end function to plot figure
+
+# define the vertical breaks on the plots
+add_breakpoints <- function(){
+  abline(v=as.Date("2020-03-14"))
+  abline(v=Sys.Date())
+}
+
+# define the legend for hospital(-only) plots
+add_legend_hosp <- function(pcolor){
+  legend('topleft',
+         c('Hospital admissions (data)',
+           '20% symptomatic cases + 7 days'),
+         col=c(pcolor$D,pcolor$H),
+         pch=c(16,NA),
+         lwd=c(NA,2),
+         bg='white',
+         cex = 0.8)
+}
+
+# define the legend with all categories
+add_legend_all <- function(pcolor){
+  legend('topleft',
+         c('New infections',
+           'Infectious cases',
+           'Symptomatic cases',
+           '20% Sympt. cases + 7 days',
+           'Hospital admissions (data)'),
+         col=unlist(pcolor),
+         pch=c(NA,NA,NA,NA,16),
+         lwd=c(2,2,2,2,NA),
+         cex=0.8,
+         bg='white')
+}
+
+add_legend_runinfo <- function(project_summary,input_opt_design,
+                               i_config){
+  
+  # remove NA from i_config
+  i_config <- i_config[!is.na(i_config)]
+  
+  # subset project summary
+  project_summary_sel <- project_summary[project_summary$config_id %in% i_config,]
+  
+  # get lockdown info
+  calendar_file <- unique(project_summary_sel$holidays_file)
+  opt_calendar <- 'none'
+  opt_calendar <- ifelse(grepl('march',calendar_file),'untill April 5th',opt_calendar)
+  opt_calendar <- ifelse(grepl('may',calendar_file),'untill May 31th',opt_calendar)
+  opt_calendar <- ifelse(grepl('april',calendar_file),'untill April 30th',opt_calendar)
+  
+  # get other run info: population, calendar, distancing measures
+  run_info <- c(paste0('pop_size = ',unique(project_summary_sel$population_size)/1e3,'k'),
+                paste0('distancing = ',opt_calendar)
+  )
+  
+  if(opt_calendar != 'none'){
+    run_info <- c(run_info,
+                  paste0('telework_prob = ',paste(unique(project_summary_sel$telework_probability),collapse=', ')),
+                  paste0('cnt_reduction_work = ',paste(unique(project_summary_sel$cnt_reduction_work),collapse=", ")),
+                  paste0('cnt_reduction_other = ',paste(unique(project_summary_sel$cnt_reduction_other),collapse=", ")),
+                  paste0('compliance_delay = ',paste(unique(project_summary_sel$compliance_delay),collapse=", "))
+    )
+  }
+  
+  # add other exp_design parameters (excl. holiday file)
+  names_exp_param <- colnames(input_opt_design)
+  flag_col        <- names_exp_param %in% c('telework_prob','cnt_reduction_work',
+                                            'cnt_reduction_other','compliance_delay',
+                                            'holidays_file','config_id')
+  names_exp_param <- names_exp_param[!flag_col]
+  if(length(names_exp_param)>0){
+    run_info <- c(run_info,
+                  paste0(names_exp_param, ' = ',paste(unique(project_summary_sel[,names_exp_param]),collapse=', '))
+    )
+  }
+  
+  # present info in legend
+  legend('topleft',
+         run_info,
+         cex=0.8,
+         bg='white')
+}
 
   
 

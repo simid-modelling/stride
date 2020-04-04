@@ -134,7 +134,7 @@ inspect_participant_data <- function(project_dir, save_pdf = TRUE)
     plot(telework_age$part_age[flag],
          telework_age$Freq[flag]/population_age$Freq,
          xlab='age',
-         ylab='fraction susceptible',
+         ylab='population fraction',
          main='population teleworking',
          pch=19, lwd=3, ylim=0:1
     )

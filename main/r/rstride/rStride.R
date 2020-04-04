@@ -37,6 +37,7 @@ library('simid.rtools',quietly = T)
 # mgcv        to sample uncertaint parameters from distributions
 # data.table  to use convenience functions for range subsets (e.g. "between")
 # openxlsx    to read excel files (reference data on incidence)
+# scales      to plot ensembles with transparant colors
 smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table','openxlsx'))
 
 # load general help functions
@@ -150,13 +151,11 @@ run_rStride <- function(exp_design               = exp_design,
   par_out <- foreach(i_exp=1:nrow(exp_design),
                      .combine='rbind',
                      .packages=c('XML','simid.rtools'),
-                     .export = c('.rstride','par_nodes_info'),
+                     .export = c('.rstride','par_nodes_info','get_counts',
+                                 'add_hospital_admission_time'),
                      .verbose=FALSE) %dopar%
                      {  
-                       
-                       # create locacl copy of 'par_nodes_info'
-                       #par_nodes_info <- .rstride$par_nodes_info
-                       
+                      
                        # print progress (only slave1)
                        smd_print_progress(i_exp,nrow(exp_design),time_stamp_loop,par_nodes_info)
 
@@ -218,28 +217,12 @@ run_rStride <- function(exp_design               = exp_design,
                          rstride_out$data_prevalence = NA
                        }
                        
-                       # help function to get the daily incidence
-                       get_counts <- function(all_data,sim_day_max,output_col = "counts"){
-                         
-                         if(all(is.na(all_data))){
-                           return( rep(0,sim_day_max))
-                         }
-                         
-                         # get all bins (-0.5 to set the midpoint to 0,1,2,...)
-                         breaks <- (0:max(all_data+1,na.rm=T))-0.5
-                         
-                         # get statistics
-                         data_out <- unlist(hist(all_data,breaks,include.lowest = T,right=F,plot=F)[output_col])
-                       
-                         # limit to given number of days
-                         data_out <- data_out[1:sim_day_max]
-                           
-                         return(data_out)
-                       }
-                       
                        # account for non-symptomatic cases
                        flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
                        rstride_out$data_transmission$start_symptoms[flag] <- NA
+                       
+                       # add estimated hospital admission
+                       rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission)
                        
                        # save incidence
                        num_sim_days           <- config_exp$num_days
@@ -247,6 +230,10 @@ run_rStride <- function(exp_design               = exp_design,
                        new_infectious_cases   <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_infectiousness,num_sim_days)
                        new_symptomatic_cases  <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_symptoms,num_sim_days)
                        new_recovered_cases    <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$end_symptoms,num_sim_days)
+                       new_hospital_admissions      <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start,num_sim_days)
+                       new_hospital_admissions_age1 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age2,num_sim_days)
+                       new_hospital_admissions_age2 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age2,num_sim_days)
+                       new_hospital_admissions_age3 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age3,num_sim_days)
                        sim_day                <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days,output_col = 'mids')
                        sim_date               <- as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day
                        
@@ -256,6 +243,7 @@ run_rStride <- function(exp_design               = exp_design,
                                                                 new_infectious_cases  = new_infectious_cases,
                                                                 new_symptomatic_cases = new_symptomatic_cases,
                                                                 new_recovered_cases   = new_recovered_cases,
+                                                                new_hospital_admissions = new_hospital_admissions,
                                                                 exp_id                = config_exp$exp_id,
                                                                 row.names = NULL)
                        
@@ -308,3 +296,71 @@ run_rStride <- function(exp_design               = exp_design,
   return(project_dir)
   
 } # end run_rStride function
+
+# help function to get the daily incidence
+get_counts <- function(all_data,sim_day_max,output_col = "counts"){
+  
+  if(all(is.na(all_data))){
+    return( rep(0,sim_day_max))
+  }
+  
+  # get all bins (-0.5 to set the midpoint to 0,1,2,...)
+  breaks <- (0:max(all_data+1,na.rm=T))-0.5
+  
+  # get statistics
+  data_out <- unlist(hist(all_data,breaks,include.lowest = T,right=F,plot=F)[output_col])
+  
+  # limit to given number of days
+  data_out <- data_out[1:sim_day_max]
+  
+  return(data_out)
+}
+
+#data_transmission <- rstride_out$data_transmission
+add_hospital_admission_time <- function(data_transmission){
+  
+  data_transmission$start_symptoms
+  data_transmission$part_age
+  
+  # create columsn for hospital admission start (by age)
+  data_transmission$hospital_admission_start     <- NA
+  data_transmission$hospital_admission_start_age1 <- NA
+  data_transmission$hospital_admission_start_age2 <- NA
+  data_transmission$hospital_admission_start_age3 <- NA
+  
+  # hospital probability
+  hospital_probability <- data.frame(age1 = 0.1,
+                                     age2 = 0.2,
+                                     age3 = 0.4)
+  
+  # set hospital delay for 3 age groups
+  hosp_delay_mean <- data.frame(age1 = 3,
+                                age2 = 7,
+                                age3 = 6)
+  # set hospital delay age groups (age groups for hospital admission)
+  hosp_age <- list(age1 = 0:18,   # 0:16
+                   age2 = 19:70,  # 16:59
+                   age3 = 71:110) # 60+
+  # set (uniform) delay  distribution -1, 0, 1
+  hosp_delay_variance <- -1:1
+  
+  i_hosp <- 1
+  for(i_hosp in 1:length(hospital_probability)){
+    flag_part      <- !is.na(data_transmission$start_symptoms) & data_transmission$part_age %in% hosp_age[[i_hosp]]
+    flag_admission <- as.logical(rbinom(n = nrow(data_transmission),size = 1,prob = hospital_probability[[i_hosp]]))
+    flag_hosp      <- flag_part & flag_admission
+    data_transmission$hospital_admission_start[flag_hosp] <- hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
+    if(i_hosp == 1){
+      data_transmission$hospital_admission_start_age1[flag_hosp] <- data_transmission$hospital_admission_start[flag_hosp]
+    } 
+    if(i_hosp == 2){
+      data_transmission$hospital_admission_start_age2[flag_hosp] <- data_transmission$hospital_admission_start[flag_hosp]
+    }
+    if(i_hosp == 3){
+      data_transmission$hospital_admission_start_age3[flag_hosp] <- data_transmission$hospital_admission_start[flag_hosp]
+    }
+  }
+ 
+  # return
+  return(data_transmission) 
+}
