@@ -25,6 +25,10 @@
 inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_param=TRUE)
 {
   
+  #debug
+  if(!exists('num_selection')) {num_selection = 4}
+  if(!exists('bool_add_param')) {bool_add_param = TRUE}
+  
   # load project summary
   project_summary    <- .rstride$load_project_summary(project_dir)
   
@@ -39,8 +43,16 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     return(NA)
   }
   
-  # add config_id
-  project_summary$config_id  <- apply(project_summary[,names(input_opt_design)],1,paste, collapse='_')
+ 
+  # add config_id 
+  # get variable names of input_opt_design (fix if only one column)
+  if(ncol(input_opt_design) == 1) {
+    project_summary$config_id  <- project_summary[,colnames(input_opt_design)]
+  } else{
+    project_summary$config_id  <- apply(project_summary[,names(input_opt_design)],1,paste, collapse='_')
+  }
+  
+  # add config_id to incidence data
   data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id')] )
   if(length(input_opt_design)==1){
     input_opt_design <- data.frame(input_opt_design,
@@ -140,6 +152,30 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   dev.off()
   #--------------------------#
   
+  ## PER R0: plot temporal patterns
+  .rstride$create_pdf(project_dir,'incidence_R0',width = 6, height = 8)
+  par(mfrow=c(4,1))
+  
+  opt_r0 <- unique(input_opt_design$r0)
+  i_r0 <- opt_r0[1]
+  for(i_r0 in opt_r0){
+    
+    # select config_id
+    opt_config_id <- unique(input_opt_design$config_id[input_opt_design$r0 ==  i_r0])
+    
+    # select subset
+    data_incidence_sel <- data_incidence_all[data_incidence_all$config_id %in% opt_config_id,]
+    dim(data_incidence_sel)
+    
+    # plot
+    plot_incidence_data(data_incidence_sel,project_summary,
+                        hosp_adm_data,input_opt_design,
+                        bool_add_param)
+  }
+  
+  # close pdf
+  dev.off()
+  
   # ## AVERAGE
   # num_runs <- unique(table(project_summary$config_id))
   # tmp <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_sel, mean)
@@ -197,13 +233,17 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   ## FIX FOR PLOTTING: Set all values for the last sim_day to NA
   data_incidence_sel[data_incidence_sel$sim_day %in% max(data_incidence_sel$sim_day,na.rm=T),] <- NA
   
+  # set y-lim
+  y_lim <- range(0,max(hosp_adm_data$num_adm)*1.3,na.rm=T)
+  
   ## HOSPITAL ADMISSIONS ####
   plot(data_incidence_sel$sim_date,
        data_incidence_sel$new_hospital_admissions,
        type='l',
        col=alpha(pcolor$H,pcolor$alpha),
        ylab='New cases',
-       xlab='Time')
+       xlab='Time',
+       ylim = y_lim)
   grid()
   points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=16)
   add_breakpoints()
@@ -211,14 +251,15 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   
   
   ## CUMMULATIVE: HOSPITAL ####
-  y_lim <- pretty(data_incidence_sel$cummulative_hospital_cases)
+  y_lim <- range(0,max(hosp_adm_data$cum_adm)*1.3,na.rm=T)
   plot(data_incidence_sel$sim_date,
        data_incidence_sel$cummulative_hospital_cases,
        type='l',
        col=alpha(pcolor$H,pcolor$alpha),
        ylab='Total cases (x1000)',
        xlab='Time',
-       yaxt='n')
+       yaxt='n',
+       ylim= range(y_lim))
   axis(2,y_lim,y_lim/1e3)
   axis(4,y_lim,round(y_lim/pop_size_be*100,digits=2))
   mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
