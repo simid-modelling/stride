@@ -63,17 +63,24 @@ public:
         /// Current year in the simulated calendar.
         std::size_t GetYear() const;
 
-        /// Check if it's a holiday.
-        bool IsHoliday() const
+        /// Check if it's a public holiday.
+        bool IsPublicHoliday() const
         {
-        	return (std::find(m_holidays.begin(), m_holidays.end(), m_date) != m_holidays.end());
+        	return (std::find(m_public_holidays.begin(), m_public_holidays.end(), m_date) != m_public_holidays.end());
         }
 
-        /// Check if it's a school holiday.
-        bool IsSchoolHoliday() const
+        /// Check if K12-schools are closed.
+        bool IsK12SchoolClosed() const
         {
-             return (std::find(m_school_holidays.begin(), m_school_holidays.end(), m_date) !=
-                        m_school_holidays.end());
+             return (std::find(m_k12school_holidays.begin(), m_k12school_holidays.end(), m_date) !=
+                        m_k12school_holidays.end());
+        }
+
+        /// Check if Colleges are closed.
+        bool IsCollegeClosed() const
+        {
+             return (std::find(m_college_holidays.begin(), m_college_holidays.end(), m_date) !=
+            		 m_college_holidays.end());
         }
 
         /// Check if it's the weekend.
@@ -92,15 +99,17 @@ private:
 
 private:
 #ifdef BOOST_FOUND
-        boost::gregorian::date              m_date;            ///< Current simulated date.
-        std::vector<boost::gregorian::date> m_holidays;        ///< Vector of general holidays
-        std::vector<boost::gregorian::date> m_school_holidays; ///< Vector of school holidays
-        std::vector<boost::gregorian::date> m_soft_lockdown;   ///< Vector of lockdown days
+        boost::gregorian::date              m_date;             ///< Current simulated date.
+        std::vector<boost::gregorian::date> m_public_holidays;  ///< Vector of public holidays
+        std::vector<boost::gregorian::date> m_k12school_holidays; ///< Vector of K-12 school holidays
+        std::vector<boost::gregorian::date> m_college_holidays;   ///< Vector of college holidays
+        std::vector<boost::gregorian::date> m_soft_lockdown;    ///< Vector of lockdown days
 #else
-        date::year_month_day              m_date;            ///< Current simulated date.
-        std::vector<date::year_month_day> m_holidays;        ///< Vector of general holidays
-        std::vector<date::year_month_day> m_school_holidays; ///< Vector of school holidays
-        std::vector<date::year_month_day> m_soft_lockdown;   ///< Vector of lockdown days
+        date::year_month_day              m_date;               ///< Current simulated date.
+        std::vector<date::year_month_day> m_public_holidays;    ///< Vector of public holidays
+        std::vector<date::year_month_day> m_k12school_holidays; ///< Vector of K-12 school holidays
+        std::vector<date::year_month_day> m_college_holidays;   ///< Vector of college holidays
+        std::vector<date::year_month_day> m_soft_lockdown;      ///< Vector of lockdown days
 #endif
         unsigned short int m_day; ///< Current day since start of simulation.
 };

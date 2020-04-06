@@ -69,12 +69,19 @@ shared_ptr<Population> DefaultPopBuilder::MakePersons(shared_ptr<Population> pop
                 const auto values               = Split(line, ",");
                 const auto age                  = FromString<unsigned int>(values[0]);
                 const auto householdId          = FromString<unsigned int>(values[1]);
-                const auto schoolId             = FromString<unsigned int>(values[2]);
+                auto schoolId                   = FromString<unsigned int>(values[2]);
                 const auto workId               = FromString<unsigned int>(values[3]);
                 const auto primaryCommunityId   = FromString<unsigned int>(values[4]);
                 const auto secondaryCommunityId = FromString<unsigned int>(values[5]);
 
-                pop->CreatePerson(person_id, age, householdId, schoolId, 0, workId, primaryCommunityId,
+                //TODO: fix hard-coded age-breaks
+                unsigned int collegeId = 0;
+                if(schoolId != 0 && age >= 18 && age < 23){
+                	collegeId = schoolId;
+                	schoolId = 0;
+                }
+
+                pop->CreatePerson(person_id, age, householdId, schoolId, collegeId, workId, primaryCommunityId,
                                   secondaryCommunityId);
                 ++person_id;
         }

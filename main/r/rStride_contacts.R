@@ -41,17 +41,17 @@ source('./bin/rstride/rStride.R')
 num_seeds  <- 1
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(dir_postfix               = '_cnt_lockdown',
+exp_design <- expand.grid(dir_postfix               = '_cnt',
                           contact_log_level         = "All",
                           num_days                  = 1,
                           seeding_rate              = 1.7e-5,
                           num_participants_survey   = 3000,
-                          start_date                = c("2020-04-03","2020-04-04"),
+                          start_date                = c("2020-03-29","2020-03-30","2020-04-06",'2020-02-25'),
                           rng_seed                  = 1:num_seeds,
                           disease_config_file       = "disease_covid19.xml", 
                           population_file           = "pop_belgium600k_c500_teachers_censushh.csv",
-                          age_contact_matrix_file   = "contact_matrix_flanders_conditional_teachers_15min.xml",
-                          holidays_file             = "calendar_belgium_2020_covid19_april.json",
+                          age_contact_matrix_file   = "contact_matrix_flanders_conditional_teachers.xml",
+                          holidays_file             = "holidays_flanders_2020.json",
                           telework_probability          = c(0),
                           cnt_reduction_work            = c(0.40),
                           cnt_reduction_other           = c(0.6),
@@ -75,6 +75,5 @@ project_dir <- run_rStride(exp_design  = exp_design,
 ## EXPLORE SOCIAL CONTACT PATTERNS                 ##
 #####################################################
 inspect_contact_data(project_dir)
-
 
 

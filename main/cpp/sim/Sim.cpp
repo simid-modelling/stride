@@ -66,10 +66,11 @@ void Sim::TimeStep()
 {
         // Logic where you compute (on the basis of input/config for initial day or on the basis of
         // number of sick persons, duration of epidemic etc) what kind of DaysOff scheme you apply.
-        const auto daysOff     = std::make_shared<DaysOffStandard>(m_calendar);
-        const bool isWorkOff   = daysOff->IsWorkOff();
-        const bool isSchoolOff = daysOff->IsSchoolOff();
-        const bool isSoftLockdown = daysOff->isSoftLockdown();
+        const auto daysOff          = std::make_shared<DaysOffStandard>(m_calendar);
+        const bool isRegularWeekday = daysOff->IsRegularWeekday();
+        const bool isK12SchoolOff   = daysOff->IsK12SchoolOff();
+        const bool isCollegeOff     = daysOff->IsCollegeOff();
+        const bool isSoftLockdown   = daysOff->isSoftLockdown();
 
          // increment the number of days in lock-down and account for compliance
         double lockdown_compliance = 1.0;
@@ -103,16 +104,17 @@ void Sim::TimeStep()
 			// we want to track index cases without adaptive behavior
 #pragma omp for schedule(static)
 			for (size_t i = 0; i < population.size(); ++i) {
-					population[i].Update(isWorkOff, isSchoolOff, m_adaptive_symptomatic_behavior,
+					population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
+							m_adaptive_symptomatic_behavior,
 							isSoftLockdown, m_handlers[thread_num]);
 			}
 
 			// Infector updates individuals for contacts & transmission within each pool.
 			// Skip pools with id = 0, because it means Not Applicable.
 			for (auto typ : ContactType::IdList) {
-					if ((typ == ContactType::Id::Workplace && isWorkOff) ||
-						(typ == ContactType::Id::K12School && isSchoolOff) ||
-						(typ == ContactType::Id::College && isSchoolOff)) {
+					if ((typ == ContactType::Id::Workplace && !isRegularWeekday) ||
+						(typ == ContactType::Id::K12School && isK12SchoolOff) ||
+						(typ == ContactType::Id::College && isCollegeOff)) {
 							continue;
 					}
 #pragma omp for schedule(static)

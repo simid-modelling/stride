@@ -99,6 +99,11 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     data_incidence_all$cummulative_symptomatic_cases[flag_exp] <- cumsum(data_incidence_all$new_symptomatic_cases[flag_exp])
     data_incidence_all$cummulative_hospital_cases[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions[flag_exp])
     
+    # age specific hospital admissions
+    data_incidence_all$cummulative_hospital_cases_age1[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions_age1[flag_exp])
+    data_incidence_all$cummulative_hospital_cases_age2[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions_age2[flag_exp])
+    data_incidence_all$cummulative_hospital_cases_age3[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions_age3[flag_exp])
+    
     # Sum of Squares: score
     flag_hosp_data       <- flag_exp & data_incidence_all$sim_date %in% hosp_adm_data$date
     ls_score_hosp        <- sum(sqrt((data_incidence_all$new_hospital_admissions[flag_hosp_data] - hosp_adm_data$num_adm)^2))
@@ -337,7 +342,7 @@ add_breakpoints <- function(){
 add_legend_hosp <- function(pcolor){
   legend('topleft',
          c('Hospital admissions (data)',
-           '20% symptomatic cases + 7 days'),
+           '20% symptomatic cases ±6 days'),
          col=c(pcolor$D,pcolor$H),
          pch=c(16,NA),
          lwd=c(NA,2),
@@ -351,7 +356,7 @@ add_legend_all <- function(pcolor){
          c('New infections',
            'Infectious cases',
            'Symptomatic cases',
-           '20% Sympt. cases + 7 days',
+           '20% Sympt. cases ±6 days',
            'Hospital admissions (data)'),
          col=unlist(pcolor),
          pch=c(NA,NA,NA,NA,16),

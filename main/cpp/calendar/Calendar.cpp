@@ -34,7 +34,8 @@ using boost::property_tree::ptree;
 
 #ifdef BOOST_FOUND
 
-Calendar::Calendar(const ptree& configPt) : m_date(), m_holidays(), m_school_holidays(), m_soft_lockdown(), m_day(0U)
+Calendar::Calendar(const ptree& configPt) :
+		m_date(), m_public_holidays(), m_k12school_holidays(), m_college_holidays(), m_soft_lockdown(), m_day(0U)
 {
         // Set start date
         m_date = boost::gregorian::from_simple_string(configPt.get<string>("run.start_date", "2016-01-01"));
@@ -81,13 +82,19 @@ void Calendar::InitializeHolidays(const ptree& configPt)
                 // read in general holidays
                 for (const auto& date : holidaysPt.get_child("general." + month)) {
                         const auto d = string(lead).append(date.second.get_value<string>());
-                        m_holidays.push_back(boost::gregorian::from_simple_string(d));
+                        m_public_holidays.push_back(boost::gregorian::from_simple_string(d));
                 }
 
-                // read in school holidays
-                for (const auto& date : holidaysPt.get_child("school." + month)) {
+                // read in K12-school holidays
+                for (const auto& date : holidaysPt.get_child("k12school." + month)) {
                         const string d = string(lead).append(date.second.get_value<string>());
-                        m_school_holidays.push_back(boost::gregorian::from_simple_string(d));
+                        m_k12school_holidays.push_back(boost::gregorian::from_simple_string(d));
+                }
+
+                // read in college holidays
+                for (const auto& date : holidaysPt.get_child("college." + month)) {
+                        const string d = string(lead).append(date.second.get_value<string>());
+                        m_college_holidays.push_back(boost::gregorian::from_simple_string(d));
                 }
                 // read in soft lockdown data (if present)
                 if(holidaysPt.count("softLockdown") != 0){
@@ -112,7 +119,7 @@ date::year_month_day ConvertFromString(const string& day)
 }
 
 Calendar::Calendar(const boost::property_tree::ptree& configPt)
-    : m_date(), m_holidays(), m_school_holidays(), m_soft_lockdown(), m_day(static_cast<size_t>(0))
+    : m_date(), m_public_holidays(), m_12school_holidays(),m_college_holidays(), m_soft_lockdown(), m_day(static_cast<size_t>(0))
 {
         const string start_date{configPt.get<string>("run.start_date", "2016-01-01")};
         // Set start date
@@ -151,16 +158,25 @@ void Calendar::InitializeHolidays(const ptree& configPt)
                         /// Append zero's due to a bug in stdc++ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=45896
                         d << year << "-" << setw(2) << setfill('0') << month << "-" << setw(2) << setfill('0')
                           << date.second.get_value<string>();
-                        m_holidays.push_back(ConvertFromString(d.str()));
+                        m_public_holidays.push_back(ConvertFromString(d.str()));
                 }
 
                 // read in school holidays
-                for (const auto& date : holidaysPt.get_child("school." + month)) {
+                for (const auto& date : holidaysPt.get_child("k12school." + month)) {
                         stringstream d;
                         /// Append zero's due to a bug in stdc++ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=45896
                         d << year << "-" << setw(2) << setfill('0') << month << "-" << setw(2) << setfill('0')
                           << date.second.get_value<string>();
-                        m_school_holidays.push_back(ConvertFromString(d.str()));
+                        m_k12school_holidays.push_back(ConvertFromString(d.str()));
+                }
+
+                // read in college holidays
+                for (const auto& date : holidaysPt.get_child("college." + month)) {
+                        stringstream d;
+                        /// Append zero's due to a bug in stdc++ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=45896
+                        d << year << "-" << setw(2) << setfill('0') << month << "-" << setw(2) << setfill('0')
+                          << date.second.get_value<string>();
+                        m_college_holidays.push_back(ConvertFromString(d.str()));
                 }
 
                 // read in soft lockdown data (if present)
@@ -173,7 +189,6 @@ void Calendar::InitializeHolidays(const ptree& configPt)
 							m_soft_lockdown.push_back(ConvertFromString(d.str()));
 					}
                 }
-
         }
 }
 

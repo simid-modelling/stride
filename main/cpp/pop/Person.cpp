@@ -28,7 +28,8 @@ namespace stride {
 using namespace std;
 using namespace stride::ContactType;
 
-void Person::Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBehavior, bool isSoftLockdown,
+void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOff,
+		bool adaptiveSymptomaticBehavior, bool isSoftLockdown,
 		ContactHandler& cHandler)
 
 {
@@ -36,19 +37,28 @@ void Person::Update(bool isWorkOff, bool isSchoolOff, bool adaptiveSymptomaticBe
         m_health.Update();
 
         // Update presence in contact pools by type of day
-        if (isWorkOff || (m_age <= MinAdultAge() && isSchoolOff)) {
-                m_in_pools[Id::K12School]          = false;
-                m_in_pools[Id::College]            = false;
-                m_in_pools[Id::Workplace]          = false;
-                m_in_pools[Id::PrimaryCommunity]   = true;
-                m_in_pools[Id::SecondaryCommunity] = false;
-        } else {
-                m_in_pools[Id::K12School]          = true;
-                m_in_pools[Id::College]            = true;
-                m_in_pools[Id::Workplace]          = true;
-                m_in_pools[Id::PrimaryCommunity]   = false;
-                m_in_pools[Id::SecondaryCommunity] = true;
+        if (isRegularWeekday) {
+        	m_in_pools[Id::Workplace]          = true;
+			m_in_pools[Id::PrimaryCommunity]   = false;
+			m_in_pools[Id::SecondaryCommunity] = true;
+        } else{
+            m_in_pools[Id::Workplace]          = false;
+            m_in_pools[Id::PrimaryCommunity]   = true;
+            m_in_pools[Id::SecondaryCommunity] = false;
         }
+
+        if (isK12SchoolOff) {
+        	m_in_pools[Id::K12School]          = false;
+        } else{
+        	m_in_pools[Id::K12School]          = true;
+        }
+
+        if (isCollegeOff) {
+			m_in_pools[Id::College]            = false;
+		} else{
+			m_in_pools[Id::College]            = true;
+		}
+
 
         // Update presence in contact pools by health state
         if (m_health.IsSymptomatic() && adaptiveSymptomaticBehavior) {

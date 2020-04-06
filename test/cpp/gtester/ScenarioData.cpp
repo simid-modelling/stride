@@ -52,9 +52,9 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
 
 	// Set target values per scenario
 	const map<string, unsigned int> targets_default = {
-		{"influenza_a", 505000U}, {"influenza_b", 0U}, {"influenza_c", 5U}, {"measles_16", 53000U},
-		{"measles_26", 600000U},  {"r0_0", 1200U},     {"r0_4", 4000U},     {"r0_8", 11600U},
-		{"r0_12", 27500U},        {"r0_16", 53000U},   {"covid19_all", 81500U}, //{"covid19_15min", 158000U},
+		{"influenza_a", 505000U}, {"influenza_b", 0U}, {"influenza_c", 5U}, {"measles_16", 47000U},
+		{"measles_26", 600000U},  {"r0_0", 1200U},     {"r0_4", 3400U},     {"r0_8", 9500U},
+		{"r0_12", 24000U},        {"r0_16", 47000U},   {"covid19_all", 81500U}, //{"covid19_15min", 158000U},
 		{"covid19_daily", 84500U},{"covid19_distancing", 71000U}};
 
 	// Set margins per scenario
@@ -116,7 +116,7 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
 			pt.put("run.num_daily_imported_cases", 10U);
 	}
 	if (tag == "covid19_distancing") {
-			pt.put("run.holidays_file","calendar_belgium_2020_covid19_march.json");
+			pt.put("run.holidays_file","calendar_belgium_2020_covid19_april.json");
 	}
 
 	return make_tuple(pt, target, margin);

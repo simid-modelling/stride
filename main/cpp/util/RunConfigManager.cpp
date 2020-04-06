@@ -108,13 +108,13 @@ string RunConfigManager::CreateTestsInfluenza()
         <num_threads>1</num_threads>
         <output_prefix></output_prefix>
         <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
-        <population_type>default</geopopulation_type>
+        <population_type>default</population_type>
         <rng_seed>4730214</rng_seed>
         <r0>3</r0>
         <seeding_rate>0.00089999999999999998</seeding_rate>
         <seeding_age_min>1</seeding_age_min>
         <seeding_age_max>99</seeding_age_max>
-        <start_date>2017-01-01</start_date>
+        <start_date>2020-04-01</start_date>
         <stride_log_level>info</stride_log_level>
         <track_index_case>false</track_index_case>
         <use_install_dirs>true</use_install_dirs>
@@ -132,7 +132,7 @@ string RunConfigManager::CreateTestsMeasles()
         <contact_log_level>Transmissions</contact_log_level>
         <contact_output_file>false</contact_output_file>
         <disease_config_file>disease_measles_adaptive_behavior.xml</disease_config_file>
-        <holidays_file>holidays_none.json</holidays_file>
+        <holidays_file>holidays_flanders_2020.json</holidays_file>
         <immunity_rate>0.80000000000000004</immunity_rate>
         <immunity_profile>None</immunity_profile>
         <num_days>50</num_days>
@@ -140,12 +140,12 @@ string RunConfigManager::CreateTestsMeasles()
         <num_threads>1</num_threads>
         <output_prefix></output_prefix>
         <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
-        <population_type>default</geopopulation_type>
+        <population_type>default</population_type>
         <rng_seed>1097253,2387652,9963540,4730214</rng_seed>
         <seeding_age_max>99</seeding_age_max>
         <seeding_age_min>1</seeding_age_min>
         <seeding_rate>0.002</seeding_rate>
-        <start_date>2017-01-01</start_date>
+        <start_date>2020-03-29</start_date>
         <stride_log_level>info</stride_log_level>
         <track_index_case>false</track_index_case>
         <use_install_dirs>true</use_install_dirs>
@@ -174,7 +174,7 @@ string RunConfigManager::CreateTestsCovid19()
         <num_threads>1</num_threads>
         <output_prefix></output_prefix>
         <population_file>pop_belgium600k_c500_teachers_censushh.csv</population_file>
-        <population_type>default</geopopulation_type>
+        <population_type>default</population_type>
         <rng_seed>4730214</rng_seed>
         <r0>2.5</r0>
         <seeding_rate>0.00089999999999999998</seeding_rate>

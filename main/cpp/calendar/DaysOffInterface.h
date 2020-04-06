@@ -28,11 +28,14 @@ namespace stride {
 class DaysOffInterface
 {
 public:
-        /// Whether today is a work day.
-        virtual bool IsWorkOff() = 0;
+        /// Whether today is a regular weekday (= NO weekend or holiday).
+        virtual bool IsRegularWeekday() = 0;
 
-        /// Whether today is school day.
-        virtual bool IsSchoolOff() = 0;
+        /// Whether today K12-schools are off.
+        virtual bool IsK12SchoolOff() = 0;
+
+        /// Whether today college is off.
+        virtual bool IsCollegeOff() = 0;
 
         /// Whether quarantine measures are in place
         virtual bool isSoftLockdown() = 0;

@@ -231,7 +231,7 @@ run_rStride <- function(exp_design               = exp_design,
                        new_symptomatic_cases  <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_symptoms,num_sim_days)
                        new_recovered_cases    <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$end_symptoms,num_sim_days)
                        new_hospital_admissions      <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start,num_sim_days)
-                       new_hospital_admissions_age1 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age2,num_sim_days)
+                       new_hospital_admissions_age1 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age1,num_sim_days)
                        new_hospital_admissions_age2 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age2,num_sim_days)
                        new_hospital_admissions_age3 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age3,num_sim_days)
                        sim_day                <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days,output_col = 'mids')
@@ -244,6 +244,9 @@ run_rStride <- function(exp_design               = exp_design,
                                                                 new_symptomatic_cases = new_symptomatic_cases,
                                                                 new_recovered_cases   = new_recovered_cases,
                                                                 new_hospital_admissions = new_hospital_admissions,
+                                                                new_hospital_admissions_age1 = new_hospital_admissions_age1,
+                                                                new_hospital_admissions_age2 = new_hospital_admissions_age2,
+                                                                new_hospital_admissions_age3 = new_hospital_admissions_age3,
                                                                 exp_id                = config_exp$exp_id,
                                                                 row.names = NULL)
                        

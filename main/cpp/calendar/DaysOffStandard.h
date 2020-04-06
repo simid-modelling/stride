@@ -37,13 +37,19 @@ public:
         explicit DaysOffStandard(std::shared_ptr<Calendar> cal) : m_calendar(std::move(cal)) {}
 
         /// See DaysOffInterface.
-        bool IsWorkOff() override { return m_calendar->IsWeekend() || m_calendar->IsHoliday(); }
+        bool IsRegularWeekday() override { return !(m_calendar->IsWeekend() || m_calendar->IsPublicHoliday()); }
 
         /// See DaysOffInterface.
-        bool IsSchoolOff() override
+        bool IsK12SchoolOff() override
         {
-                return m_calendar->IsWeekend() || m_calendar->IsHoliday() || m_calendar->IsSchoolHoliday();
+                return m_calendar->IsWeekend() || m_calendar->IsPublicHoliday() || m_calendar->IsK12SchoolClosed();
         }
+
+        /// See DaysOffInterface.
+		bool IsCollegeOff() override
+		{
+				return m_calendar->IsWeekend() || m_calendar->IsPublicHoliday() || m_calendar->IsCollegeClosed();
+		}
 
         /// See DaysOffInterface.
         bool isSoftLockdown() override { return m_calendar->isSoftLockdown(); }

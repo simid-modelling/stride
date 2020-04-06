@@ -83,10 +83,13 @@ inspect_contact_data <- function(project_dir){
     
     ## people without contacts
     dim(data_part)[1] - length(unique(data_cnt$local_id))
-    
+
+    ## merge school and college contacts
+    data_cnt$cnt_school <- as.numeric(data_cnt$cnt_school + data_cnt$cnt_college > 0)
+        
     ## employed and student population
     data_part$employed <- data_part$workplace_id != 0
-    data_part$student  <- data_part$school_id != 0
+    data_part$student  <- data_part$school_id != 0 | data_part$college_id !=0
     
     ## SETTINGS 
     L <- max(c(80,data_part$part_age))
