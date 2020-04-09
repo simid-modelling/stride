@@ -200,20 +200,68 @@ inspect_transmission_data <- function(project_dir,save_pdf = TRUE)
       text(0,pos=4,'TRACK INDEX CASE ON == NO TERTIARY CASES')
     }
     
-    boxplot(gen_interval$generation_interval, outline = T,
-            ylab='generation interval [infection]',
-            main='generation interval\n[infection]')
-    if(unique(project_summary$track_index_case[flag_exp]) == 'true'){
-      text(0,pos=3,'TRACK INDEX CASE ON == NO TERTIARY CASES')
+    # boxplot(gen_interval$generation_interval, outline = T,
+    #         ylab='generation interval [infection]',
+    #         main='generation interval\n[infection]')
+    # if(unique(project_summary$track_index_case[flag_exp]) == 'true'){
+    #   text(0,pos=3,'TRACK INDEX CASE ON == NO TERTIARY CASES')
+    # }
+    
+    
+    if(save_pdf) par(mfrow=c(2,2))
+    # AGE: SYMPTOMATIC     ----
+    barplot(t(table(data_transm$part_age,!is.na(data_transm$start_symptoms))),
+            xlab='age of a case',
+           # ylim = c(0,0.025),
+            main = 'Incidence by age')
+    legend('topright',
+           c('Symptomatic','Asymptomatic'),
+           fill=rev(grey.colors(2)),
+           cex=0.8)
+    
+    table(data_transm$part_age,is.na(data_transm$start_symptoms))
+    
+    # AGE: HOSPITAL     ----
+    hosp_age_breaks <- c(0,18,60,79,110)
+    
+    data_transm$hosp_age_cat <- cut(data_transm$part_age,hosp_age_breaks,include.lowest = T,right = T)
+    
+    age_cat_hospital <- data_transm$hosp_age_cat[!is.na(data_transm$hospital_admission_start)]
+    barplot(table(age_cat_hospital)/length(age_cat_hospital),
+            ylab='Proportion hospital admissions',
+            xlab='Age category (years)',
+            ylim = c(0,0.6),
+            main='Hospital admissions by age')
+    
+    
+    data_transm$num_hosp <- !is.na(data_transm$hospital_admission_start)
+    num_hosp_age_time <- aggregate(num_hosp ~ hosp_age_cat + sim_day + sim_day_date, data= data_transm, sum)
+    num_hosp_age_time$hosp_age_cat <- factor(num_hosp_age_time$hosp_age_cat)
+    
+    plot(range(num_hosp_age_time$sim_day_date),c(0,1),col=0,
+         xlab = 'Time',
+         ylab = 'Proportion hospital admissions',
+         main='Hospital admissions by age over time')
+    for(i_day in 1:max(num_hosp_age_time$sim_day)){
+      
+      num_hosp_age <- num_hosp_age_time[num_hosp_age_time$sim_day == i_day,]
+      points(x = num_hosp_age$sim_day_date,
+             y = num_hosp_age$num_hosp/sum(num_hosp_age$num_hosp),
+             col= as.numeric(num_hosp_age$hosp_age_cat),
+             pch = 15)
     }
+    legend('top',
+           levels(num_hosp_age_time$hosp_age_cat),
+           col = 1:nlevels(num_hosp_age_time$hosp_age_cat),
+           pch=15,
+           ncol=nlevels(num_hosp_age_time$hosp_age_cat),
+           title='Age group (years)')
     
+    boxplot(data_transm$hospital_admission_start ~ data_transm$hosp_age_cat,
+            xlab='Age category (years)',
+            ylab='Days',
+            main='Time to hospital admission\nsince symptom onset')
     
-    # AGE       ----
-    hist(data_transm$part_age,seq(0,100,5),right = F,
-         freq = F,
-         xlab='age of a case',
-         ylim = c(0,0.025),
-         main = 'incidence by age')  
     
     ## (A)SYMPTOMATIC TRANSMISSION    ----
     tbl_symptomatic_transmission <- table(data_transm$infector_is_symptomatic)

@@ -234,6 +234,7 @@ run_rStride <- function(exp_design               = exp_design,
                        new_hospital_admissions_age1 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age1,num_sim_days)
                        new_hospital_admissions_age2 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age2,num_sim_days)
                        new_hospital_admissions_age3 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age3,num_sim_days)
+                       new_hospital_admissions_age4 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age4,num_sim_days)
                        sim_day                <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days,output_col = 'mids')
                        sim_date               <- as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day
                        
@@ -247,6 +248,7 @@ run_rStride <- function(exp_design               = exp_design,
                                                                 new_hospital_admissions_age1 = new_hospital_admissions_age1,
                                                                 new_hospital_admissions_age2 = new_hospital_admissions_age2,
                                                                 new_hospital_admissions_age3 = new_hospital_admissions_age3,
+                                                                new_hospital_admissions_age4 = new_hospital_admissions_age4,
                                                                 exp_id                = config_exp$exp_id,
                                                                 row.names = NULL)
                        
@@ -330,24 +332,28 @@ add_hospital_admission_time <- function(data_transmission){
   data_transmission$hospital_admission_start_age1 <- NA
   data_transmission$hospital_admission_start_age2 <- NA
   data_transmission$hospital_admission_start_age3 <- NA
+  data_transmission$hospital_admission_start_age4 <- NA
   
   # hospital probability
-  hospital_probability <- data.frame(age1 = 0.1,
-                                     age2 = 0.2,
-                                     age3 = 0.4)
+  hospital_probability <- data.frame(age1 = 0.3,
+                                     age2 = 0.08,
+                                     age3 = 0.3,
+                                     age4 = 0.95)
   
   # set hospital delay for 3 age groups
   hosp_delay_mean <- data.frame(age1 = 3,
                                 age2 = 7,
-                                age3 = 6)
+                                age3 = 7,
+                                age4 = 6)
   # set hospital delay age groups (age groups for hospital admission)
   hosp_age <- list(age1 = 0:18,   # 0:16
-                   age2 = 19:70,  # 16:59
-                   age3 = 71:110) # 60+
+                   age2 = 19:59,  # 16:59
+                   age3 = 60:79,  # 60:80
+                   age4 = 80:110) # 80+
   # set (uniform) delay  distribution -1, 0, 1
   hosp_delay_variance <- -1:1
   
-  i_hosp <- 1
+  i_hosp <- 2
   for(i_hosp in 1:length(hospital_probability)){
     flag_part      <- !is.na(data_transmission$start_symptoms) & data_transmission$part_age %in% hosp_age[[i_hosp]]
     flag_admission <- as.logical(rbinom(n = nrow(data_transmission),size = 1,prob = hospital_probability[[i_hosp]]))
@@ -361,6 +367,9 @@ add_hospital_admission_time <- function(data_transmission){
     }
     if(i_hosp == 3){
       data_transmission$hospital_admission_start_age3[flag_hosp] <- data_transmission$hospital_admission_start[flag_hosp]
+    }
+    if(i_hosp == 4){
+      data_transmission$hospital_admission_start_age4[flag_hosp] <- data_transmission$hospital_admission_start[flag_hosp]
     }
   }
  

@@ -55,14 +55,14 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
 		{"influenza_a", 505000U}, {"influenza_b", 0U}, {"influenza_c", 5U}, {"measles_16", 47000U},
 		{"measles_26", 600000U},  {"r0_0", 1200U},     {"r0_4", 3400U},     {"r0_8", 9500U},
 		{"r0_12", 24000U},        {"r0_16", 47000U},   {"covid19_all", 81500U}, //{"covid19_15min", 158000U},
-		{"covid19_daily", 84500U},{"covid19_distancing", 71000U}};
+		{"covid19_daily", 84500U},{"covid19_distancing", 71000U}, {"covid19_age_15min",83600}};
 
 	// Set margins per scenario
 	const map<string, double> margins_default = {
 		{"influenza_a", 1.0e-02}, {"influenza_b", 0.0}, {"influenza_c", 2.0e-02}, {"measles_16", 1.0e-01},
 		{"measles_26", 5.0e-02},  {"r0_0", 5.0e-02},    {"r0_4", 1.0e-01},        {"r0_8", 1.0e-01},
 		{"r0_12", 5.0e-02},       {"r0_16", 5.0e-02},   {"covid19_all", 1.0e-01},  //{"covid19_15min", 1.0e-01},
-		{"covid19_daily", 1.0e-01},{"covid19_distancing", 1.0e-01}};
+		{"covid19_daily", 1.0e-01},{"covid19_distancing", 1.0e-01},{"covid19_age_15min",1.0e-1}};
 
 	unsigned int target;
 	double       margin;
@@ -108,15 +108,16 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
 //			pt.put("run.r0", 2.5);
 //			pt.put("run.num_days", 90U);
 //	}
-//	if (tag == "covid19_15min") {
-//			pt.put("run.disease_config_file", "disease_covid19_15min.xml");
-//			pt.put("run.age_contact_matrix_file", "contact_matrix_flanders_conditional_teachers_15min.xml");
-//	}
+
 	if (tag == "covid19_daily") {
 			pt.put("run.num_daily_imported_cases", 10U);
 	}
 	if (tag == "covid19_distancing") {
 			pt.put("run.holidays_file","calendar_belgium_2020_covid19_april.json");
+	}
+	if (tag == "covid19_age_15min") {
+			pt.put("run.disease_config_file", "disease_covid19_age_15min.xml");
+			pt.put("run.age_contact_matrix_file", "contact_matrix_flanders_conditional_teachers_15min.xml");
 	}
 
 	return make_tuple(pt, target, margin);

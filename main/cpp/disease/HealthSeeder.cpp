@@ -15,7 +15,7 @@
 
 /**
  * @file
- * Implementation for HelthSeeder class.
+ * Implementation for HealthSeeder class.
  */
 
 #include "HealthSeeder.h"
@@ -34,7 +34,7 @@ using namespace std;
 namespace stride {
 
 HealthSeeder::HealthSeeder(const boost::property_tree::ptree& diseasePt)
-    : m_start_symptomatic(), m_time_asymptomatic(), m_time_infectious(), m_time_symptomatic(),
+    : m_start_symptomatic(), m_time_asymptomatic(), m_time_infectious(), m_time_symptomatic(), m_probability_symptomatic(),
 	  m_sympt_cnt_reduction_work_school(), m_sympt_cnt_reduction_community(),m_rel_transmission_asymptomatic(),
 	  m_rel_susceptibility_children()
 {
@@ -47,6 +47,15 @@ HealthSeeder::HealthSeeder(const boost::property_tree::ptree& diseasePt)
         AssertThrow((abs(m_time_asymptomatic.back() - 1.0) < 1.e-10), "Error in time_asymptomatic", nullptr);
         AssertThrow((abs(m_time_infectious.back() - 1.0) < 1.e-10), "Error in time_infectious", nullptr);
         AssertThrow((abs(m_time_symptomatic.back() - 1.0) < 1.e-10), "Error in time_symptomatic", nullptr);
+
+
+        // load age-specific probability to be symptomatic
+        unsigned int maxAge = 110; //TODO
+		for (unsigned int index_age = 0; index_age <= maxAge; index_age++) {
+				auto probabilitySymptomatic = diseasePt.get<double>("disease.prob_symptomatic.age" + std::to_string(index_age),1);
+				m_probability_symptomatic.push_back(probabilitySymptomatic);
+		}
+
 
         m_sympt_cnt_reduction_work_school = diseasePt.get<double>("disease.sympt_cnt_reduction_work_school",1.0);
         m_sympt_cnt_reduction_community   = diseasePt.get<double>("disease.sympt_cnt_reduction_community",1.0);
@@ -87,7 +96,13 @@ void HealthSeeder::Seed(const std::shared_ptr<stride::Population>& pop, vector<C
                         const auto startSymptomatic    = Sample(m_start_symptomatic, gen01());
                         const auto startInfectiousness = startSymptomatic - Sample(m_time_asymptomatic, gen01());
                         const auto timeInfectious      = Sample(m_time_infectious, gen01());
-                        const auto timeSymptomatic     = Sample(m_time_symptomatic, gen01());
+                        auto timeSymptomatic           = Sample(m_time_symptomatic, gen01());
+
+                        const bool isSymptomatic = gen01() <= m_probability_symptomatic[population[i].GetAge()];
+                        if(!isSymptomatic){
+                        	timeSymptomatic = 0;
+                        }
+
                         population[i].GetHealth() =
                             Health(startInfectiousness, startSymptomatic, timeInfectious, timeSymptomatic,
                             		m_sympt_cnt_reduction_work_school,m_sympt_cnt_reduction_community,

@@ -104,6 +104,18 @@ inspect_participant_data <- function(project_dir, save_pdf = TRUE)
     plot_cum_distr(data_part$end_infectiousness-data_part$start_infectiousness,f_main='days infectious')
     plot_cum_distr(data_part$end_symptomatic-data_part$start_symptomatic,f_main='days symptomatic')
     
+    # plot fraction symptomatic by age
+    tbl_sympt_age <- table(!is.na(data_part$start_symptomatic),data_part$part_age)
+    plot(tbl_sympt_age[2,]/colSums(tbl_sympt_age),
+         xlab='age',
+         ylab = 'fraction symptomatic')
+    abline(h=sum(tbl_sympt_age[2,]) / sum(tbl_sympt_age))
+    legend('topleft',
+           'mean',
+           col = 1,
+           lwd = 1,
+           cex=0.8)
+    
     ## POPULATION
     population_age <- as.data.frame(table(part_age = data_part$part_age))
     
@@ -124,20 +136,20 @@ inspect_participant_data <- function(project_dir, save_pdf = TRUE)
     # 
     # names(data_part)
     
-    ## TELEWORKING
-    data_part$is_teleworking   <- data_part$is_teleworking == "TRUE"
-
-    telework_age <- data.frame(table(is_teleworking = data_part$is_teleworking, part_age = data_part$part_age),stringsAsFactors = F)
-    telework_age$part_age <- as.numeric(levels(telework_age$part_age)[(telework_age$part_age)])
-    names(telework_age)
-    flag <- telework_age$is_teleworking == FALSE
-    plot(telework_age$part_age[flag],
-         telework_age$Freq[flag]/population_age$Freq,
-         xlab='age',
-         ylab='population fraction',
-         main='population teleworking',
-         pch=19, lwd=3, ylim=0:1
-    )
+    # ## TELEWORKING
+    # data_part$is_teleworking   <- data_part$is_teleworking == "TRUE"
+    # 
+    # telework_age <- data.frame(table(is_teleworking = data_part$is_teleworking, part_age = data_part$part_age),stringsAsFactors = F)
+    # telework_age$part_age <- as.numeric(levels(telework_age$part_age)[(telework_age$part_age)])
+    # names(telework_age)
+    # flag <- telework_age$is_teleworking == FALSE
+    # plot(telework_age$part_age[flag],
+    #      telework_age$Freq[flag]/population_age$Freq,
+    #      xlab='age',
+    #      ylab='population fraction',
+    #      main='population teleworking',
+    #      pch=19, lwd=3, ylim=0:1
+    # )
     
     ## SCHOOLING
     school_age <- data.frame(table(school_enrolled = data_part$school_id != 0,part_age = data_part$part_age))

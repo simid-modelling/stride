@@ -48,29 +48,25 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   # get variable names of input_opt_design (fix if only one column)
   if(ncol(input_opt_design) == 1) {
     project_summary$config_id  <- project_summary[,colnames(input_opt_design)]
+    input_opt_design           <- data.frame(input_opt_design,config_id = c(input_opt_design))
   } else{
     project_summary$config_id  <- apply(project_summary[,names(input_opt_design)],1,paste, collapse='_')
+    input_opt_design$config_id <- apply(input_opt_design,1,paste, collapse='_')
   }
   
   # add config_id to incidence data
   data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id')] )
-  if(length(input_opt_design)==1){
-    input_opt_design <- data.frame(input_opt_design,
-                                   config_id = c(input_opt_design))
-  } else{
-    input_opt_design$config_id <- apply(input_opt_design,1,paste, collapse='_')
-  }
+
   
   ## REFERENCE DATA COVID-19: new hospitalisation
-  file_name <- './data/COVID-19-BE-v2.xlsx'
-  burden_of_disaese <- read.xlsx(file_name,detectDates = T)
-  burden_of_disaese <- burden_of_disaese[!is.na(burden_of_disaese$Hosp.new),]
-  hosp_cases_num    <- burden_of_disaese$Hosp.new
-  hosp_cases_cum    <- cumsum(hosp_cases_num)
-  hosp_cases_date   <- burden_of_disaese$DateCase
+  file_name <- './data/covid19.csv'
+  burden_of_disaese  <- read.table(file_name,sep=',',header=T,stringsAsFactors = F)
+  hosp_cases_num     <- burden_of_disaese$Sum.of.NewPatientsNotReferred + burden_of_disaese$Sum.of.NewPatientsReferred 
+  hosp_cases_cum     <- cumsum(hosp_cases_num)
+  hosp_cases_date    <- as.Date(burden_of_disaese$DateCase)
   
   # aggregate into one data.frame
-  hosp_adm_data <- data.frame(date = hosp_cases_date,
+  hosp_adm_data <- data.frame(date    = hosp_cases_date,
                               num_adm = hosp_cases_num,
                               cum_adm = hosp_cases_cum)
   
@@ -254,7 +250,6 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   add_breakpoints()
   add_legend_hosp(pcolor)
   
-  
   ## CUMMULATIVE: HOSPITAL ####
   y_lim <- range(0,max(hosp_adm_data$cum_adm)*1.3,na.rm=T)
   plot(data_incidence_sel$sim_date,
@@ -272,6 +267,29 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=16)
   add_breakpoints()
   add_legend_hosp(pcolor)
+  
+  lines(data_incidence_sel$sim_date,
+       data_incidence_sel$cummulative_hospital_cases_age1,
+       col=5)
+  lines(data_incidence_sel$sim_date,
+        data_incidence_sel$cummulative_hospital_cases_age2,
+        col=6)
+  lines(data_incidence_sel$sim_date,
+        data_incidence_sel$cummulative_hospital_cases_age3,
+        col=7)
+  lines(data_incidence_sel$sim_date,
+        data_incidence_sel$cummulative_hospital_cases_age4,
+        col=8)
+  
+  legend('left',
+         rev(c('0-18',
+           '19-59',
+           '60-79',
+           '+80')),
+         col=c(8:5),
+         lwd=2,
+         title='Age group'
+  )
   
   ## INCIDENCE: ALL ####
   plot(data_incidence_sel$sim_date,
@@ -318,7 +336,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   lines(data_incidence_sel$sim_date,
         data_incidence_sel$cummulative_hospital_cases,
         col=alpha(pcolor$H,pcolor$alpha))
-  points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=16)
+  points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=16)
   add_breakpoints()
   if(bool_add_param) {
     add_legend_runinfo(project_summary,input_opt_design,
@@ -417,5 +435,30 @@ add_legend_runinfo <- function(project_summary,input_opt_design,
          bg='white')
 }
 
+
+plot_distancing <- function(project_summary){
   
+  opt_distancing <- unique(data.frame(compliance_delay = project_summary$compliance_delay,
+                                 cnt_reduction_work = project_summary$cnt_reduction_work,
+                                 cnt_reduction_other = project_summary$cnt_reduction_other))
+
+
+  date_start <- as.Date('2020-03-14')
+  
+  i_distancing <- 1    
+  
+  opt_distancing[i_distancing,]
+  num_days <- opt_distancing$compliance_delay[i_distancing]
+  date_all <- date_start + (1:num_days)-1
+  compliance_factor <- 1:num_days / num_days
+  
+  plot(date_all,compliance_factor*opt_distancing$cnt_reduction_work[i_distancing],
+       type='l',
+       col=4,
+       ylim=0:1)
+  lines(date_all,compliance_factor*opt_distancing$cnt_reduction_other[i_distancing])
+        
+    
+  
+}
 

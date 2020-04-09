@@ -55,6 +55,7 @@ private:
         std::vector<double> m_time_asymptomatic;
         std::vector<double> m_time_infectious;
         std::vector<double> m_time_symptomatic;
+        std::vector<double> m_probability_symptomatic;
 
         double             m_sympt_cnt_reduction_work_school;  ///< Proportional reduction of days in work/school pool when symptomatic
         double             m_sympt_cnt_reduction_community;    ///< Proportional reduction of days in the community pools when symptomatic
