@@ -30,9 +30,6 @@ rm(list=ls())
 # Load rStride
 source('./bin/rstride/rStride.R')
 
-# set directory postfix (optional)
-dir_postfix <- '_r0'
-
 ##################################
 ## DESIGN OF EXPERIMENTS        ##
 ##################################
@@ -40,21 +37,24 @@ dir_postfix <- '_r0'
 # uncomment the following line to inspect the config xml tags
 #names(xmlToList('./config/run_default.xml'))
 
+# set directory postfix (optional)
+dir_postfix <- '_r0'
+
 # set the number of realisations per configuration set
 num_seeds  <- 4
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(r0                            = seq(1,5,length=15),
+exp_design <- expand.grid(r0                            = seq(1,6,length=15),
                           num_days                      = c(20),
                           rng_seed                      = seq(num_seeds),
-                          start_date                    = c('2017-01-01'),#,'2017-01-02','2017-01-03','2017-01-04','2017-01-05','2017-01-06','2017-01-07'),
+                          start_date                    = c('2017-01-01','2017-01-02','2017-01-03','2017-01-04','2017-01-05','2017-01-06','2017-01-07'),
                           track_index_case              = 'false',
                           contact_log_level             = 'Transmissions',
                           num_threads                   = 1,
                           seeding_rate                  = 1.7e-5,
                           seeding_age_min               = 1,
                           seeding_age_max               = 99,
-                          disease_config_file           = "disease_covid19.xml",
+                          disease_config_file           = "disease_covid19_age.xml",
                           population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           adaptive_symptomatic_behavior = 'true',
