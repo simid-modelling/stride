@@ -78,11 +78,11 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
         	}
         }
 
-        // Quarantine measures
-        if(isSoftLockdown){
-            m_in_pools[Id::K12School]          = false;
-            m_in_pools[Id::College]            = false;
-        }
+//        // Quarantine measures
+//        if(isSoftLockdown){
+//            m_in_pools[Id::K12School]          = false;
+//            m_in_pools[Id::College]            = false;
+//        }
 
         if(isSoftLockdown && IsTeleworking()){
 			m_in_pools[Id::Workplace]          = false;

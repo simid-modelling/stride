@@ -37,25 +37,28 @@ source('./bin/rstride/rStride.R')
 # uncomment the following line to inspect the config xml tags
 #names(xmlToList('./config/run_default.xml'))
 
+# set directory postfix (optional)
+dir_postfix <- '_cnt'
+
 # set the number of realisations per configuration set
 num_seeds  <- 1
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(dir_postfix               = '_cnt',
-                          contact_log_level         = "All",
-                          num_days                  = 1,
-                          seeding_rate              = 1.7e-5,
-                          num_participants_survey   = 3000,
-                          start_date                = c("2020-03-29","2020-03-30","2020-04-06",'2020-02-25'),
+exp_design <- expand.grid(contact_log_level         = "All",
+                          num_days                  = 7,
+                          seeding_rate              = 1.7e-6,
+                          num_participants_survey   = 4000,
+                          #start_date                = c('2020-02-16','2020-02-17','2020-02-25',"2020-04-10","2020-04-11"),
+                          start_date                = c('2020-02-20'),
                           rng_seed                  = 1:num_seeds,
                           disease_config_file       = "disease_covid19.xml", 
                           population_file           = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file   = "contact_matrix_flanders_conditional_teachers.xml",
-                          holidays_file             = "holidays_flanders_2020.json",
+                          holidays_file             = "calendar_belgium_2020_covid19_april.json",
                           telework_probability          = c(0),
-                          cnt_reduction_work            = c(0.40),
-                          cnt_reduction_other           = c(0.6),
-                          compliance_delay              = c(1),
+                          cnt_reduction_work            = c(0.70),
+                          cnt_reduction_other           = c(0.9),
+                          compliance_delay              = c(0),
                           num_daily_imported_cases      = c(0),
                           stringsAsFactors = F)
 
@@ -67,8 +70,9 @@ exp_design$rng_seed <- sample(nrow(exp_design))
 ## RUN rSTRIDE                  ##
 ##################################
 project_dir <- run_rStride(exp_design  = exp_design,
-                           dir_postfix = unique(exp_design$dir_postfix),
-                           ignore_stdout = FALSE)
+                           dir_postfix = dir_postfix,
+                           ignore_stdout = FALSE,
+                           remove_run_output = FALSE)
 
 
 #####################################################
