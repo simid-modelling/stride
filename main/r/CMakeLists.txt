@@ -21,6 +21,7 @@
 # rStride main files
 INSTALL(DIRECTORY
 	   rstride
+	   socrates
 	DESTINATION ${BIN_INSTALL_LOCATION}
 	PATTERN "*.Rproj*" EXCLUDE
 	PATTERN "*.Rhistory" EXCLUDE

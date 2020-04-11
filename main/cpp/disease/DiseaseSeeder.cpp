@@ -21,9 +21,11 @@
 #include "DiseaseSeeder.h"
 
 #include "pop/Population.h"
+#include "pop/SurveySeeder.h"
 #include "util/FileSys.h"
 #include "util/LogUtils.h"
 #include "util/StringUtils.h"
+
 
 #include <boost/property_tree/ptree.hpp>
 
@@ -75,6 +77,11 @@ void DiseaseSeeder::ImportInfectedCases(std::shared_ptr<Population> pop, unsigne
                         if (log_level != "None") {
                                 logger->info("[PRIM] {} {} {} {} {} {} {}", p.GetId(), -1, p.GetAge(), -1, -1, simDay, p.GetId());
                         }
+
+                        // register as survey participant
+                        //TODO: add link with logLevel
+                        SurveySeeder sSeeder(m_config,m_rn_man);
+                        sSeeder.RegisterParticipant(pop,p);
                 }
         }
 }

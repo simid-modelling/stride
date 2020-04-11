@@ -75,21 +75,21 @@ public:
                             ContactType::Id type, unsigned short int sim_day, const double cProb, const double tProb)
         {
                 if (p1->IsSurveyParticipant()) {
-                        logger->info("[CONT] {} {} {} {} {} {} {} {} {} {} {} {} ", p1->GetId(), p1->GetAge(),
+                        logger->info("[CONT] {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p1->GetId(), p1->GetAge(),
                                      p2->GetAge(), static_cast<unsigned int>(type == ContactType::Id::Household),
                                      static_cast<unsigned int>(type == ContactType::Id::K12School),
                                      static_cast<unsigned int>(type == ContactType::Id::College),
                                      static_cast<unsigned int>(type == ContactType::Id::Workplace),
                                      static_cast<unsigned int>(type == ContactType::Id::PrimaryCommunity),
                                      static_cast<unsigned int>(type == ContactType::Id::SecondaryCommunity), sim_day,
-									 cProb, tProb);
+									 cProb, tProb,p2->GetHealth().IsSymptomatic(),p1->GetHealth().IsSymptomatic());
                 }
         }
 
         static void Trans(const std::shared_ptr<spdlog::logger>& logger, const Person* p1, const Person* p2,
                           ContactType::Id type, unsigned short int sim_day, unsigned int id_index_case)
         {
-                logger->info("[TRAN] {} {} {} {} {} {} {} {} {} {} {}  {}", p2->GetId(), p1->GetId(), p2->GetAge(), p1->GetAge(),
+                logger->info("[TRAN] {} {} {} {} {} {} {} {} {} {} {} {}", p2->GetId(), p1->GetId(), p2->GetAge(), p1->GetAge(),
                              ToString(type), sim_day, id_index_case,
 							 p2->GetHealth().GetStartInfectiousness(),p2->GetHealth().GetEndInfectiousness(),
 							 p2->GetHealth().GetStartSymptomatic(),p2->GetHealth().GetEndSymptomatic(),

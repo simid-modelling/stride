@@ -99,6 +99,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     data_incidence_all$cummulative_hospital_cases_age1[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions_age1[flag_exp])
     data_incidence_all$cummulative_hospital_cases_age2[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions_age2[flag_exp])
     data_incidence_all$cummulative_hospital_cases_age3[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions_age3[flag_exp])
+    data_incidence_all$cummulative_hospital_cases_age4[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions_age4[flag_exp])
     
     # Sum of Squares: score
     flag_hosp_data       <- flag_exp & data_incidence_all$sim_date %in% hosp_adm_data$date
@@ -225,7 +226,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   
   # change transparancey for low number of rng-runs
   if(max(table(project_summary$config_id)) < 10){
-    pcolor$alpha <- 1
+    pcolor$alpha <- 0.2
   }
   
   # set Belgian population
@@ -281,14 +282,15 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
         data_incidence_sel$cummulative_hospital_cases_age4,
         col=8)
   
-  legend('left',
+  legend('bottomleft',
          rev(c('0-18',
            '19-59',
            '60-79',
            '+80')),
          col=c(8:5),
          lwd=2,
-         title='Age group'
+         title='Age group',
+         cex=0.5
   )
   
   ## INCIDENCE: ALL ####

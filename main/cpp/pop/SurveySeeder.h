@@ -26,6 +26,7 @@
 namespace stride {
 
 class Population;
+class Person;
 
 namespace util {
 class RnMan;
@@ -45,6 +46,10 @@ public:
         /// Seeds the population with survey participants.
         /// \param pop               Population.
         std::shared_ptr<Population> Seed(std::shared_ptr<Population> pop);
+
+        /// Register a selected person as a survey participant
+        /// \param p 				Person to register
+        void RegisterParticipant(std::shared_ptr<Population> pop, Person& p);
 
 private:
         const boost::property_tree::ptree& m_config; ///< Run config.

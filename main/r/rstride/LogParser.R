@@ -142,10 +142,14 @@ if(0==1){
   {
     header_cnt          <- c('local_id', 'part_age', 'cnt_age', 'cnt_home', 'cnt_school', 
                              'cnt_college','cnt_work', 'cnt_prim_comm', 'cnt_sec_comm', 
-                             'sim_day', 'cnt_prob', 'trm_prob')
+                             'sim_day', 'cnt_prob', 'trm_prob','part_sympt','cnt_sympt')
     data_cnt            <- data_log[data_log[,1] == "[CONT]",seq_len(length(header_cnt))+1]
     names(data_cnt)     <- header_cnt
     data_cnt[1,]
+    
+    # convert text into boolean
+    data_cnt$part_sympt <- as.numeric(data_cnt$part_sympt == 'true')
+    data_cnt$cnt_sympt  <- as.numeric(data_cnt$cnt_sympt == 'true')
     
     # make sure, all values are stored as integers
     data_cnt <- data.frame(apply(data_cnt,  2, as.double))

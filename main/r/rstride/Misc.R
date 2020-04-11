@@ -55,6 +55,11 @@ if(!(exists('.rstride'))){
   # get the filename in the project dir that contains "summary.csv" (full path)
   project_summary_filename <- file.path(project_dir,dir(project_dir,pattern = 'summary.csv'))
   
+  # check if the project summary file can be found
+  if(length(project_summary_filename) == 0 || !file.exists(project_summary_filename)){
+    stop('SUMMARY FILE NOT FOUND')
+  }
+  
   # read the csv file
   project_summary          <- read.table(project_summary_filename,sep=',',header=T,stringsAsFactors = stringsAsFactors)
   

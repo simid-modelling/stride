@@ -16,6 +16,7 @@
 #  Copyright 2019, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 
+source('./bin/socrates/plot_social_contact_matrix.R')
 
 if(0==1) # for debugging
 {
@@ -46,7 +47,7 @@ inspect_contact_data <- function(project_dir){
   #smd_start_cluster()
   
   # analyse data
-  i_exp <- 2
+  i_exp <- 1
   # parallel processing issues to pass .rstride environment
   foreach(i_exp = 1:nrow(project_summary),
           .packages = 'simid.rtools',
@@ -183,7 +184,6 @@ inspect_contact_data <- function(project_dir){
     
     dev.off() # close pdf stream
     
-    
     # new
     .rstride$create_pdf(project_dir,paste0(exp_tag,'_cnt_transm_probability'))
     par(mfrow=c(2,2))
@@ -203,20 +203,31 @@ inspect_contact_data <- function(project_dir){
     }
     
     dev.off() # close pdf stream
+
+    ## OTHER MATRICES ####
     
+    age_cat_breaks <- c(0,19,110)
+    plot_socrates_all(data_cnt,data_part,age_cat_breaks,project_dir,paste0(exp_tag,'_AG2'),exp_summary$start_date)
+    
+    # results by age group
+    age_cat_breaks <- c(0,19,36,66,110)
+    plot_socrates_all(data_cnt,data_part,age_cat_breaks,project_dir,paste0(exp_tag,'_AG4'),exp_summary$start_date)
+   
   } # end if dim(data)...
 } # end function
 
 #################################  OTHER HELP FUNCTIONS  #################################
 
+
+
+
 ## HELP FUNCTION: RESHAPE DATA AND PLOT
-#f_data_cnt = data_cnt;f_data_part=data_part;tag='total';L;num_days
+#f_data_cnt = data_cnt;f_data_part=data_part_age_cat;tag='total';L;num_days
 .rstride$plot_cnt_matrix <- function(f_data_cnt,f_data_part,tag,L,num_days)
 {
   
   # select participants
   data_cnt_flag <- f_data_cnt$local_id %in% f_data_part$local_id 
-  
   
   # temporary max age
   L_temp <- max(f_data_cnt$part_age,L,f_data_cnt$cnt_age)+1
