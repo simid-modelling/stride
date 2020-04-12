@@ -41,7 +41,7 @@ Sim::Sim()
     : m_config(), m_contact_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
       m_adaptive_symptomatic_behavior(false), m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_work(0), m_cnt_reduction_other(0),
-	  m_compliance_delay(0), m_day_of_lockdown(0), m_num_daily_imported_cases(0)
+	  m_compliance_delay(0), m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_num_daily_imported_cases(0)
 {
 }
 
@@ -70,19 +70,33 @@ void Sim::TimeStep()
         const bool isRegularWeekday = daysOff->IsRegularWeekday();
         const bool isK12SchoolOff   = daysOff->IsK12SchoolOff();
         const bool isCollegeOff     = daysOff->IsCollegeOff();
-        const bool isSoftLockdown   = daysOff->isSoftLockdown();
+        const bool isWorkplaceDistancingEnforced   = daysOff->IsWorkplaceDistancingEnforced();
+        const bool isCommunityDistancingEnforced   = daysOff->IsCommunityDistancingEnforced();
 
-         // increment the number of days in lock-down and account for compliance
-        double lockdown_compliance = 1.0;
-        if(isSoftLockdown){
-        	m_day_of_lockdown += 1;
 
-        	if(m_day_of_lockdown < m_compliance_delay){
-				lockdown_compliance = 1.0 * m_day_of_lockdown / m_compliance_delay;
+        // increment the number of days in lock-down and account for compliance
+		double workplace_distancing_factor = 0.0;
+		if(isWorkplaceDistancingEnforced){
+			m_day_of_workplace_distancing += 1;
 
+			workplace_distancing_factor = 1.0;
+
+			if(m_day_of_workplace_distancing < m_compliance_delay){
+				workplace_distancing_factor = 1.0 * m_day_of_workplace_distancing / m_compliance_delay;
 			}
-        }
+		}
 
+		 // increment the number of days in lock-down and account for compliance
+		double community_distancing_factor = 0.0;
+		if(isCommunityDistancingEnforced){
+			m_day_of_community_distancing += 1;
+
+			community_distancing_factor = 1.0;
+
+			if(m_day_of_community_distancing < m_compliance_delay){
+				community_distancing_factor = 1.0 * m_day_of_community_distancing / m_compliance_delay;
+			}
+		}
 
         // To be used in update of population & contact pools.
         Population& population    = *m_population;
@@ -106,7 +120,7 @@ void Sim::TimeStep()
 			for (size_t i = 0; i < population.size(); ++i) {
 					population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
 							m_adaptive_symptomatic_behavior,
-							isSoftLockdown, m_handlers[thread_num]);
+							isWorkplaceDistancingEnforced, m_handlers[thread_num]);
 			}
 
 			// Infector updates individuals for contacts & transmission within each pool.
@@ -120,8 +134,9 @@ void Sim::TimeStep()
 #pragma omp for schedule(static)
 					for (size_t i = 1; i < poolSys.RefPools(typ).size(); i++) { // NOLINT
 							infector(poolSys.RefPools(typ)[i], m_contact_profiles[typ], m_transmission_profile,
-									 m_handlers[thread_num], simDay, contactLogger, isSoftLockdown,
-									 m_cnt_reduction_work, m_cnt_reduction_other*lockdown_compliance);
+									 m_handlers[thread_num], simDay, contactLogger,
+									 m_cnt_reduction_work*workplace_distancing_factor,
+									 m_cnt_reduction_other*community_distancing_factor);
 					}
 			}
         }

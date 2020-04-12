@@ -29,7 +29,7 @@ using namespace std;
 using namespace stride::ContactType;
 
 void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOff,
-		bool adaptiveSymptomaticBehavior, bool isSoftLockdown,
+		bool adaptiveSymptomaticBehavior, bool isWorkplaceDistancingEnforced,
 		ContactHandler& cHandler)
 
 {
@@ -63,7 +63,6 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
         // Update presence in contact pools by health state
         if (m_health.IsSymptomatic() && adaptiveSymptomaticBehavior) {
 
-
         	// probability of staying home from school/work given symptoms
         	if(cHandler() < m_health.GetSymptomaticCntReductionWorkSchool()){
         		m_in_pools[Id::K12School]          = false;
@@ -78,13 +77,7 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
         	}
         }
 
-//        // Quarantine measures
-//        if(isSoftLockdown){
-//            m_in_pools[Id::K12School]          = false;
-//            m_in_pools[Id::College]            = false;
-//        }
-
-        if(isSoftLockdown && IsTeleworking()){
+        if(isWorkplaceDistancingEnforced && IsTeleworking()){
 			m_in_pools[Id::Workplace]          = false;
 		}
 

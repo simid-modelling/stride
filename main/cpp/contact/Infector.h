@@ -72,7 +72,7 @@ public:
         ///
         static void Exec(ContactPool& pool, const AgeContactProfile& profile, const TransmissionProfile& transProfile,
                          ContactHandler& cHandler, unsigned short int simDay, std::shared_ptr<spdlog::logger> cLogger,
-						 bool isSoftLockdown, double cnt_reduction_work, double cnt_reduction_other);
+						 double cnt_reduction_work, double cnt_reduction_other);
 };
 
 /// Time-optimized version (For NoLocalInformation && (None || Transmission logging)).
@@ -85,7 +85,7 @@ public:
         ///
         static void Exec(ContactPool& pool, const AgeContactProfile& profile, const TransmissionProfile& transProfile,
                          ContactHandler& cHandler, unsigned short int simDay, std::shared_ptr<spdlog::logger> cLogger,
-						 bool isSoftLockdown, double cnt_reduction_work, double cnt_reduction_other);
+						 double cnt_reduction_work, double cnt_reduction_other);
 };
 
 /// Explicit instantiations in cpp file.

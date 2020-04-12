@@ -103,7 +103,8 @@ private:
         double                      m_cnt_reduction_work;
         double                      m_cnt_reduction_other;
         unsigned int                m_compliance_delay;
-        unsigned int                m_day_of_lockdown;
+        unsigned int                m_day_of_community_distancing;
+        unsigned int     	        m_day_of_workplace_distancing;
 
 
         // Introduce new infected cases on a daily basis?

@@ -42,17 +42,27 @@ public:
         /// See DaysOffInterface.
         bool IsK12SchoolOff() override
         {
-                return m_calendar->IsWeekend() || m_calendar->IsPublicHoliday() || m_calendar->IsK12SchoolClosed();
+        	return m_calendar->IsWeekend() || m_calendar->IsPublicHoliday() || m_calendar->IsK12SchoolClosed();
         }
 
         /// See DaysOffInterface.
 		bool IsCollegeOff() override
 		{
-				return m_calendar->IsWeekend() || m_calendar->IsPublicHoliday() || m_calendar->IsCollegeClosed();
+			return m_calendar->IsWeekend() || m_calendar->IsPublicHoliday() || m_calendar->IsCollegeClosed();
 		}
 
         /// See DaysOffInterface.
-        bool isSoftLockdown() override { return m_calendar->isSoftLockdown(); }
+        bool IsWorkplaceDistancingEnforced() override
+        {
+        	return m_calendar->IsWorkplaceDistancingMandated();
+        }
+
+		/// See DaysOffInterface.
+		bool IsCommunityDistancingEnforced() override
+		{
+			return m_calendar->IsCommunityDistancingMandated();
+		}
+
 
 private:
         std::shared_ptr<Calendar> m_calendar; ///< Management of calendar.

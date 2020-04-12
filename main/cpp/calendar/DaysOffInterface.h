@@ -37,8 +37,12 @@ public:
         /// Whether today college is off.
         virtual bool IsCollegeOff() = 0;
 
-        /// Whether quarantine measures are in place
-        virtual bool isSoftLockdown() = 0;
+        /// Whether distancing measures are in place for work places
+        virtual bool IsWorkplaceDistancingEnforced() = 0;
+
+        /// Whether quarantine measures are in place for community contacts
+         virtual bool IsCommunityDistancingEnforced() = 0;
+
 
         /// Virtual destructor.
         virtual ~DaysOffInterface() = default;

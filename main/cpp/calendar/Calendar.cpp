@@ -35,7 +35,8 @@ using boost::property_tree::ptree;
 #ifdef BOOST_FOUND
 
 Calendar::Calendar(const ptree& configPt) :
-		m_date(), m_public_holidays(), m_k12school_holidays(), m_college_holidays(), m_soft_lockdown(), m_day(0U)
+		m_date(), m_public_holidays(), m_k12school_holidays(), m_college_holidays(),
+		m_workplace_distancing(), m_community_distancing() ,m_day(0U)
 {
         // Set start date
         m_date = boost::gregorian::from_simple_string(configPt.get<string>("run.start_date", "2016-01-01"));
@@ -96,13 +97,21 @@ void Calendar::InitializeHolidays(const ptree& configPt)
                         const string d = string(lead).append(date.second.get_value<string>());
                         m_college_holidays.push_back(boost::gregorian::from_simple_string(d));
                 }
-                // read in soft lockdown data (if present)
-                if(holidaysPt.count("softLockdown") != 0){
-					for (const auto& date : holidaysPt.get_child("softLockdown." + month)) {
+                // read in work place distancing data (if present)
+                if(holidaysPt.count("workplace_distancing") != 0){
+					for (const auto& date : holidaysPt.get_child("workplace_distancing." + month)) {
 							const string d = string(lead).append(date.second.get_value<string>());
-							m_soft_lockdown.push_back(boost::gregorian::from_simple_string(d));
+							m_workplace_distancing.push_back(boost::gregorian::from_simple_string(d));
 					}
                 }
+
+                // read in community distancing data (if present)
+				if(holidaysPt.count("community_distancing") != 0){
+					for (const auto& date : holidaysPt.get_child("community_distancing." + month)) {
+							const string d = string(lead).append(date.second.get_value<string>());
+							m_community_distancing.push_back(boost::gregorian::from_simple_string(d));
+					}
+				}
         }
 }
 
@@ -119,7 +128,8 @@ date::year_month_day ConvertFromString(const string& day)
 }
 
 Calendar::Calendar(const boost::property_tree::ptree& configPt)
-    : m_date(), m_public_holidays(), m_12school_holidays(),m_college_holidays(), m_soft_lockdown(), m_day(static_cast<size_t>(0))
+    : m_date(), m_public_holidays(), m_12school_holidays(),m_college_holidays(),
+	  m_distancing_workplace(), m_community_distancing(), m_day(static_cast<size_t>(0))
 {
         const string start_date{configPt.get<string>("run.start_date", "2016-01-01")};
         // Set start date
@@ -152,6 +162,8 @@ void Calendar::InitializeHolidays(const ptree& configPt)
                 const auto month = to_string(i);
                 const auto year  = holidaysPt.get<string>("year", "2017");
 
+                //TODO: fix code duplicatio
+
                 // read in general holidays
                 for (const auto& date : holidaysPt.get_child("general." + month)) {
                         stringstream d;
@@ -180,15 +192,25 @@ void Calendar::InitializeHolidays(const ptree& configPt)
                 }
 
                 // read in soft lockdown data (if present)
-                if(holidaysPt.count("softLockdown") != 0){
-                	for (const auto& date : holidaysPt.get_child("softLockdown." + month)) {
+                if(holidaysPt.count("workplace_distancing") != 0){
+                	for (const auto& date : holidaysPt.get_child("workplace_distancing." + month)) {
 							stringstream d;
 							/// Append zero's due to a bug in stdc++ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=45896
 							d << year << "-" << setw(2) << setfill('0') << month << "-" << setw(2) << setfill('0')
 							  << date.second.get_value<string>();
-							m_soft_lockdown.push_back(ConvertFromString(d.str()));
+							m_workplace_distancing.push_back(ConvertFromString(d.str()));
 					}
                 }
+                // read in soft lockdown data (if present)
+				if(holidaysPt.count("community_distancing") != 0){
+					for (const auto& date : holidaysPt.get_child("community_distancing." + month)) {
+							stringstream d;
+							/// Append zero's due to a bug in stdc++ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=45896
+							d << year << "-" << setw(2) << setfill('0') << month << "-" << setw(2) << setfill('0')
+							  << date.second.get_value<string>();
+							m_community_distancing.push_back(ConvertFromString(d.str()));
+					}
+				}
         }
 }
 

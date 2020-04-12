@@ -87,10 +87,17 @@ public:
         bool IsWeekend() const { return (GetDayOfTheWeek() == 6 || GetDayOfTheWeek() == 0); }
 
         /// Check if quarantine measures are in place
-        bool isSoftLockdown() const
+        bool IsWorkplaceDistancingMandated() const
         {
-			 return (std::find(m_soft_lockdown.begin(), m_soft_lockdown.end(), m_date) !=
-					 m_soft_lockdown.end());
+			 return (std::find(m_workplace_distancing.begin(), m_workplace_distancing.end(), m_date) !=
+					 m_workplace_distancing.end());
+		}
+
+        /// Check if quarantine measures are in place
+		bool IsCommunityDistancingMandated() const
+		{
+			 return (std::find(m_community_distancing.begin(), m_community_distancing.end(), m_date) !=
+					 m_community_distancing.end());
 		}
 
 private:
@@ -103,13 +110,17 @@ private:
         std::vector<boost::gregorian::date> m_public_holidays;  ///< Vector of public holidays
         std::vector<boost::gregorian::date> m_k12school_holidays; ///< Vector of K-12 school holidays
         std::vector<boost::gregorian::date> m_college_holidays;   ///< Vector of college holidays
-        std::vector<boost::gregorian::date> m_soft_lockdown;    ///< Vector of lockdown days
+        std::vector<boost::gregorian::date> m_workplace_distancing;    ///< Vector of days with social distancing enforcement for work places
+        std::vector<boost::gregorian::date> m_community_distancing;    ///< Vector of days with social distancing enforcement in the community
+
 #else
         date::year_month_day              m_date;               ///< Current simulated date.
         std::vector<date::year_month_day> m_public_holidays;    ///< Vector of public holidays
         std::vector<date::year_month_day> m_k12school_holidays; ///< Vector of K-12 school holidays
         std::vector<date::year_month_day> m_college_holidays;   ///< Vector of college holidays
-        std::vector<date::year_month_day> m_soft_lockdown;      ///< Vector of lockdown days
+        std::vector<date::year_month_day> m_workplace_distancing;      ///< Vector o days with social distancing enforcement for work places
+        std::vector<date::year_month_day> m_community_distancing;      ///< Vector of days with social distancing enforcement in the community
+
 #endif
         unsigned short int m_day; ///< Current day since start of simulation.
 };
