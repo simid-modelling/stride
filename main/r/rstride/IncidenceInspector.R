@@ -398,8 +398,9 @@ add_legend_runinfo <- function(project_summary,input_opt_design,
   calendar_file <- unique(project_summary_sel$holidays_file)
   opt_calendar <- 'none'
   opt_calendar <- ifelse(grepl('march',calendar_file),'untill April 5th',opt_calendar)
-  opt_calendar <- ifelse(grepl('may',calendar_file),'untill May 31th',opt_calendar)
-  opt_calendar <- ifelse(grepl('april',calendar_file),'untill April 30th',opt_calendar)
+  opt_calendar <- ifelse(grepl('april',calendar_file),'untill April 19th',opt_calendar)
+  opt_calendar <- ifelse(grepl('may',calendar_file),'untill May 3th',opt_calendar)
+  opt_calendar <- ifelse(grepl('july',calendar_file),'untill June 30th',opt_calendar)
   
   # get other run info: population, calendar, distancing measures
   run_info <- c(paste0('pop_size = ',unique(project_summary_sel$population_size)/1e3,'k'),

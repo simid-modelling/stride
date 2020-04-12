@@ -89,7 +89,7 @@
     <probability>1</probability>
   </time_infectious>
   <time_symptomatic>
-    <probability>0.5</probability>
+    <probability>0</probability>
     <probability>0</probability>
     <probability>0</probability>
     <probability>0</probability>

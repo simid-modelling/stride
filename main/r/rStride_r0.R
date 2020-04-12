@@ -47,7 +47,7 @@ num_seeds  <- 4
 exp_design <- expand.grid(r0                            = seq(1,6,length=15),
                           num_days                      = c(20),
                           rng_seed                      = seq(num_seeds),
-                          start_date                    = c('2017-01-01','2017-01-02','2017-01-03','2017-01-04','2017-01-05','2017-01-06','2017-01-07'),
+                          start_date                    = c('2020-02-01','2020-02-02','2020-02-03','2020-02-04','2020-02-05','2020-02-06','2020-02-07'),
                           track_index_case              = 'false',
                           contact_log_level             = 'Transmissions',
                           num_threads                   = 1,
@@ -57,6 +57,7 @@ exp_design <- expand.grid(r0                            = seq(1,6,length=15),
                           disease_config_file           = "disease_covid19_age.xml",
                           population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
+                          holidays_file                 = "holidays_none.json",
                           adaptive_symptomatic_behavior = 'true',
                           stringsAsFactors = F)
 

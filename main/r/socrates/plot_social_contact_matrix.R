@@ -1,29 +1,19 @@
 #___________________________________________________________________________
 # This file is part of the SOcial Contact RATES (SOCRATES) modelling project
 # 
-# => LOAD AND SELECT SOCIAL CONTACT SURVEY DATA
+# => PLOT SOCIAL CONTACT SURVEY DATA
 #
 #  Copyright 2020, SIMID, UNIVERSITY OF ANTWERP & HASSELT UNIVERSITY
 #___________________________________________________________________________
 
-# Explicit loading of the packages (fix for www.shinyapps.io)
-library('socialmixr')
-library('npsp')
-library('countrycode')
-library('data.table')
+# Loading packages
+socrates_packages <- c('socialmixr','npsp','countrycode','data.table')
+smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table','openxlsx'))
 
-# temporary to use the get_survey script outside the SocialMixr package
-library(httr)
-library(jsonlite)
-library(XML)
-library(curl)
-
-#data_cnt <- data_cnt[data_cnt$cnt_school==1,];data_part <- data_part[data_part$student==T,]
-#survey_start <- exp_summary$start_date
-#TODO exp_summary
+# plot matrices according the Socrates app
 plot_socrates_all <- function(data_cnt,data_part,age_cat_breaks,project_dir,exp_tag,survey_start){
   
-  .rstride$create_pdf(project_dir,paste0(exp_tag,'_cnt_matrix_socrates_all'))
+  .rstride$create_pdf(project_dir,paste0(exp_tag,'_cnt_matrix_all'))
   
   opt_day <- unique(data_cnt$sim_day)
   i_day <- 10
@@ -34,7 +24,7 @@ plot_socrates_all <- function(data_cnt,data_part,age_cat_breaks,project_dir,exp_
   
   dev.off()
   
-  .rstride$create_pdf(project_dir,paste0(exp_tag,'_cnt_matrix_socrates_symptomatic'))
+  .rstride$create_pdf(project_dir,paste0(exp_tag,'_cnt_matrix_symptomatic'))
   # symptomatic
   for(i_day in opt_day){
    
