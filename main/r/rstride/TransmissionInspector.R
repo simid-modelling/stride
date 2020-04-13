@@ -1,4 +1,4 @@
-#############################################################################
+############################################################################ #
 #  This file is part of the Stride software. 
 #  It is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by 
@@ -14,11 +14,11 @@
 #
 #
 #  Copyright 2020, Willem L, Kuylen E & Broeckhove J
-#############################################################################
+############################################################################ #
 
-#############################################################################
-# EXPLORE TRANSMISSION EVENTS, OUTBREAKS GENERATION INTERVALS AND R0       ##
-#############################################################################
+############################################################################# #
+# EXPLORE TRANSMISSION EVENTS, OUTBREAKS GENERATION INTERVALS AND R0       ####
+############################################################################# #
 inspect_transmission_data <- function(project_dir,save_pdf = TRUE)
 {
   # command line message
@@ -228,10 +228,10 @@ inspect_transmission_data <- function(project_dir,save_pdf = TRUE)
     
     age_cat_hospital <- data_transm$hosp_age_cat[!is.na(data_transm$hospital_admission_start)]
     barplot(table(age_cat_hospital)/length(age_cat_hospital),
-            ylab='Proportion hospital admissions',
+            ylab='Relative frequency hospital admissions',
             xlab='Age category (years)',
             ylim = c(0,0.6),
-            main='Hospital admissions by age')
+            main='Relative frequency hospital admissions by age')
     
     
     data_transm$num_hosp <- !is.na(data_transm$hospital_admission_start)
@@ -240,8 +240,8 @@ inspect_transmission_data <- function(project_dir,save_pdf = TRUE)
     
     plot(range(num_hosp_age_time$sim_day_date),c(0,1),col=0,
          xlab = 'Time',
-         ylab = 'Proportion hospital admissions',
-         main='Hospital admissions by age over time')
+         ylab = 'Relative frequency hospital admissions',
+         main='Hospital admissions over time')
     for(i_day in 1:max(num_hosp_age_time$sim_day)){
       
       num_hosp_age <- num_hosp_age_time[num_hosp_age_time$sim_day == i_day,]

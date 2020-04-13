@@ -1,4 +1,4 @@
-#############################################################################
+############################################################################# #
 #  This file is part of the Stride software. 
 #  It is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by 
@@ -14,11 +14,11 @@
 #
 #
 #  Copyright 2019, Willem L, Kuylen E & Broeckhove J
-#############################################################################
+############################################################################# #
 #
 # HELP FUNCTIONS FOR rSTRIDE PRE- AND POST-PROCESSING                       
 #
-#############################################################################
+############################################################################# #
 
 #.rstride$set_wd()  #DEVELOPMENT: to set the work directory as the latest stride install dir 
 #.rstride$load_pd() #DEVELOPMENT: to retrieve the latest project directory (project_dir)
@@ -31,9 +31,9 @@ if(!(exists('.rstride'))){
   .rstride <- new.env()
 }
 
-# ###############################
-# ## COMMAND LINE MESSAGES     ##
-# ###############################
+# ############################# #
+# ## COMMAND LINE MESSAGES   ####
+# ############################# #
 
 # terminate rStride
 .rstride$cli_abort <- function()
@@ -41,9 +41,9 @@ if(!(exists('.rstride'))){
   smd_print('!! TERMINATE rSTRIDE CONTROLLER !!',WARNING=T)
 }
 
-###############################
-## PROJECT SUMMARY           ##
-###############################
+############################# #
+## PROJECT SUMMARY         ####
+############################# #
 
 .rstride$load_project_summary <- function(project_dir, stringsAsFactors=FALSE){
   
@@ -67,9 +67,9 @@ if(!(exists('.rstride'))){
   return(project_summary)
 }
 
-###############################
-## OPEN PDF STREAM           ##
-###############################
+############################# #
+## OPEN PDF STREAM         ####
+############################# #
 
 .rstride$create_pdf <- function(project_dir,file_name,width=7,height=7){
   
@@ -87,9 +87,9 @@ if(!(exists('.rstride'))){
   
 }
 
-###############################
-## CREATE EXPERIMENT TAG     ##
-###############################
+############################# #
+## CREATE EXPERIMENT TAG   ####
+############################# #
 
 # create experiment tag
 .rstride$create_exp_tag <- function(i_exp){
@@ -105,9 +105,9 @@ if(!(exists('.rstride'))){
 }
 
 
-###############################
-## XML FUNCTIONS             ##
-###############################
+############################# #
+## XML FUNCTIONS           ####
+############################# #
 
 # list_config <- config_disease
 # root_name <- 'disease'
@@ -139,9 +139,9 @@ if(!(exists('.rstride'))){
   return(filename)
 }
 
-###############################
-## MATRIX OPERATIONS         ##
-###############################
+############################# #
+## MATRIX OPERATIONS       ####
+############################# #
 # note: integers are converted to a string with the transpose operation of a mixed matrix...
 # so, separate the comparison for numeric and non-numeric types
 .rstride$get_equal_rows <- function(f_matrix,f_vector){
@@ -157,9 +157,9 @@ if(!(exists('.rstride'))){
   return(bool_numeric & bool_not_numeric)
 }
 
-########################################
-## AGGREGATE EXPERIMENT OUTPUT FILES  ##
-########################################
+######################################## #
+## AGGREGATE EXPERIMENT OUTPUT FILES  ####
+######################################## #
 
 .rstride$aggregate_compressed_output <- function(project_dir,get_csv_output){
   
@@ -282,9 +282,9 @@ if(!(exists('.rstride'))){
 }
 
 
-###############################
-## DEFENSIVE PROGRAMMING     ##
-###############################
+############################### #
+## DEFENSIVE PROGRAMMING     ####
+############################### #
 
 .rstride$no_return_value <- function(){
   return(invisible())
@@ -426,9 +426,9 @@ if(!(exists('.rstride'))){
 
 
 
-###############################
-## DEVELOPMENT FUNCTIONS     ##
-###############################
+############################### #
+## DEVELOPMENT FUNCTIONS     ####
+############################### #
 
 # load last project_dir
 .rstride$load_pd <- function(){

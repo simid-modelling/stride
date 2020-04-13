@@ -1,4 +1,4 @@
-#############################################################################
+############################################################################ #
 #  This file is part of the Stride software. 
 #  It is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by 
@@ -14,11 +14,11 @@
 #
 #
 #  Copyright 2019, Willem L, Kuylen E & Broeckhove J
-#############################################################################
+############################################################################ #
 
-#############################################################################
-# EXPLORE PARTICIPANT DATA                                                 ##
-#############################################################################
+############################################################################# #
+# EXPLORE PARTICIPANT DATA                                                 ####
+############################################################################# #
 
 inspect_participant_data <- function(project_dir, save_pdf = TRUE)
 {
@@ -40,11 +40,13 @@ inspect_participant_data <- function(project_dir, save_pdf = TRUE)
   
   # open pdf stream
   if(save_pdf) .rstride$create_pdf(project_dir,'survey_participant_inspection',10,7)
-  if(save_pdf) par(mfrow=c(2,4))
-  
+
   i_config <- 1
   for(i_config in 1:nrow(input_opt_design))
   {
+    # (re)set figure panels
+    if(save_pdf) par(mfrow=c(2,4))
+    
     # select the participant output subset, corresponding the 'input_opt_design' row
     flag_exp            <- .rstride$get_equal_rows(project_summary,input_opt_design[i_config,])
     data_part           <- .rstride$load_aggregated_output(project_dir,'data_participants',project_summary$exp_id[flag_exp])
@@ -92,23 +94,23 @@ inspect_participant_data <- function(project_dir, save_pdf = TRUE)
       abline(h=0.5)
     }
     
-    # days asymptomitic & infectious
+    # days asymptomitic & infectious ####
     start_symtomatic <- data_part$start_symptomatic
     start_symtomatic[is.na(data_part$start_symptomatic)] <- data_part$end_infectiousness[is.na(data_part$start_symptomatic)]
     days_asymptomatic_infectious <- start_symtomatic - data_part$start_infectiousness
    
-    # plot distributions   
+    ## distributions ####   
     plot_cum_distr(data_part$start_infectiousness,f_main='start_infectiousness',f_x_lab='time since infection (days)')
     plot_cum_distr(data_part$start_symptomatic,f_main='start_symptomatic',f_x_lab='time since infection (days)')
     plot_cum_distr(days_asymptomatic_infectious,f_main='days infectious \n& not symptomatic')
     plot_cum_distr(data_part$end_infectiousness-data_part$start_infectiousness,f_main='days infectious')
     plot_cum_distr(data_part$end_symptomatic-data_part$start_symptomatic,f_main='days symptomatic')
     
-    # plot fraction symptomatic by age
+    # fraction symptomatic by age ####
     tbl_sympt_age <- table(!is.na(data_part$start_symptomatic),data_part$part_age)
     plot(tbl_sympt_age[2,]/colSums(tbl_sympt_age),
          xlab='age',
-         ylab = 'fraction symptomatic')
+         ylab = 'Relative frequency symptomatic')
     abline(h=sum(tbl_sympt_age[2,]) / sum(tbl_sympt_age))
     legend('topleft',
            'mean',

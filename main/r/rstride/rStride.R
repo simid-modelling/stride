@@ -130,7 +130,7 @@ run_rStride <- function(exp_design               = exp_design,
   #__________________________________#
   ## PARALLEL SETUP               ####
   #__________________________________#
-  smd_start_cluster(timeout = 360)
+  smd_start_cluster(timeout = 600)
   
   #__________________________________#
   ## RUN                          ####

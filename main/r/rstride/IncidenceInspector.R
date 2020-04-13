@@ -1,4 +1,4 @@
-#############################################################################
+############################################################################# #
 #  This file is part of the Stride software. 
 #  It is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by 
@@ -14,11 +14,11 @@
 #
 #
 #  Copyright 2020, Willem L, Kuylen E & Broeckhove J
-#############################################################################
+############################################################################# #
 #
 # MODEL INCIDENCE EXPLORATION
 #
-#############################################################################
+############################################################################# #
 
 #' @param project_dir   name of the project folder
 #' @param num_selection the number of experiments with minimal LS score to select and present
@@ -112,6 +112,11 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   ls_summary_config        <- aggregate(hosp_data_ls,list(hosp_data_tag) , mean, na.rm=T)
   names(ls_summary_config) <- c('config_tag','ls_score_hosp')
   
+  # save incidence data and scores
+  run_tag           <- unique(project_summary$run_tag)
+  file_name_path    <- file.path(project_dir,paste0(run_tag,'_incidence_processed.RData'))
+  save(data_incidence_all,ls_summary_config,file=file_name_path)
+  
   # select the 'num_selection' best parameter sets
   num_selection  <- min(num_selection,length(ls_summary_config$ls_score_hosp))
   ls_order       <- order(ls_summary_config$ls_score_hosp,decreasing = F)
@@ -121,7 +126,9 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   flag_plot               <- data_incidence_all$config_id %in% config_tag_sel$config_tag
   data_incidence_ensemble <- data_incidence_all[flag_plot,]
   
-  # open pdf stream (ENSEMBLE)
+  
+  ## ENSEMBLE  ####
+  # open pdf stream
   .rstride$create_pdf(project_dir,'incidence_ensemble',width = 6, height = 7)
   par(mfrow=c(4,1))
   
@@ -130,10 +137,27 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
                       hosp_adm_data,input_opt_design,bool_add_param
   )
   
-  # close pdf stream
+  ## ENSEMBLE (SINGLE) ####
+  
+  opt_config_id <- config_tag_sel$config_tag
+  i_config <- opt_config_id[1]
+  for(i_config in opt_config_id){
+    
+    # select subset
+    data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
+    
+    # plot
+    plot_incidence_data(data_incidence_sel,project_summary,
+                        hosp_adm_data,input_opt_design,
+                        bool_add_param)
+  }
+  
+  # close pdf
   dev.off()
   
-  ## PER CONFIG: plot temporal patterns
+  
+  ## ALL PLOTS ####
+  #plot temporal patterns
   .rstride$create_pdf(project_dir,'incidence_inspection',width = 6, height = 8)
   par(mfrow=c(4,1))
   
@@ -154,16 +178,20 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   dev.off()
   #--------------------------#
   
+  ## R0     ####
   ## PER R0: plot temporal patterns
   .rstride$create_pdf(project_dir,'incidence_R0',width = 6, height = 8)
   par(mfrow=c(4,1))
   
   opt_r0 <- unique(input_opt_design$r0)
-  i_r0 <- opt_r0[1]
+  i_r0 <- opt_r0[13]
   for(i_r0 in opt_r0){
     
     # select config_id
     opt_config_id <- unique(input_opt_design$config_id[input_opt_design$r0 ==  i_r0])
+    opt_config_id <- unique(input_opt_design$config_id[input_opt_design$r0 ==  i_r0 & 
+                                                         input_opt_design$start_date == '2020-02-28' &
+                                                          input_opt_design$seeding_rate == 9e-5])
     
     # select subset
     data_incidence_sel <- data_incidence_all[data_incidence_all$config_id %in% opt_config_id,]
@@ -243,26 +271,29 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        data_incidence_sel$new_hospital_admissions,
        type='l',
        col=alpha(pcolor$H,pcolor$alpha),
-       ylab='New cases',
+       ylab='Hospital admissions',
        xlab='Time',
-       ylim = y_lim)
+       ylim = y_lim,
+       yaxt='n')
+  axis(2,las=2,cex.axis=0.9)
   grid()
   points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=16)
   add_breakpoints()
   add_legend_hosp(pcolor)
   
   ## CUMMULATIVE: HOSPITAL ####
-  y_lim <- range(0,max(hosp_adm_data$cum_adm)*1.3,na.rm=T)
+  y_lim <- range(0,max(hosp_adm_data$cum_adm)*1.5,na.rm=T)
   plot(data_incidence_sel$sim_date,
        data_incidence_sel$cummulative_hospital_cases,
        type='l',
        col=alpha(pcolor$H,pcolor$alpha),
-       ylab='Total cases (x1000)',
+       ylab='Total admissions',
        xlab='Time',
        yaxt='n',
        ylim= range(y_lim))
-  axis(2,y_lim,y_lim/1e3)
-  axis(4,y_lim,round(y_lim/pop_size_be*100,digits=2))
+  y_ticks <- pretty(y_lim)
+  axis(2,y_ticks,paste0(y_ticks/1e3,'k'),las=2,cex.axis=0.9)
+  axis(4,y_ticks,paste0(round(y_ticks/pop_size_be*100,digits=2),'%'),las=2,cex.axis=0.9)
   mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
   grid()
   points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=16)
@@ -282,7 +313,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
         data_incidence_sel$cummulative_hospital_cases_age4,
         col=8)
   
-  legend('bottomleft',
+  legend('left',
          rev(c('0-18',
            '19-59',
            '60-79',
@@ -299,8 +330,11 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        type='l',
        col=alpha(pcolor$E,pcolor$alpha),
        ylab='New cases',
-       xlab='Time')
+       xlab='Time',
+       yaxt='n')
   grid()
+  y_ticks <- pretty(data_incidence_sel$new_infections)
+  axis(2,y_ticks,paste0(y_ticks/1000,'k'),las=2,cex.axis=0.9)
   lines(data_incidence_sel$sim_date,
         data_incidence_sel$new_infectious_cases,
         col=alpha(pcolor$I,pcolor$alpha))
@@ -322,11 +356,12 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        data_incidence_sel$cummulative_infections,
        type='l',
        col=alpha(pcolor$E,pcolor$alpha),
-       ylab='Total cases (x1000)',
+       ylab='Total cases',
        xlab='Time',
        yaxt='n')
-  axis(2,y_lim,y_lim/1e3)
-  axis(4,y_lim,round(y_lim/pop_size_be*100,digits=1))
+  y_ticks <- pretty(y_lim)
+  axis(2,y_ticks,paste0(y_ticks/1e3,'k'),las=2,cex.axis=0.9)
+  axis(4,y_ticks,paste0(round(y_ticks/pop_size_be*100,digits=2),'%'),las=2,cex.axis=0.9)
   grid()
   mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
   lines(data_incidence_sel$sim_date,
@@ -354,34 +389,45 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
 
 # define the vertical breaks on the plots
 add_breakpoints <- function(){
+  # add start intervention
   abline(v=as.Date("2020-03-14"))
+  axis(1,as.Date("2020-03-14"),format(as.Date("2020-03-14"),'%d/%m'),
+       cex.axis=0.5,padj=-3,tck=-0.005)
+  
+  # add today
   abline(v=Sys.Date())
+  axis(1,Sys.Date(),format(Sys.Date(),'%d/%b'),cex.axis=0.5,padj=-3,tck=-0.005)
+  
+  # add scenario date (exit?)
+  abline(v=as.Date("2020-05-03"))
+  axis(1,as.Date("2020-05-03"),format(as.Date("2020-05-03"),'%d/%m'),
+       cex.axis=0.5,padj=-3,tck=-0.005)
 }
 
 # define the legend for hospital(-only) plots
 add_legend_hosp <- function(pcolor){
   legend('topleft',
-         c('Hospital admissions (data)',
-           '20% symptomatic cases ±6 days'),
+         c('Reported',
+           'Predictions'),
          col=c(pcolor$D,pcolor$H),
          pch=c(16,NA),
          lwd=c(NA,2),
          bg='white',
-         cex = 0.8)
+         cex = 0.7)
 }
 
 # define the legend with all categories
 add_legend_all <- function(pcolor){
   legend('topleft',
-         c('New infections',
-           'Infectious cases',
-           'Symptomatic cases',
-           '20% Sympt. cases ±6 days',
-           'Hospital admissions (data)'),
+         c('Infections',
+           'Infectious',
+           'Symptomatic',
+           'Hospitalized',
+           'Reported hosp. adm.'),
          col=unlist(pcolor),
          pch=c(NA,NA,NA,NA,16),
          lwd=c(2,2,2,2,NA),
-         cex=0.8,
+         cex=0.7,
          bg='white')
 }
 
@@ -434,7 +480,7 @@ add_legend_runinfo <- function(project_summary,input_opt_design,
   # present info in legend
   legend('topleft',
          run_info,
-         cex=0.8,
+         cex=0.6,
          bg='white')
 }
 
