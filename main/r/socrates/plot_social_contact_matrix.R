@@ -8,7 +8,7 @@
 
 # Loading packages
 socrates_packages <- c('socialmixr','npsp','countrycode','data.table')
-smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table','openxlsx'))
+smd_load_packages(socrates_packages)
 
 # plot matrices according the Socrates app
 plot_socrates_all <- function(data_cnt,data_part,age_cat_breaks,project_dir,exp_tag,survey_start){

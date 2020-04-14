@@ -102,6 +102,8 @@ private:
         // temporary...
         double                      m_cnt_reduction_work;
         double                      m_cnt_reduction_other;
+        double                      m_cnt_reduction_work_exit;
+        double                      m_cnt_reduction_other_exit;
         unsigned int                m_compliance_delay;
         unsigned int                m_day_of_community_distancing;
         unsigned int     	        m_day_of_workplace_distancing;

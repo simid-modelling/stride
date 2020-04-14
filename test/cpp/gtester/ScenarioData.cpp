@@ -55,7 +55,7 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
 		{"influenza_a", 505000U}, {"influenza_b", 0U}, {"influenza_c", 5U}, {"measles_16", 47000U},
 		{"measles_26", 600000U},  {"r0_0", 1200U},     {"r0_4", 3400U},     {"r0_8", 9500U},
 		{"r0_12", 24000U},        {"r0_16", 47000U},   {"covid19_all", 81500U}, //{"covid19_15min", 158000U},
-		{"covid19_daily", 84500U},{"covid19_distancing", 71000U}, {"covid19_age_15min",83600}};
+		{"covid19_daily", 84500U},{"covid19_distancing", 26000U}, {"covid19_age_15min",83600}};
 
 	// Set margins per scenario
 	const map<string, double> margins_default = {
@@ -114,6 +114,11 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
 	}
 	if (tag == "covid19_distancing") {
 			pt.put("run.holidays_file","calendar_belgium_2020_covid19_april.json");
+			pt.put("run.cnt_reduction_work",0.3);
+			pt.put("run.cnt_reduction_other",0.4);
+			pt.put("run.compliance_delay",3);
+
+
 	}
 	if (tag == "covid19_age_15min") {
 			pt.put("run.disease_config_file", "disease_covid19_age_15min.xml");

@@ -118,7 +118,7 @@ const char* tags_measles[] = {"measles_16", "measles_26"};
 
 const char* tags_r0[] = {"r0_0", "r0_4", "r0_8", "r0_12", "r0_16"};
 
-const char* tags_covid19[] = {"covid19_all", "covid19_daily", "covid19_distancing","covid19_age_15min"};
+const char* tags_covid19[] = {"covid19_all", "covid19_daily", "covid19_distancing", "covid19_age_15min"};
 
 } // namespace
 

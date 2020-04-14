@@ -47,24 +47,26 @@ store_transmission_rdata <- TRUE
 num_seeds  <- 5
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(r0                            = 2.85,
-                          num_days                      = 70,
+exp_design <- expand.grid(r0                            = seq(3.5,3.6,0.1),
+                          num_days                      = 120,
                           rng_seed                      = seq(num_seeds),
-                          num_participants_survey       = 500,
+                          num_participants_survey       = 300,
                           track_index_case              = 'false',
                           contact_log_level             = "Transmissions",
-                          seeding_rate                  = 30*1e-5, 
-                          disease_config_file           = "disease_covid19.xml",
+                          seeding_rate                  = 30e-5, 
+                          disease_config_file           = "disease_covid19_age.xml",
                           population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           adaptive_symptomatic_behavior = 'true',
-                          start_date                    = c('2020-02-14'),
-                          holidays_file                 = "calendar_belgium_2020_covid19_may.json",
-                          telework_probability          = c(0),
-                          cnt_reduction_work            = c(0.4),
-                          cnt_reduction_other           = c(0.6),
-                          compliance_delay              = c(5),
+                          start_date                    = c('2020-02-28'),
+                          holidays_file                 = c("calendar_belgium_2020_covid19_may_workplace.json"),
+                          telework_probability          = c(0.5),
+                          cnt_reduction_work            = c(0),
+                          cnt_reduction_other           = c(0.8),
+                          compliance_delay              = c(14),
                           num_daily_imported_cases      = c(0),
+                          cnt_reduction_work_exit       = seq(0,0.5,0.1),
+                          cnt_reduction_other_exit      = 0,
                           stringsAsFactors = F)
 
 # add a unique seed for each run
@@ -77,7 +79,8 @@ dim(exp_design)
 ##################################
 project_dir <- run_rStride(exp_design               = exp_design,
                            dir_postfix              = dir_postfix, 
-                           store_transmission_rdata = store_transmission_rdata)
+                           store_transmission_rdata = store_transmission_rdata,
+                           ignore_stdout = TRUE)
 
 
 #####################################
@@ -102,7 +105,7 @@ inspect_incidence_data(project_dir)
 ## EXPLORE TRANSMISSION         ##
 ##################################
 inspect_transmission_data(project_dir)
-
+ 
 
 
  

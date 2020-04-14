@@ -178,6 +178,7 @@ inspect_transmission_data <- function(project_dir,save_pdf = TRUE)
     
     abline(v=sim_day_date[sim_day_date == '2020-03-14'])
     abline(v=sim_day_date[sim_day_date == Sys.Date()])
+    abline(h=1,lty=3)
     
     ## GENERATION INTERVAL   ----
     # note: the generation interval is the time between the infection time of an infected person and the infection time of his or her infector.

@@ -128,7 +128,6 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   
   
   ## ENSEMBLE  ####
-  # open pdf stream
   .rstride$create_pdf(project_dir,'incidence_ensemble',width = 6, height = 7)
   par(mfrow=c(4,1))
   
@@ -137,8 +136,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
                       hosp_adm_data,input_opt_design,bool_add_param
   )
   
-  ## ENSEMBLE (SINGLE) ####
-  
+  ## ENSEMBLE (SINGLE RUNS) ####
   opt_config_id <- config_tag_sel$config_tag
   i_config <- opt_config_id[1]
   for(i_config in opt_config_id){
@@ -157,8 +155,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   
   
   ## ALL PLOTS ####
-  #plot temporal patterns
-  .rstride$create_pdf(project_dir,'incidence_inspection',width = 6, height = 8)
+  .rstride$create_pdf(project_dir,'incidence_inspection',width = 6, height = 7)
   par(mfrow=c(4,1))
   
   opt_config_id <- unique(data_incidence_all$config_id)
@@ -180,31 +177,35 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   
   ## R0     ####
   ## PER R0: plot temporal patterns
-  .rstride$create_pdf(project_dir,'incidence_R0',width = 6, height = 8)
-  par(mfrow=c(4,1))
-  
   opt_r0 <- unique(input_opt_design$r0)
-  i_r0 <- opt_r0[13]
-  for(i_r0 in opt_r0){
+  if(length(opt_r0)>0){
+    .rstride$create_pdf(project_dir,'incidence_R0',width = 6, height = 8)
+    par(mfrow=c(4,1))
     
-    # select config_id
-    opt_config_id <- unique(input_opt_design$config_id[input_opt_design$r0 ==  i_r0])
-    opt_config_id <- unique(input_opt_design$config_id[input_opt_design$r0 ==  i_r0 & 
-                                                         input_opt_design$start_date == '2020-02-28' &
-                                                          input_opt_design$seeding_rate == 9e-5])
     
-    # select subset
-    data_incidence_sel <- data_incidence_all[data_incidence_all$config_id %in% opt_config_id,]
-    dim(data_incidence_sel)
+    i_r0 <- opt_r0[13]
+    for(i_r0 in opt_r0){
+      
+      # select config_id
+      opt_config_id <- unique(input_opt_design$config_id[input_opt_design$r0 ==  i_r0])
+      opt_config_id <- unique(input_opt_design$config_id[input_opt_design$r0 ==  i_r0 & 
+                                                           input_opt_design$start_date == '2020-02-28' &
+                                                           input_opt_design$seeding_rate == 9e-5])
+      
+      # select subset
+      data_incidence_sel <- data_incidence_all[data_incidence_all$config_id %in% opt_config_id,]
+      dim(data_incidence_sel)
+      
+      # plot
+      plot_incidence_data(data_incidence_sel,project_summary,
+                          hosp_adm_data,input_opt_design,
+                          bool_add_param)
+    }
     
-    # plot
-    plot_incidence_data(data_incidence_sel,project_summary,
-                        hosp_adm_data,input_opt_design,
-                        bool_add_param)
+    # close pdf
+    dev.off()
   }
   
-  # close pdf
-  dev.off()
   
   # ## AVERAGE
   # num_runs <- unique(table(project_summary$config_id))
@@ -453,7 +454,7 @@ add_legend_runinfo <- function(project_summary,input_opt_design,
                 paste0('distancing = ',opt_calendar)
   )
   
-  if(opt_calendar != 'none'){
+  if(any(opt_calendar != 'none')){
     run_info <- c(run_info,
                   paste0('telework_prob = ',paste(unique(project_summary_sel$telework_probability),collapse=', ')),
                   paste0('cnt_reduction_work = ',paste(unique(project_summary_sel$cnt_reduction_work),collapse=", ")),

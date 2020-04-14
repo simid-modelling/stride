@@ -102,6 +102,8 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
 		PublicHealthAgency(m_config, sim->m_rn_man).SetTelework(sim->m_population);
 		sim->m_cnt_reduction_work   = m_config.get<double>("run.cnt_reduction_work",0);
 		sim->m_cnt_reduction_other  = m_config.get<double>("run.cnt_reduction_other",0);
+		sim->m_cnt_reduction_work_exit   = m_config.get<double>("run.cnt_reduction_work_exit",0);
+		sim->m_cnt_reduction_other_exit  = m_config.get<double>("run.cnt_reduction_other_exit",0);
 		sim->m_compliance_delay     = m_config.get<unsigned int>("run.compliance_delay",0);
 
         // --------------------------------------------------------------
