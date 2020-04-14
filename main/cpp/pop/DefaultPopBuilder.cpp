@@ -61,6 +61,10 @@ shared_ptr<Population> DefaultPopBuilder::MakePersons(shared_ptr<Population> pop
                 throw runtime_error(string(__func__) + "> Error opening population file " + filePath.string());
         }
 
+        // get age break between 2 school types
+        //TODO: rename school types an/or add 3rd for secondary school
+        const unsigned int age_break_school_types = m_config.get<unsigned int>("run.age_break_school_types",18);
+
         string line;
         getline(popFile, line); // step over file header
         unsigned int person_id = 0U;
@@ -76,7 +80,7 @@ shared_ptr<Population> DefaultPopBuilder::MakePersons(shared_ptr<Population> pop
 
                 //TODO: fix hard-coded age-breaks
                 unsigned int collegeId = 0;
-                if(schoolId != 0 && age >= 18 && age < 23){
+                if(schoolId != 0 && age >= age_break_school_types && age < 23){
                 	collegeId = schoolId;
                 	schoolId = 0;
                 }

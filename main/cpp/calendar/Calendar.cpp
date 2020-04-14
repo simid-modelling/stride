@@ -162,7 +162,7 @@ void Calendar::InitializeHolidays(const ptree& configPt)
                 const auto month = to_string(i);
                 const auto year  = holidaysPt.get<string>("year", "2017");
 
-                //TODO: fix code duplicatio
+                //TODO: fix code duplication
 
                 // read in general holidays
                 for (const auto& date : holidaysPt.get_child("general." + month)) {

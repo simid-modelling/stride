@@ -41,7 +41,7 @@ inspect_participant_data <- function(project_dir, save_pdf = TRUE)
   # open pdf stream
   if(save_pdf) .rstride$create_pdf(project_dir,'survey_participant_inspection',10,7)
 
-  i_config <- 1
+  i_config <- 4
   for(i_config in 1:nrow(input_opt_design))
   {
     # (re)set figure panels
@@ -170,7 +170,19 @@ inspect_participant_data <- function(project_dir, save_pdf = TRUE)
     # text(x=7,y=0.02,'primary school',srt=90,pos=4)
     # text(x=13,y=0.02,'secundary school',srt=90,pos=4)
     # text(x=20,y=0.02,'tertiary school',srt=90,pos=4)
+    # 
     
+    tmp_age      <- table(data_part$part_age)
+    tmp_college  <- table(data_part$part_age,data_part$college_id != 0)
+    tmp_school   <- table(data_part$part_age,data_part$school_id != 0)
+    
+    barplot(rbind(tmp_school[,2]/tmp_age,tmp_college[,2]/tmp_age),
+            xlab='age',
+            ylab='relative fraction')
+    legend('topright',
+           c('school open',
+             'school-closed'),
+           fill=grey.colors(2))   
   }
   
   # close PDF stream

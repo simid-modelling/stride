@@ -188,18 +188,18 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
       
       # select config_id
       opt_config_id <- unique(input_opt_design$config_id[input_opt_design$r0 ==  i_r0])
-      opt_config_id <- unique(input_opt_design$config_id[input_opt_design$r0 ==  i_r0 & 
-                                                           input_opt_design$start_date == '2020-02-28' &
-                                                           input_opt_design$seeding_rate == 9e-5])
-      
+
       # select subset
       data_incidence_sel <- data_incidence_all[data_incidence_all$config_id %in% opt_config_id,]
       dim(data_incidence_sel)
       
-      # plot
-      plot_incidence_data(data_incidence_sel,project_summary,
-                          hosp_adm_data,input_opt_design,
-                          bool_add_param)
+      # check selection
+      if(nrow(data_incidence_sel)>0){
+        # plot
+        plot_incidence_data(data_incidence_sel,project_summary,
+                            hosp_adm_data,input_opt_design,
+                            bool_add_param)
+      }
     }
     
     # close pdf
@@ -207,21 +207,35 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   }
   
   
-  # ## AVERAGE
-  # num_runs <- unique(table(project_summary$config_id))
-  # tmp <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_sel, mean)
-  # tmp$new_hospital_admissions[tmp$sim_day == min(tmp$sim_day)] <- NA
-  # plot(tmp$sim_date,tmp$new_hospital_admissions,
-  #      type='l',
-  #      lwd=3,
-  #      col=pcolor$H,
-  #      ylab='New hospital admissions',
-  #      xlab='Time',
-  #      main = paste('Average of ', num_runs, 'realisations'))
-  # grid()
-  # points(hosp_cases_date,hosp_cases_num,col=1,pch=16)
-  # add_breakpoints()
-  # add_legend_hosp()
+  ## AVERAGE
+  .rstride$create_pdf(project_dir,'incidence_average',width = 6, height = 4)
+  
+  num_runs <- unique(table(project_summary$config_id))
+  tmp <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_all, mean)
+  tmp$new_hospital_admissions[tmp$sim_day == min(tmp$sim_day)] <- NA
+  
+  plot(tmp$sim_date,tmp$new_hospital_admissions,
+       type='l',
+       lwd=3,
+       col=alpha(4,0.5),
+       ylab='New hospital admissions',
+       xlab='Time',
+       main = paste('Average of ', num_runs, 'realisations'),
+       xlim = range(tmp$sim_date)+7)
+  grid()
+  points(hosp_cases_date,hosp_cases_num,col=1,pch=16)
+  add_breakpoints()
+  add_legend_hosp(pcolor<- data.frame(D = 1,H=4))
+  
+  tmp_end <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_all[data_incidence_all$sim_date == max(data_incidence_all$sim_date),], mean)
+  tmp_end$config_id
+  text(tmp_end$sim_date,
+       tmp_end$new_hospital_admissions,
+       tmp_end$config_id,
+       adj=-0.5,
+       cex=0.7)
+  
+  dev.off()
   
   #--------------------------#
   # parameters

@@ -87,7 +87,6 @@ void Sim::TimeStep()
 			}
 		} else if(m_day_of_workplace_distancing > 0){
 			workplace_distancing_factor = m_cnt_reduction_work_exit;
-			std::cout << "exit: workplace" << std::endl;
 		}
 
 		 // increment the number of days in lock-down and account for compliance
@@ -102,10 +101,7 @@ void Sim::TimeStep()
 			}
 		} else if (m_day_of_community_distancing > 0){
 			community_distancing_factor = m_cnt_reduction_other_exit;
-			std::cout << "exit: community" << std::endl;
 		}
-
-		std::cout << workplace_distancing_factor  << " - " << community_distancing_factor << std::endl;
 
         // To be used in update of population & contact pools.
         Population& population    = *m_population;
