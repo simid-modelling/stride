@@ -140,7 +140,7 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
 		if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity)){
 
 			// apply intergeneration distancing factor if age cutoff is > 0 and at least one age is > cutoff
-			if((cnt_reduction_intergeneration_cutoff > 0) &&
+			if((cnt_reduction_intergeneration > 0) &&
 				((p1->GetAge() > cnt_reduction_intergeneration_cutoff) || (p2->GetAge() > cnt_reduction_intergeneration_cutoff))){
 				contact_probability = contact_probability * (1-cnt_reduction_intergeneration);
 			} else {

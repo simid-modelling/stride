@@ -67,7 +67,7 @@ exp_design <- expand.grid(r0                            = seq(3.5,3.5,0.1),
                           num_daily_imported_cases      = c(0),
                           cnt_reduction_work_exit       = 0,
                           cnt_reduction_other_exit      = 0,
-                          cnt_reduction_intergeneration = 0.95,
+                          cnt_reduction_intergeneration = c(0,0.95),
                           cnt_reduction_intergeneration_cutoff = 65,
                           stringsAsFactors = F)
 
