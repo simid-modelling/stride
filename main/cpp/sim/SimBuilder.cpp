@@ -104,6 +104,8 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
 		sim->m_cnt_reduction_other  = m_config.get<double>("run.cnt_reduction_other",0);
 		sim->m_cnt_reduction_work_exit   = m_config.get<double>("run.cnt_reduction_work_exit",0);
 		sim->m_cnt_reduction_other_exit  = m_config.get<double>("run.cnt_reduction_other_exit",0);
+		sim->m_cnt_reduction_intergeneration        = m_config.get<double>("run.cnt_reduction_intergeneration",0);
+		sim->m_cnt_reduction_intergeneration_cutoff = m_config.get<unsigned int>("run.cnt_reduction_intergeneration_cutoff",0);
 		sim->m_compliance_delay     = m_config.get<unsigned int>("run.compliance_delay",0);
 
         // --------------------------------------------------------------

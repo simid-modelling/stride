@@ -47,8 +47,8 @@ store_transmission_rdata <- TRUE
 num_seeds  <- 5
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(r0                            = seq(3.5,3.6,0.1),
-                          num_days                      = 120,
+exp_design <- expand.grid(r0                            = seq(3.5,3.5,0.1),
+                          num_days                      = 50,
                           rng_seed                      = seq(num_seeds),
                           num_participants_survey       = 300,
                           track_index_case              = 'false',
@@ -58,17 +58,19 @@ exp_design <- expand.grid(r0                            = seq(3.5,3.6,0.1),
                           population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           adaptive_symptomatic_behavior = 'true',
-                          start_date                    = c('2020-02-28'),
-                          holidays_file                 = c("calendar_belgium_2020_covid19_may_workplace.json"),
-                          telework_probability          = c(0.5),
-                          cnt_reduction_work            = c(0),
-                          age_break_school_types        = c(6,12,1,18),
-                          age_break_school_types        = c(6,12,16,18),
+                          start_date                    = c('2020-02-22'),
+                          #holidays_file                 = c("calendar_belgium_2020_covid19_may_workplace.json"),
+                          holidays_file                 = c("calendar_belgium_2020_covid19_may_school.json"),
+                          age_break_school_types        = c(18),
+                          telework_probability          = c(0),
+                          cnt_reduction_work            = c(0.8),
                           cnt_reduction_other           = c(0.8),
                           compliance_delay              = c(14),
                           num_daily_imported_cases      = c(0),
-                          cnt_reduction_work_exit       = seq(0,0.5,0.1),
+                          cnt_reduction_work_exit       = 0,
                           cnt_reduction_other_exit      = 0,
+                          cnt_reduction_intergeneration = 0.95,
+                          cnt_reduction_intergeneration_cutoff = 65,
                           stringsAsFactors = F)
 
 # add a unique seed for each run
@@ -101,6 +103,7 @@ inspect_participant_data(project_dir)
 ## EXPLORE INCIDENCE DATA       ##
 ##################################
 inspect_incidence_data(project_dir)
+
 
 
 ##################################

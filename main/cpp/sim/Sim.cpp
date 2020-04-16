@@ -41,7 +41,7 @@ Sim::Sim()
     : m_config(), m_contact_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
       m_adaptive_symptomatic_behavior(false), m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_work(0), m_cnt_reduction_other(0),
-	  m_cnt_reduction_work_exit(0),m_cnt_reduction_other_exit(0),
+	  m_cnt_reduction_work_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_intergeneration(0),m_cnt_reduction_intergeneration_cutoff(0),
 	  m_compliance_delay(0), m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_num_daily_imported_cases(0)
 {
 }
@@ -75,6 +75,8 @@ void Sim::TimeStep()
         const bool isCommunityDistancingEnforced   = daysOff->IsCommunityDistancingEnforced();
 
 
+        std::cout << isWorkplaceDistancingEnforced << " -- " << isCommunityDistancingEnforced << std::endl;
+
         // increment the number of days in lock-down and account for compliance
 		double workplace_distancing_factor = 0.0;
 		if(isWorkplaceDistancingEnforced){
@@ -91,17 +93,22 @@ void Sim::TimeStep()
 
 		 // increment the number of days in lock-down and account for compliance
 		double community_distancing_factor = 0.0;
+		double intergeneration_distancing_factor = 0.0;
 		if(isCommunityDistancingEnforced){
 			m_day_of_community_distancing += 1;
 
 			community_distancing_factor = m_cnt_reduction_other;
+			intergeneration_distancing_factor = m_cnt_reduction_intergeneration;
 
 			if(m_day_of_community_distancing < m_compliance_delay){
 				community_distancing_factor *= 1.0 * m_day_of_community_distancing / m_compliance_delay;
 			}
 		} else if (m_day_of_community_distancing > 0){
 			community_distancing_factor = m_cnt_reduction_other_exit;
+			intergeneration_distancing_factor = m_cnt_reduction_intergeneration;
 		}
+
+		std::cout << community_distancing_factor << " ** " << intergeneration_distancing_factor << " - "<< m_cnt_reduction_intergeneration_cutoff << std::endl;
 
         // To be used in update of population & contact pools.
         Population& population    = *m_population;
@@ -141,7 +148,8 @@ void Sim::TimeStep()
 							infector(poolSys.RefPools(typ)[i], m_contact_profiles[typ], m_transmission_profile,
 									 m_handlers[thread_num], simDay, contactLogger,
 									 workplace_distancing_factor,
-									 community_distancing_factor);
+									 community_distancing_factor,
+									 intergeneration_distancing_factor,m_cnt_reduction_intergeneration_cutoff);
 					}
 			}
         }

@@ -45,21 +45,25 @@ num_seeds  <- 1
 
 # add parameters and values to combine in a full-factorial grid
 exp_design <- expand.grid(contact_log_level         = "All",
-                          num_days                  = 1,
-                          seeding_rate              = 1.7e-3,
+                          num_days                  = 14,
+                          seeding_rate              = 1.7e-6,
                           num_participants_survey   = 4000,
-                          start_date                = c('2020-02-16','2020-02-17','2020-02-25',"2020-04-10","2020-04-11"),
-                          #start_date                = c('2020-04-9'),
+                          #start_date                = c('2020-02-16','2020-02-17','2020-02-25',"2020-04-10","2020-04-11","2020-05-03","2020-05-04"),
+                          start_date                = c('2020-03-10'),
                           rng_seed                  = 1:num_seeds,
-                          disease_config_file       = "disease_covid19.xml", 
+                          disease_config_file       = "disease_covid19_age.xml", 
                           population_file           = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file   = "contact_matrix_flanders_conditional_teachers.xml",
-                          holidays_file             = "calendar_belgium_2020_covid19_april.json",
-                          telework_probability          = c(0.5),
-                          cnt_reduction_work            = c(0),
-                          cnt_reduction_other           = c(0.9),
-                          compliance_delay              = c(0),
+                          holidays_file             = "calendar_belgium_2020_covid19_may_workplace.json",
+                          # holidays_file             = c("calendar_belgium_2020_covid19_may_school.json",
+                          #                               "calendar_belgium_2020_covid19_may_workplace.json"),
+                          telework_probability          = c(0),
+                          cnt_reduction_work            = c(0.9),
+                          cnt_reduction_other           = c(0.8),
+                          compliance_delay              = c(7),
                           num_daily_imported_cases      = c(0),
+                          cnt_reduction_intergeneration = 0.95,
+                          cnt_reduction_intergeneration_cutoff = 65,
                           stringsAsFactors = F)
 
 # add a unique seed for each run
@@ -72,7 +76,7 @@ exp_design$rng_seed <- sample(nrow(exp_design))
 project_dir <- run_rStride(exp_design  = exp_design,
                            dir_postfix = dir_postfix,
                            ignore_stdout = FALSE,
-                           remove_run_output = FALSE)
+                           remove_run_output = TRUE)
 
 
 #####################################################

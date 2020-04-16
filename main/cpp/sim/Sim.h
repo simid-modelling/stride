@@ -104,6 +104,8 @@ private:
         double                      m_cnt_reduction_other;
         double                      m_cnt_reduction_work_exit;
         double                      m_cnt_reduction_other_exit;
+        double                      m_cnt_reduction_intergeneration;
+        unsigned int                m_cnt_reduction_intergeneration_cutoff;
         unsigned int                m_compliance_delay;
         unsigned int                m_day_of_community_distancing;
         unsigned int     	        m_day_of_workplace_distancing;
