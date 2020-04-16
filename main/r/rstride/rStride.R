@@ -126,11 +126,14 @@ run_rStride <- function(exp_design               = exp_design,
   config_default$output_summary   <- 'true'
   config_default$run_tag          <- run_tag
   config_default$num_cea_samples  <- 1e4
+  config_default$track_index_case              <- 'false'
+  config_default$contact_log_level             <- 'Transmissions'
+  config_default$adaptive_symptomatic_behavior <- 'true'
   
   #__________________________________#
   ## PARALLEL SETUP               ####
   #__________________________________#
-  smd_start_cluster(timeout = 600)
+  smd_start_cluster(timeout = 1200)
   
   #__________________________________#
   ## RUN                          ####
