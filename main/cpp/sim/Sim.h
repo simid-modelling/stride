@@ -100,13 +100,14 @@ private:
         TransmissionProfile         m_transmission_profile; ///< Profile of disease.
 
         // temporary...
-        double                      m_cnt_reduction_work;
+        double                      m_cnt_reduction_workplace;
         double                      m_cnt_reduction_other;
-        double                      m_cnt_reduction_work_exit;
+        double                      m_cnt_reduction_workplace_exit;
         double                      m_cnt_reduction_other_exit;
         double                      m_cnt_reduction_intergeneration;
         unsigned int                m_cnt_reduction_intergeneration_cutoff;
-        unsigned int                m_compliance_delay;
+        unsigned int                m_compliance_delay_workplace;
+        unsigned int                m_compliance_delay_other;
         unsigned int                m_day_of_community_distancing;
         unsigned int     	        m_day_of_workplace_distancing;
 
