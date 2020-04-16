@@ -1,4 +1,4 @@
-#############################################################################
+############################################################################ #
 #  This file is part of the Stride software. 
 #  It is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by 
@@ -14,7 +14,7 @@
 #
 #
 #  Copyright 2019, Willem L, Kuylen E & Broeckhove J
-#############################################################################
+############################################################################ #
 
 source('./bin/socrates/plot_social_contact_matrix.R')
 
@@ -31,9 +31,9 @@ if(0==1) # for debugging
   .rstride$plot_contacts(exp_summary,data_dir)
 }
 
-#############################################################################
-# INSPECT SOCIAL CONTACT PATTERNS                                          ##
-#############################################################################
+############################################################################# #
+# INSPECT SOCIAL CONTACT PATTERNS                                          ####
+############################################################################# # 
 
 inspect_contact_data <- function(project_dir){
   
@@ -64,16 +64,16 @@ inspect_contact_data <- function(project_dir){
   smd_print('INSPECTION OF SOCIAL CONTACTS PATTERNS COMPLETE')
 }
 
-#############################################################################
-# FUNCTION TO PLOT SOCIAL CONTACT MATRICES AND COUNTS                      ##
-#############################################################################
+############################################################################# #
+# PLOT SOCIAL CONTACT MATRICES AND COUNTS                                  ####
+############################################################################# #
 # exp_summary <- project_summary[i_exp,]; data_dir <- './data'
 .rstride$plot_contacts <- function(project_dir,exp_summary,data_dir)
 {
 
-  ######################
-  ## GET DATA       ##
-  ######################
+  ##################### #
+  ## GET DATA        ####
+  ##################### #
 
   # load data
   data_cnt      <- .rstride$load_aggregated_output(project_dir,'data_contacts',exp_summary$exp_id)
@@ -184,7 +184,7 @@ inspect_contact_data <- function(project_dir){
     
     dev.off() # close pdf stream
     
-    # new
+    ## Transmission probability ####
     .rstride$create_pdf(project_dir,paste0(exp_tag,'_cnt_transm_probability'))
     par(mfrow=c(2,2))
     cnt_location_opt <- c('cnt_home', 'cnt_school', 'cnt_work', 'cnt_prim_comm', 'cnt_sec_comm')
@@ -204,24 +204,26 @@ inspect_contact_data <- function(project_dir){
     
     dev.off() # close pdf stream
 
-    ## OTHER MATRICES ####
-    
+    ## Socrates matrices ####
+ 
+    # results with 2 age groups (minors and adults)   
     age_cat_breaks <- c(0,19,110)
     plot_socrates_all(data_cnt,data_part,age_cat_breaks,project_dir,paste0(exp_tag,'_AG2'),exp_summary$start_date)
     
-    # results by age group
-    age_cat_breaks <- c(0,19,36,66,110)
-    plot_socrates_all(data_cnt,data_part,age_cat_breaks,project_dir,paste0(exp_tag,'_AG4'),exp_summary$start_date)
-   
+    # results by 5 age groups
+    age_cat_breaks <- c(0,19,36,65,75,110)
+    plot_socrates_all(data_cnt,data_part,age_cat_breaks,project_dir,paste0(exp_tag,'_AG5'),exp_summary$start_date)
+    
+    
   } # end if dim(data)...
 } # end function
 
-#################################  OTHER HELP FUNCTIONS  #################################
+#################################  OTHER HELP FUNCTIONS  ################################ #
 
 
 
 
-## HELP FUNCTION: RESHAPE DATA AND PLOT
+## RESHAPE DATA AND PLOT ####
 #f_data_cnt = data_cnt;f_data_part=data_part_age_cat;tag='total';L;num_days
 .rstride$plot_cnt_matrix <- function(f_data_cnt,f_data_part,tag,L,num_days)
 {
@@ -287,7 +289,7 @@ inspect_contact_data <- function(project_dir){
   return(mij)
 }
 
-## HELP FUNCTION: PLOT CNT MATRIX
+## PLOT CNT MATRIX ####
 .rstride$plot_cnt_matrix_ggplot <- function(mij,title,bool_contour)
 {
   ## remove small numbers
@@ -348,7 +350,7 @@ inspect_contact_data <- function(project_dir){
   return(g)
 }
 
-## HELP FUNCTION: PLOT CNT COUNT
+## PLOT CNT COUNT ####
 .rstride$plot_cnt_count_ggplot <- function(f_data_cnt,f_data_part,L,num_days,title){
   
   if(nrow(f_data_cnt)==0){

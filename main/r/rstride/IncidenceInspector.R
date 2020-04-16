@@ -74,7 +74,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   flag_compare  <- hosp_adm_data$date %in% data_incidence_all$sim_date
   hosp_adm_data <- hosp_adm_data[flag_compare,]
   
-  # create columns for hosptical cases and least square score
+  # create columns for hospital cases and least square score
   data_incidence_all$cummulative_hospital_cases <- NA
   data_incidence_all$ls_score_hosp              <- NA
   
