@@ -471,9 +471,10 @@ add_legend_runinfo <- function(project_summary,input_opt_design,
   if(any(opt_calendar != 'none')){
     run_info <- c(run_info,
                   paste0('telework_prob = ',paste(unique(project_summary_sel$telework_probability),collapse=', ')),
-                  paste0('cnt_reduction_work = ',paste(unique(project_summary_sel$cnt_reduction_work),collapse=", ")),
+                  paste0('cnt_reduction_workplace = ',paste(unique(project_summary_sel$cnt_reduction_workplace),collapse=", ")),
+                  paste0('compliance_delay_workplace = ',paste(unique(project_summary_sel$compliance_delay_workplace),collapse=", ")),
                   paste0('cnt_reduction_other = ',paste(unique(project_summary_sel$cnt_reduction_other),collapse=", ")),
-                  paste0('compliance_delay = ',paste(unique(project_summary_sel$compliance_delay),collapse=", "))
+                  paste0('compliance_delay_other = ',paste(unique(project_summary_sel$compliance_delay_other),collapse=", "))
     )
   }
   

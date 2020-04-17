@@ -41,8 +41,10 @@ public:
         virtual bool IsWorkplaceDistancingEnforced() = 0;
 
         /// Whether quarantine measures are in place for community contacts
-         virtual bool IsCommunityDistancingEnforced() = 0;
+        virtual bool IsCommunityDistancingEnforced() = 0;
 
+         /// Whether contact tracing is in place
+         virtual bool IsContactTracingActivated() = 0;
 
         /// Virtual destructor.
         virtual ~DaysOffInterface() = default;

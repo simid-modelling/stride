@@ -100,9 +100,16 @@ public:
 					 m_community_distancing.end());
 		}
 
+		/// Check if contact tracing is place
+		bool IsContactTracingActivated() const
+		{
+			 return (std::find(m_contact_tracing.begin(), m_contact_tracing.end(), m_date) !=
+					 m_contact_tracing.end());
+		}
+
 private:
         ///
-        void InitializeHolidays(const boost::property_tree::ptree& configPt);
+        void Initialize(const boost::property_tree::ptree& configPt);
 
 private:
 #ifdef BOOST_FOUND
@@ -112,6 +119,7 @@ private:
         std::vector<boost::gregorian::date> m_college_holidays;   ///< Vector of college holidays
         std::vector<boost::gregorian::date> m_workplace_distancing;    ///< Vector of days with social distancing enforcement for work places
         std::vector<boost::gregorian::date> m_community_distancing;    ///< Vector of days with social distancing enforcement in the community
+        std::vector<boost::gregorian::date> m_contact_tracing;            ///< Vector of days with case finding measures
 
 #else
         date::year_month_day              m_date;               ///< Current simulated date.
@@ -120,6 +128,7 @@ private:
         std::vector<date::year_month_day> m_college_holidays;   ///< Vector of college holidays
         std::vector<date::year_month_day> m_workplace_distancing;      ///< Vector o days with social distancing enforcement for work places
         std::vector<date::year_month_day> m_community_distancing;      ///< Vector of days with social distancing enforcement in the community
+        std::vector<date::year_month_day> m_contact_tracing;              ///< Vector of days with case finding measures
 
 #endif
         unsigned short int m_day; ///< Current day since start of simulation.

@@ -99,7 +99,8 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
         // --------------------------------------------------------------
 		// Set Public Health Agency
 		// --------------------------------------------------------------
-		PublicHealthAgency(m_config, sim->m_rn_man).SetTelework(sim->m_population);
+        sim->m_public_health_agency.Initialize(m_config);
+		sim->m_public_health_agency.SetTelework(sim->m_population,sim->m_rn_man);
 		sim->m_cnt_reduction_workplace              = m_config.get<double>("run.cnt_reduction_workplace",0);
 		sim->m_cnt_reduction_other                  = m_config.get<double>("run.cnt_reduction_other",0);
 		sim->m_cnt_reduction_workplace_exit         = m_config.get<double>("run.cnt_reduction_workplace_exit",0);

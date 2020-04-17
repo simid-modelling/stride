@@ -102,6 +102,15 @@ public:
         /// Stop the infection.
         void StopInfection();
 
+        /// Start quarantine measure
+        void StartQuarantine(){ m_is_in_quarantine = true; };
+
+        /// End quarantine measure
+        void EndQuarantine() { m_is_in_quarantine = false; };
+
+        /// Is this person in quarantine?
+        bool IsInQuarantine() { return m_is_in_quarantine; };
+
         /// Update progress of the disease.
         void Update();
 
@@ -149,6 +158,7 @@ private:
         double             m_rel_transmission_asymptomatic;	   ///< Relative reduction of transmission for asymptomatic cases
         double             m_rel_susceptibility_children;	   ///< Relative reduction in susceptibility for children vs. adults
 
+        bool               m_is_in_quarantine;        ///< Boolean to indicate quarantine measures
 };
 
 } // namespace stride

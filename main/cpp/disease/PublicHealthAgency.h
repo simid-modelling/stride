@@ -38,15 +38,23 @@ class Sim;
 class PublicHealthAgency
 {
 public:
+	    /// Default constructor
+	    PublicHealthAgency(){};
+
         /// Initializing PublicHealthAgency.
-		PublicHealthAgency(const boost::property_tree::ptree& config, util::RnMan& rnMan);
+		void Initialize(const boost::property_tree::ptree& config);
 
         /// set telework features.
-        void SetTelework(std::shared_ptr<Population> pop);
+        void SetTelework(std::shared_ptr<Population> pop, util::RnMan& rnMan);
+
+        /// Public Health Strategy: look for contacts of infected cases and quarantine infected cases
+		void PerformContactTracing(std::shared_ptr<Population> pop, util::RnMan& rnMan, unsigned short int simDay);
 
 private:
-        const boost::property_tree::ptree& m_config; ///< Run config.
-        util::RnMan&                       m_rn_man; ///< Random number manager
+        double m_telework_probability;    ///< Probability to perform telework (or equivalent) //TODO rename "telework"
+        double m_detection_probability;   ///< Detection probability of symptomatic cases.
+        double m_case_finding_efficency;  ///< Detection probability of infected cases during case finding
+
 };
 
 } // namespace stride

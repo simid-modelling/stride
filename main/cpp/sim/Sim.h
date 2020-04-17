@@ -25,6 +25,7 @@
 #include "contact/ContactLogMode.h"
 #include "contact/InfectorExec.h"
 #include "contact/TransmissionProfile.h"
+#include "disease/PublicHealthAgency.h"
 
 #include "util/RnMan.h"
 
@@ -111,6 +112,7 @@ private:
         unsigned int                m_day_of_community_distancing;
         unsigned int     	        m_day_of_workplace_distancing;
 
+        PublicHealthAgency          m_public_health_agency;
 
         // Introduce new infected cases on a daily basis?
         unsigned int                m_num_daily_imported_cases;

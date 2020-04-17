@@ -42,7 +42,7 @@ Calendar::Calendar(const ptree& configPt) :
         m_date = boost::gregorian::from_simple_string(configPt.get<string>("run.start_date", "2016-01-01"));
 
         // Set holidays & school holidays
-        InitializeHolidays(configPt);
+        Initialize(configPt);
 }
 
 void Calendar::AdvanceDay()
@@ -61,7 +61,7 @@ unsigned short int Calendar::GetSimulationDay() const { return m_day; }
 
 size_t Calendar::GetYear() const { return m_date.year(); }
 
-void Calendar::InitializeHolidays(const ptree& configPt)
+void Calendar::Initialize(const ptree& configPt)
 {
         // Load json file
         ptree holidaysPt;
@@ -112,6 +112,14 @@ void Calendar::InitializeHolidays(const ptree& configPt)
 							m_community_distancing.push_back(boost::gregorian::from_simple_string(d));
 					}
 				}
+
+				// read in contact tracing data (if present)
+				if(holidaysPt.count("contact_tracing") != 0){
+					for (const auto& date : holidaysPt.get_child("contact_tracing." + month)) {
+							const string d = string(lead).append(date.second.get_value<string>());
+							m_contact_tracing.push_back(boost::gregorian::from_simple_string(d));
+					}
+				}
         }
 }
 
@@ -135,7 +143,7 @@ Calendar::Calendar(const boost::property_tree::ptree& configPt)
         // Set start date
         m_date = ConvertFromString(start_date);
         // Set holidays & school holidays
-        InitializeHolidays(configPt);
+        Initialize(configPt);
 }
 
 void Calendar::AdvanceDay()
@@ -144,7 +152,7 @@ void Calendar::AdvanceDay()
         m_date = static_cast<date::year_month_day>(static_cast<date::sys_days>(m_date) + date::days(1));
 }
 
-void Calendar::InitializeHolidays(const ptree& configPt)
+void Calendar::Initialize(const ptree& configPt)
 {
         // Load json file
         ptree holidaysPt;
@@ -191,7 +199,7 @@ void Calendar::InitializeHolidays(const ptree& configPt)
                         m_college_holidays.push_back(ConvertFromString(d.str()));
                 }
 
-                // read in soft lockdown data (if present)
+                // read in workplace distancing data (if present)
                 if(holidaysPt.count("workplace_distancing") != 0){
                 	for (const auto& date : holidaysPt.get_child("workplace_distancing." + month)) {
 							stringstream d;
@@ -201,7 +209,7 @@ void Calendar::InitializeHolidays(const ptree& configPt)
 							m_workplace_distancing.push_back(ConvertFromString(d.str()));
 					}
                 }
-                // read in soft lockdown data (if present)
+                // read in community distancing data (if present)
 				if(holidaysPt.count("community_distancing") != 0){
 					for (const auto& date : holidaysPt.get_child("community_distancing." + month)) {
 							stringstream d;
@@ -211,6 +219,18 @@ void Calendar::InitializeHolidays(const ptree& configPt)
 							m_community_distancing.push_back(ConvertFromString(d.str()));
 					}
 				}
+
+				// read in case_finding data (if present)
+				if(holidaysPt.count("contact_tracing") != 0){
+					for (const auto& date : holidaysPt.get_child("contact_tracing." + month)) {
+							stringstream d;
+							/// Append zero's due to a bug in stdc++ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=45896
+							d << year << "-" << setw(2) << setfill('0') << month << "-" << setw(2) << setfill('0')
+							  << date.second.get_value<string>();
+							m_contact_tracing.push_back(ConvertFromString(d.str()));
+					}
+				}
+
         }
 }
 

@@ -42,7 +42,8 @@ Sim::Sim()
       m_adaptive_symptomatic_behavior(false), m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_workplace(0), m_cnt_reduction_other(0),
 	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_intergeneration(0),m_cnt_reduction_intergeneration_cutoff(0),
-	  m_compliance_delay_workplace(0), m_compliance_delay_other(0), m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_num_daily_imported_cases(0)
+	  m_compliance_delay_workplace(0), m_compliance_delay_other(0), m_day_of_community_distancing(0), m_day_of_workplace_distancing(0),
+	  m_public_health_agency(),m_num_daily_imported_cases(0)
 {
 }
 
@@ -73,6 +74,7 @@ void Sim::TimeStep()
         const bool isCollegeOff     = daysOff->IsCollegeOff();
         const bool isWorkplaceDistancingEnforced   = daysOff->IsWorkplaceDistancingEnforced();
         const bool isCommunityDistancingEnforced   = daysOff->IsCommunityDistancingEnforced();
+        const bool isContactTracingActivated       = daysOff->IsContactTracingActivated();
 
         // increment the number of days in lock-down and account for compliance
 		double workplace_distancing_factor = 0.0;
@@ -129,6 +131,13 @@ void Sim::TimeStep()
 							m_adaptive_symptomatic_behavior,
 							isWorkplaceDistancingEnforced, m_handlers[thread_num]);
 			}
+
+			// Perform contact tracing (if activated)
+			if(isContactTracingActivated){
+				std::cout << "CONTACT TRACING" << endl;
+				m_public_health_agency.PerformContactTracing(m_population, m_rn_man, simDay);
+			}
+
 
 			// Infector updates individuals for contacts & transmission within each pool.
 			// Skip pools with id = 0, because it means Not Applicable.

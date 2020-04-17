@@ -34,7 +34,8 @@ Health::Health(unsigned short int start_infectiousness, unsigned short int start
 		m_sympt_cnt_reduction_work_school(sympt_cnt_reduction_work_school),
 		m_sympt_cnt_reduction_community(sympt_cnt_reduction_community),
 		m_rel_transmission_asymptomatic(rel_transmission_asymptomatic),
-		m_rel_susceptibility_children(rel_susceptibility_children)
+		m_rel_susceptibility_children(rel_susceptibility_children),
+		m_is_in_quarantine(false)
 {
 }
 
@@ -51,6 +52,8 @@ void Health::StopInfection()
 {
         AssertThrow(IsInfected(), "Person not infected", nullptr);
         m_status = HealthStatus::Recovered;
+
+        if(IsInQuarantine()){ EndQuarantine(); }
 }
 
 void Health::Update()

@@ -81,6 +81,16 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
 			m_in_pools[Id::Workplace]          = false;
 		}
 
+        // Update presence in contact pools if person is in quarantine
+        if(m_health.IsInQuarantine()){
+        	m_in_pools[Id::Household]          = false;  //TODO: no household transmission in quarantine?
+        	m_in_pools[Id::K12School]          = false;
+			m_in_pools[Id::College]            = false;
+			m_in_pools[Id::Workplace]          = false;
+        	m_in_pools[Id::PrimaryCommunity]   = false;
+        	m_in_pools[Id::SecondaryCommunity] = false;
+        }
+
 } // Person::Update()
 
 } // namespace stride

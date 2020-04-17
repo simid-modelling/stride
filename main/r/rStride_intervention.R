@@ -34,7 +34,7 @@ source('./bin/rstride/rStride.R')
 dir_postfix <- '_intervention'
 
 # store all transmission output
-store_transmission_rdata <- TRUE
+store_transmission_rdata <- FALSE
 
 ##################################
 ## DESIGN OF EXPERIMENTS        ##
@@ -57,18 +57,20 @@ exp_design <- expand.grid(r0                            = seq(3.5,3.5,0.1),
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           start_date                    = c('2020-02-22'),
                           #holidays_file                 = c("calendar_belgium_2020_covid19_may_workplace.json"),
-                          holidays_file                 = c("calendar_belgium_2020_covid19_may_school.json"),
-                          age_break_school_types        = c(18),
+                          holidays_file                 = c("calendar_belgium_2020_covid19_may_both.json"),
+                          age_break_school_types        = c(12),
                           telework_probability          = c(0),
-                          cnt_reduction_workplace       = c(0.8),
-                          cnt_reduction_other           = c(0.8),
-                          compliance_delay_workplace    = c(7),
+                          cnt_reduction_workplace       = c(0.7),
+                          cnt_reduction_other           = c(0.7),
+                          compliance_delay_workplace    = c(9),
                           compliance_delay_other        = c(14),
                           num_daily_imported_cases      = c(0),
-                          cnt_reduction_work_exit       = 0,
+                          cnt_reduction_workplace_exit  = 0,
                           cnt_reduction_other_exit      = 0,
                           cnt_reduction_intergeneration = c(0,0.95),
                           cnt_reduction_intergeneration_cutoff = 65,
+                          detection_probability          = c(0,0.5),
+                          case_finding_efficency         = 0.50,
                           stringsAsFactors = F)
 
 # add a unique seed for each run
@@ -82,7 +84,8 @@ dim(exp_design)
 project_dir <- run_rStride(exp_design               = exp_design,
                            dir_postfix              = dir_postfix, 
                            store_transmission_rdata = store_transmission_rdata,
-                           ignore_stdout = TRUE)
+                           remove_run_output = FALSE,
+                           ignore_stdout = FALSE)
 
 
 #####################################

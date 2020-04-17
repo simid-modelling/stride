@@ -78,7 +78,7 @@ shared_ptr<Population> DefaultPopBuilder::MakePersons(shared_ptr<Population> pop
                 const auto primaryCommunityId   = FromString<unsigned int>(values[4]);
                 const auto secondaryCommunityId = FromString<unsigned int>(values[5]);
 
-                //TODO: fix hard-coded age-breaks
+                //TODO: rename school types to current approach
                 unsigned int collegeId = 0;
                 if(schoolId != 0 && age >= age_break_school_types && age < 23){
                 	collegeId = schoolId;

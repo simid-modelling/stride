@@ -63,6 +63,12 @@ public:
 			return m_calendar->IsCommunityDistancingMandated();
 		}
 
+		/// See DaysOffInterface.
+		bool IsContactTracingActivated() override
+		{
+			return m_calendar->IsContactTracingActivated();
+		}
+
 
 private:
         std::shared_ptr<Calendar> m_calendar; ///< Management of calendar.
