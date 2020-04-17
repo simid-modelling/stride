@@ -39,7 +39,7 @@ class PublicHealthAgency
 {
 public:
 	    /// Default constructor
-	    PublicHealthAgency(){};
+	    PublicHealthAgency();
 
         /// Initializing PublicHealthAgency.
 		void Initialize(const boost::property_tree::ptree& config);
@@ -54,6 +54,7 @@ private:
         double m_telework_probability;    ///< Probability to perform telework (or equivalent) //TODO rename "telework"
         double m_detection_probability;   ///< Detection probability of symptomatic cases.
         double m_case_finding_efficency;  ///< Detection probability of infected cases during case finding
+        unsigned int m_case_finding_capacity;  ///< Maximum number of symptomatic cases with contact tracing per day
 
 };
 

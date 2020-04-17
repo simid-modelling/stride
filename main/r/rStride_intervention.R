@@ -69,8 +69,9 @@ exp_design <- expand.grid(r0                            = seq(3.5,3.5,0.1),
                           cnt_reduction_other_exit      = 0,
                           cnt_reduction_intergeneration = c(0,0.95),
                           cnt_reduction_intergeneration_cutoff = 65,
-                          detection_probability          = c(0,0.5),
+                          detection_probability          = c(0.1,0.2,0.3),
                           case_finding_efficency         = 0.50,
+                          case_finding_capacity          = c(2000),
                           stringsAsFactors = F)
 
 # add a unique seed for each run
@@ -84,8 +85,8 @@ dim(exp_design)
 project_dir <- run_rStride(exp_design               = exp_design,
                            dir_postfix              = dir_postfix, 
                            store_transmission_rdata = store_transmission_rdata,
-                           remove_run_output = FALSE,
-                           ignore_stdout = FALSE)
+                           remove_run_output = TRUE,
+                           ignore_stdout = TRUE)
 
 
 #####################################
@@ -113,5 +114,9 @@ inspect_incidence_data(project_dir)
 inspect_transmission_data(project_dir)
  
 
+##################################
+## EXPLORE CONTACT TRACING      ##
+##################################
+inspect_tracing_data(project_dir)
 
  

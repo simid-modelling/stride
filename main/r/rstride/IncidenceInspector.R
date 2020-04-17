@@ -24,6 +24,8 @@
 #' @param num_selection the number of experiments with minimal LS score to select and present
 inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_param=TRUE)
 {
+  # command line message
+  smd_print('INSPECT INCIDENCE DATA...')
   
   #debug
   if(!exists('num_selection')) {num_selection = 4}
@@ -248,6 +250,9 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     # project_summary[flag_param,]
   }
   
+  
+  # command line message
+  smd_print('INSPECTION OF TRANSMISSION DATA COMPLETE')
   
 } # end function
 

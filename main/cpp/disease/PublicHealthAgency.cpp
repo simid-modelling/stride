@@ -34,10 +34,16 @@ using namespace stride::ContactType;
 using namespace stride::util;
 using namespace std;
 
+// Default constructor
+PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),m_detection_probability(0),
+		m_case_finding_efficency(0),m_case_finding_capacity(0)
+	{}
+
 void PublicHealthAgency::Initialize(const ptree& config){
 	m_telework_probability   = config.get<double>("run.telework_probability",0);
 	m_detection_probability  = config.get<double>("run.detection_probability",0);
 	m_case_finding_efficency = config.get<double>("run.case_finding_efficency",0);
+	m_case_finding_capacity  = config.get<unsigned int>("run.case_finding_capacity",0);
 }
 
 void PublicHealthAgency::SetTelework(std::shared_ptr<Population> pop, util::RnMan& rnMan)
@@ -54,7 +60,8 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
                                             unsigned short int simDay)
 {
 
-	cout << m_detection_probability << " -- "<< m_case_finding_efficency << endl;
+//	cout << m_detection_probability << " -- "<< m_case_finding_efficency << " ** " << m_case_finding_capacity << endl;
+
 	// perform case finding, only if the probability is > 0.0
 	if (m_detection_probability <= 0.0) {
 			return;
@@ -65,13 +72,20 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 	auto& logger       = pop->RefContactLogger();
 
 	/// To allow iteration over pool types for the PublicHealthAgency.
-	std::initializer_list<Id> AgencyPoolIdList{Id::Household,Id::Workplace, Id::K12School, Id::College};
+	std::initializer_list<Id> AgencyPoolIdList{Id::Household, Id::Workplace, Id::K12School, Id::College};
+
+	/// Start counting tested cases
+	unsigned int num_cases_tested = 0;
 
 	for (auto& p_case : *pop) {
-			if (p_case.GetHealth().IsSymptomatic() && uniform01Gen() < m_detection_probability) {
+			if (p_case.GetHealth().IsSymptomatic() &&
+					!p_case.GetHealth().IsInQuarantine() &&
+					uniform01Gen() < m_detection_probability) {
 
 				// set case in quarantine
 				p_case.GetHealth().StartQuarantine();
+
+				unsigned int num_contacts_tested = 0;
 
 				// loop over his/her contacts
 				for (Id typ : AgencyPoolIdList) {
@@ -84,19 +98,38 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 					}
 
 					for (const auto& p_member : pools[poolId].GetPool()) {
-							if (p_case != *p_member && p_member->GetHealth().IsInfected() &&
-								uniform01Gen() < m_case_finding_efficency) {
+						if (p_case != *p_member &&
+								(typ == Id::Household || uniform01Gen() < m_case_finding_efficency)) {
 
-									// start quarantine measure
+								// start quarantine measure if infected
+								if(p_member->GetHealth().IsInfected()){
 									p_member->GetHealth().StartQuarantine();
-
 									// TODO: check log_level
-									logger->info("[QUAR] {} {} {} {} {} {} {} {}",
+									logger->info("[TRACE] {} {} {} {} {} {} {} {} {} {}",
 												 p_member->GetId(), p_member->GetAge(),
+												 p_member->GetHealth().IsInfected(),
+												 p_member->GetHealth().IsSymptomatic(),
 												 ToString(typ), poolId, p_case.GetId(),
-												 p_case.GetAge(), simDay, p_case.GetHealth().GetIdIndexCase());
-					}
-				}
+												 p_case.GetAge(), simDay, -1);
+								}
+
+								num_contacts_tested++;
+						} // end if clause
+				} // end for-loop: pool members
+			} // end for-loop: pool types
+
+			// TODO: check log_level
+			logger->info("[TRACE] {} {} {} {} {} {} {} {} {} {}",
+						 p_case.GetId(), p_case.GetAge(),
+						 p_case.GetHealth().IsInfected(),
+						 p_case.GetHealth().IsSymptomatic(),
+						 -1, -1, p_case.GetId(),
+						 p_case.GetAge(), simDay, num_contacts_tested);
+
+			// update counter and end if limit is reached
+			num_cases_tested++;
+			if(num_cases_tested >= m_case_finding_capacity){
+				return;
 			}
 		}
 	}

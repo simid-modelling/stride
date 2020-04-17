@@ -50,6 +50,7 @@ source('./bin/rstride/LogParser.R')
 source('./bin/rstride/IncidenceInspector.R')
 source('./bin/rstride/SummaryInspector.R')
 source('./bin/rstride/SurveyParticipantInspector.R')
+source('./bin/rstride/TracingInspector.R')
 source('./bin/rstride/TransmissionAnalyst.R')
 source('./bin/rstride/TransmissionInspector.R')
 
@@ -72,6 +73,18 @@ run_rStride <- function(exp_design               = exp_design,
                         store_transmission_rdata = TRUE, 
                         use_date_prefix          = TRUE)
 {
+  
+  # debug
+  if(0==1){
+    attach(list(exp_design               = exp_design, 
+                dir_postfix              = '',
+                ignore_stdout            = TRUE, 
+                parse_log_data           = TRUE,
+                get_csv_output           = FALSE,
+                remove_run_output        = TRUE,
+                store_transmission_rdata = TRUE, 
+                use_date_prefix          = TRUE))
+  }
   
   # command line message
   smd_print('STARTING rSTRIDE CONTROLLER')
