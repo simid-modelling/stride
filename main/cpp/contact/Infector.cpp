@@ -208,12 +208,12 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                                         auto& h2 = p2->GetHealth();
                                         // No secondary infections with TIC; just mark p2 'recovered'
                                         if (h1.IsInfectious() && h2.IsSusceptible()) {
-                                                h2.StartInfection(h1.GetIdIndexCase());
+                                                h2.StartInfection(h1.GetIdIndexCase(),p1->GetId());
                                                 if (TIC)
                                                         h2.StopInfection();
                                                 LP::Trans(cLogger, p1, p2, pType, simDay, h1.GetIdIndexCase());
                                         } else if (h2.IsInfectious() && h1.IsSusceptible()) {
-                                                h1.StartInfection(h2.GetIdIndexCase());
+                                                h1.StartInfection(h2.GetIdIndexCase(),p2->GetId());
                                                 if (TIC)
                                                         h1.StopInfection();
                                                 LP::Trans(cLogger, p2, p1, pType, simDay, h2.GetIdIndexCase());
@@ -274,7 +274,7 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                                 if (cHandler.HasContactAndTransmission(cProb_p1, tProb * p1->GetHealth().GetRelativeTransmission(p2->GetAge()))) {
                                         auto& h2 = p2->GetHealth();
                                         if (h1.IsInfectious() && h2.IsSusceptible()) {
-                                                h2.StartInfection(h1.GetIdIndexCase());
+                                                h2.StartInfection(h1.GetIdIndexCase(),p1->GetId());
                                                 // No secondary infections with TIC; just mark p2 'recovered'
                                                 if (TIC)
                                                         h2.StopInfection();

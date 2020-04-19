@@ -55,6 +55,9 @@ private:
         double m_detection_probability;   ///< Detection probability of symptomatic cases.
         double m_case_finding_efficency;  ///< Detection probability of infected cases during case finding
         unsigned int m_case_finding_capacity;  ///< Maximum number of symptomatic cases with contact tracing per day
+        unsigned int m_delay_testing;         ///< Number of days after symptom onset to perform a clinical test
+        unsigned int m_delay_contact_tracing; ///< Number of days after clinical test to start contact tracing
+		double m_test_false_negative;         ///< False negative rate of PCR tests
 
 };
 

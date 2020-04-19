@@ -57,8 +57,9 @@ inspect_tracing_data <- function(project_dir)
 
   ## ENSEMBLE  ####
   .rstride$create_pdf(project_dir,'contact_tracing',width = 7, height = 7)
-
-  opt_config <- unique(project_summary$config_id)
+  par(mar=c(6,5,4,1))
+  
+  opt_config <- unique(data_tracing_all$config_id)
   i_config <- 1
   for(i_config in 1:length(opt_config)){
     
@@ -74,28 +75,84 @@ inspect_tracing_data <- function(project_dir)
     
     # index cases
     data_tracing_index       <- data_tracing_sel[data_tracing_sel$pool_type == '-1',]
-    tracing_num_day_index    <- aggregate(num_tests ~ sim_day_date + exp_id + config_id, data = data_tracing_index, sum)
+    tracing_num_day_index    <- aggregate(num_tests ~ sim_day_date + sim_day + exp_id + config_id, data = data_tracing_index, sum)
     tracing_num_day_contacts <- aggregate(num_contacts_tested ~ sim_day_date + exp_id + config_id, data = data_tracing_index, sum)
+    tracing_num_day_contacts_mean <- aggregate(num_contacts_tested ~ sim_day_date + exp_id + config_id, data = data_tracing_index, mean)
+    
     
     # contacts in quarentine
-    data_tracing_contacts <- data_tracing_sel[data_tracing_sel$pool_type != '-1',]
+    data_tracing_contacts      <- data_tracing_sel[data_tracing_sel$pool_type != '-1',]
     tracing_num_day_identified <- aggregate(num_tests ~ sim_day_date + exp_id + config_id, data = data_tracing_contacts, sum)
+    tracing_num_day_sympt      <- aggregate(num_tests ~ sim_day_date + sim_day + exp_id + config_id + is_symptomatic, data = data_tracing_contacts, sum)
+    tracing_num_day_sympt_mean <- aggregate(num_tests ~ sim_day_date + config_id + is_symptomatic, data = tracing_num_day_sympt, mean)
+    
     
     y_lim <- range(0,tracing_num_day_index$num_tests)
     boxplot(num_tests ~ sim_day_date, data=tracing_num_day_index,
             ylab='index cases',main=opt_config[i_config],
-            ylim = y_lim,las=2,xlab='',cex=0.8)
+            ylim = y_lim,las=2,xlab='',cex=0.8,
+            xaxt='n')
+    
+    x_ticks_label <- format(unique(tracing_num_day_index$sim_day_date),'%d/%m')
+    x_ticks       <- seq(1,length(x_ticks_label),7)
+    x_ticks_label <- x_ticks_label[x_ticks]
+    axis(1,x_ticks,x_ticks_label,las=2)
+    grid(nx=NA,ny=NULL)
+    abline(v=x_ticks,lty=3,col='lightgray')
+    
+    
+    plot(tracing_num_day_sympt_mean$sim_day_date,
+         tracing_num_day_sympt_mean$num_tests,
+         col=tracing_num_day_sympt_mean$is_symptomatic+1,
+         type='p',
+         pch=16,
+         xlab='',
+         ylab='Secondary cases identified and isolated',
+         main=opt_config[i_config])
+    legend('topright',
+           c('asymptomatic',
+             'symptomatic'),
+           pch=16,
+           col=1:2)
+    
     boxplot(num_contacts_tested ~ sim_day_date, data=tracing_num_day_contacts,
-            las=2,ylab='total number of contacts tested',main=opt_config[i_config])
-    boxplot(num_tests ~ sim_day_date, data=tracing_num_day_identified,
-            las=2,ylab='infected case identified',main=opt_config[i_config])
+            las=2,ylab='total number of contacts tested',main=opt_config[i_config],
+            xaxt='n')
+    
+    x_ticks_label <- format(unique(tracing_num_day_contacts$sim_day_date),'%d/%m')
+    x_ticks       <- seq(1,length(x_ticks_label),7)
+    x_ticks_label <- x_ticks_label[x_ticks]
+    axis(1,x_ticks,x_ticks_label,las=2)
+    grid(nx=NA,ny=NULL)
+    abline(v=x_ticks,lty=3,col='lightgray')
+    
+    
+    boxplot(num_contacts_tested ~ sim_day_date, data = data_tracing_index,
+            las=2,ylab='contacts tested per index case',main=opt_config[i_config],
+            xaxt='n')
+    
+    x_ticks_label <- format(unique(data_tracing_index$sim_day_date),'%d/%m')
+    x_ticks       <- seq(1,length(x_ticks_label),7)
+    x_ticks_label <- x_ticks_label[x_ticks]
+    axis(1,x_ticks,x_ticks_label,las=2)
+    grid(nx=NA,ny=NULL)
+    abline(v=x_ticks,lty=3,col='lightgray')
+
+    boxplot(num_contacts_tested ~ sim_day_date, data = data_tracing_index,outline=F,
+            las=2,ylab='contacts tested per index case',main=opt_config[i_config],
+            xaxt='n')
+    
+    axis(1,x_ticks,x_ticks_label,las=2)
+    grid(nx=NA,ny=NULL)
+    abline(v=x_ticks,lty=3,col='lightgray')
+    
     
     }
   
   # close pdf stream
   dev.off()
   
-  # command line message
+   # command line message
   smd_print('INSPECTION OF CONTACT TRACING DATA COMPLETE')
 }
 

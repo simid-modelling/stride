@@ -67,11 +67,12 @@ exp_design <- expand.grid(r0                            = seq(3.5,3.5,0.1),
                           num_daily_imported_cases      = c(0),
                           cnt_reduction_workplace_exit  = 0,
                           cnt_reduction_other_exit      = 0,
-                          cnt_reduction_intergeneration = c(0,0.95),
+                          cnt_reduction_intergeneration = c(0.9),
                           cnt_reduction_intergeneration_cutoff = 65,
-                          detection_probability          = c(0.1,0.2,0.3),
-                          case_finding_efficency         = 0.50,
+                          detection_probability          = c(0.1),
+                          case_finding_efficency         = 0.5,
                           case_finding_capacity          = c(2000),
+                          delay_contact_tracing          = c(1),
                           stringsAsFactors = F)
 
 # add a unique seed for each run
