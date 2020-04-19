@@ -70,8 +70,10 @@ void Sim::TimeStep()
         // number of sick persons, duration of epidemic etc) what kind of DaysOff scheme you apply.
         const auto daysOff          = std::make_shared<DaysOffStandard>(m_calendar);
         const bool isRegularWeekday = daysOff->IsRegularWeekday();
-        const bool isK12SchoolOff   = daysOff->IsK12SchoolOff();
-        const bool isCollegeOff     = daysOff->IsCollegeOff();
+        const bool isPreSchoolOff       = daysOff->IsPreSchoolOff();
+        const bool isPrimarySchoolOff   = daysOff->IsPrimarySchoolOff();
+        const bool isSecondarySchoolOff = daysOff->IsSecondarySchoolOff();
+        const bool isCollegeOff         = daysOff->IsCollegeOff();
         const bool isWorkplaceDistancingEnforced   = daysOff->IsWorkplaceDistancingEnforced();
         const bool isCommunityDistancingEnforced   = daysOff->IsCommunityDistancingEnforced();
         const bool isContactTracingActivated       = daysOff->IsContactTracingActivated();
@@ -127,9 +129,18 @@ void Sim::TimeStep()
 			// we want to track index cases without adaptive behavior
 #pragma omp for schedule(static)
 			for (size_t i = 0; i < population.size(); ++i) {
-					population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
-							m_adaptive_symptomatic_behavior,
-							isWorkplaceDistancingEnforced, m_handlers[thread_num]);
+
+				// adjust K12SchoolOff boolean to school type for individual 'i'
+				bool isK12SchoolOff  = false;
+				unsigned int age     = population[i].GetAge();
+				if(isPreSchoolOff && age < 6)                     {  isK12SchoolOff = true; } //TODO : fix hard coded age intervals
+				if(isPrimarySchoolOff && age < 12 && age >= 6)    {  isK12SchoolOff = true; }
+				if(isSecondarySchoolOff && age < 18 && age >= 12) {  isK12SchoolOff = true; }
+
+				// update presence
+				population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
+						m_adaptive_symptomatic_behavior,
+						isWorkplaceDistancingEnforced, m_handlers[thread_num]);
 			}
 
 			// Perform contact tracing (if activated)
@@ -138,6 +149,8 @@ void Sim::TimeStep()
 				m_public_health_agency.PerformContactTracing(m_population, m_rn_man, simDay);
 			}
 
+			// skip all K12 school pools?
+			bool isK12SchoolOff = (isPreSchoolOff && isPrimarySchoolOff && isSecondarySchoolOff);
 
 			// Infector updates individuals for contacts & transmission within each pool.
 			// Skip pools with id = 0, because it means Not Applicable.

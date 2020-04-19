@@ -31,8 +31,14 @@ public:
         /// Whether today is a regular weekday (= NO weekend or holiday).
         virtual bool IsRegularWeekday() = 0;
 
-        /// Whether today K12-schools are off.
-        virtual bool IsK12SchoolOff() = 0;
+        /// Whether today pre-schools are off.
+        virtual bool IsPreSchoolOff() = 0;
+
+        /// Whether today primary schools are off.
+        virtual bool IsPrimarySchoolOff() = 0;
+
+        /// Whether today secondary schools are off.
+        virtual bool IsSecondarySchoolOff() = 0;
 
         /// Whether today college is off.
         virtual bool IsCollegeOff() = 0;

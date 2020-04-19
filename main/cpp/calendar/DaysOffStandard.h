@@ -40,10 +40,22 @@ public:
         bool IsRegularWeekday() override { return !(m_calendar->IsWeekend() || m_calendar->IsPublicHoliday()); }
 
         /// See DaysOffInterface.
-        bool IsK12SchoolOff() override
+        bool IsPreSchoolOff() override
         {
-        	return m_calendar->IsWeekend() || m_calendar->IsPublicHoliday() || m_calendar->IsK12SchoolClosed();
+        	return m_calendar->IsWeekend() || m_calendar->IsPublicHoliday() || m_calendar->IsPreSchoolClosed();
         }
+
+        /// See DaysOffInterface.
+		bool IsPrimarySchoolOff() override
+		{
+			return m_calendar->IsWeekend() || m_calendar->IsPublicHoliday() || m_calendar->IsPrimarySchoolClosed();
+		}
+
+		/// See DaysOffInterface.
+		bool IsSecondarySchoolOff() override
+		{
+			return m_calendar->IsWeekend() || m_calendar->IsPublicHoliday() || m_calendar->IsSecondarySchoolClosed();
+		}
 
         /// See DaysOffInterface.
 		bool IsCollegeOff() override
