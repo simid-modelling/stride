@@ -36,8 +36,8 @@ using boost::property_tree::ptree;
 
 Calendar::Calendar(const ptree& configPt) :
 		m_date(), m_public_holidays(), m_preschool_holidays(), m_primary_school_holidays(),
-		  m_secondary_school_holidays(), m_college_holidays(),
-		m_workplace_distancing(), m_community_distancing() ,m_day(0U)
+		  m_secondary_school_holidays(), m_college_holidays(), m_workplace_distancing(),
+		  m_community_distancing(), m_contact_tracing(), m_day(0U)
 {
         // Set start date
         m_date = boost::gregorian::from_simple_string(configPt.get<string>("run.start_date", "2020-01-01"));
@@ -149,8 +149,8 @@ date::year_month_day ConvertFromString(const string& day)
 
 Calendar::Calendar(const boost::property_tree::ptree& configPt)
     : m_date(), m_public_holidays(), m_preschool_holidays(),m_primary_school_holidays(),
-	  m_secondary_school_holidays(), m_college_holidays(),
-	  m_distancing_workplace(), m_community_distancing(), m_day(static_cast<size_t>(0))
+	  m_secondary_school_holidays(), m_college_holidays(), m_distancing_workplace(),
+	  m_community_distancing(), m_contact_tracing(), m_day(static_cast<size_t>(0))
 {
         const string start_date{configPt.get<string>("run.start_date", "2020-01-01")};
         // Set start date

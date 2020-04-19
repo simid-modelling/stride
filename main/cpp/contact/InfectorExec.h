@@ -33,7 +33,7 @@ class ContactHandler;
 typedef void(InfectorExec)(ContactPool& pool, const AgeContactProfile& profile,
                            const TransmissionProfile& trans_profile, ContactHandler& c_handler,
                            unsigned short int sim_day, std::shared_ptr<spdlog::logger> c_logger,
-						   double cnt_reduction_work, double cnt_reduction_other,
+						   double cnt_reduction_work, double cnt_reduction_other, double cnt_reduction_school,
 						   double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff);
 
 } // namespace stride

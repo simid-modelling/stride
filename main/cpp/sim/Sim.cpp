@@ -41,9 +41,9 @@ Sim::Sim()
     : m_config(), m_contact_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
       m_adaptive_symptomatic_behavior(false), m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_workplace(0), m_cnt_reduction_other(0),
-	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_intergeneration(0),m_cnt_reduction_intergeneration_cutoff(0),
-	  m_compliance_delay_workplace(0), m_compliance_delay_other(0), m_day_of_community_distancing(0), m_day_of_workplace_distancing(0),
-	  m_public_health_agency(),m_num_daily_imported_cases(0)
+	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
+	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),
+	  m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_public_health_agency(),m_num_daily_imported_cases(0)
 {
 }
 
@@ -109,6 +109,14 @@ void Sim::TimeStep()
 			intergeneration_distancing_factor = m_cnt_reduction_intergeneration;
 		}
 
+		// get distancing at school
+		double school_distancing_factor = 0.0;
+		if(m_day_of_workplace_distancing > 0){
+			school_distancing_factor = m_cnt_reduction_school_exit;
+
+		}
+
+
         // To be used in update of population & contact pools.
         Population& population    = *m_population;
         auto&       poolSys       = population.RefPoolSys();
@@ -131,11 +139,7 @@ void Sim::TimeStep()
 			for (size_t i = 0; i < population.size(); ++i) {
 
 				// adjust K12SchoolOff boolean to school type for individual 'i'
-				bool isK12SchoolOff  = false;
-				unsigned int age     = population[i].GetAge();
-				if(isPreSchoolOff && age < 6)                     {  isK12SchoolOff = true; } //TODO : fix hard coded age intervals
-				if(isPrimarySchoolOff && age < 12 && age >= 6)    {  isK12SchoolOff = true; }
-				if(isSecondarySchoolOff && age < 18 && age >= 12) {  isK12SchoolOff = true; }
+				bool isK12SchoolOff = m_public_health_agency.IsK12SchoolOff(population[i].GetAge(),isPreSchoolOff,isPrimarySchoolOff,isSecondarySchoolOff);
 
 				// update presence
 				population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
@@ -166,6 +170,7 @@ void Sim::TimeStep()
 									 m_handlers[thread_num], simDay, contactLogger,
 									 workplace_distancing_factor,
 									 community_distancing_factor,
+									 school_distancing_factor,
 									 intergeneration_distancing_factor,m_cnt_reduction_intergeneration_cutoff);
 					}
 			}

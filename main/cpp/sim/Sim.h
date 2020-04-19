@@ -105,6 +105,7 @@ private:
         double                      m_cnt_reduction_other;
         double                      m_cnt_reduction_workplace_exit;
         double                      m_cnt_reduction_other_exit;
+        double                      m_cnt_reduction_school_exit;
         double                      m_cnt_reduction_intergeneration;
         unsigned int                m_cnt_reduction_intergeneration_cutoff;
         unsigned int                m_compliance_delay_workplace;

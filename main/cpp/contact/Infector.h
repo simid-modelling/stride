@@ -72,7 +72,7 @@ public:
         ///
         static void Exec(ContactPool& pool, const AgeContactProfile& profile, const TransmissionProfile& transProfile,
                          ContactHandler& cHandler, unsigned short int simDay, std::shared_ptr<spdlog::logger> cLogger,
-						 double cnt_reduction_work, double cnt_reduction_other,
+						 double cnt_reduction_work, double cnt_reduction_other, double cnt_reduction_school,
 						 double cnt_reduction_intergenearion, unsigned int cnt_reduction_intergeneration_cutoff);
 };
 
@@ -86,7 +86,7 @@ public:
         ///
         static void Exec(ContactPool& pool, const AgeContactProfile& profile, const TransmissionProfile& transProfile,
                          ContactHandler& cHandler, unsigned short int simDay, std::shared_ptr<spdlog::logger> cLogger,
-						 double cnt_reduction_work, double cnt_reduction_other,
+						 double cnt_reduction_work, double cnt_reduction_other, double cnt_reduction_school,
 						 double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff);
 };
 

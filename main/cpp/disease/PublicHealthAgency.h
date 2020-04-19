@@ -29,6 +29,7 @@
 
 namespace stride {
 
+class Calendar;
 class Population;
 class Sim;
 
@@ -50,6 +51,8 @@ public:
         /// Public Health Strategy: look for contacts of infected cases and quarantine infected cases
 		void PerformContactTracing(std::shared_ptr<Population> pop, util::RnMan& rnMan, unsigned short int simDay);
 
+		bool IsK12SchoolOff(unsigned int age, bool isPreSchoolOff, bool isPrimarySchoolOff, bool isSecondarySchoolOff);
+
 private:
         double m_telework_probability;    ///< Probability to perform telework (or equivalent) //TODO rename "telework"
         double m_detection_probability;   ///< Detection probability of symptomatic cases.
@@ -60,6 +63,7 @@ private:
 		double m_test_false_negative;         ///< False negative rate of PCR tests
 		bool m_identify_all_cases;            ///< Boolean to identify all cases in the network of the index, or only his/her secondary cases
 
+		bool m_school_system_adjusted;         ///< Apply adjusted school system for pre-, primary and secondary schools?
 };
 
 } // namespace stride

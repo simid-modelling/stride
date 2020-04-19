@@ -45,7 +45,6 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     return(NA)
   }
   
- 
   # add config_id 
   # get variable names of input_opt_design (fix if only one column)
   if(ncol(input_opt_design) == 1) {
@@ -56,10 +55,21 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     input_opt_design$config_id <- apply(input_opt_design,1,paste, collapse='_')
   }
   
-  # add config_id to incidence data
-  data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id')] )
-
+  # to generate contact tracing id
+  flag_opt_input_tracing <- !(grepl('cnt_reduction',names(input_opt_design)) | grepl('config_id',names(input_opt_design)))
+  colnames_tracing           <- names(input_opt_design)[flag_opt_input_tracing]
+  if(length(colnames_tracing) == 1) {
+    project_summary$tracing_id  <- project_summary[,colnames_tracing]
+    input_opt_design            <- data.frame(input_opt_design, 
+                                              tracing_id = unlist(input_opt_design[colnames_tracing]))
+  } else{
+    project_summary$tracing_id  <- apply(project_summary[,colnames_tracing],1,paste, collapse='_')
+    input_opt_design$tracing_id <- apply(input_opt_design[,colnames_tracing],1,paste, collapse='_')
+  }
   
+  # add config_id and tracing_id to incidence data
+  data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id','tracing_id')] )
+
   ## REFERENCE DATA COVID-19: new hospitalisation
   file_name <- './data/covid19.csv'
   burden_of_disaese  <- read.table(file_name,sep=',',header=T,stringsAsFactors = F)
@@ -242,20 +252,51 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   #   }
   # }
   
-  ## contact tracing     ####
+  # ## contact tracing     ####
+  # ## PER contact tracing level
+  # if('detection_probability' %in% names(input_opt_design)){
+  #   opt_detection <- unique(input_opt_design$detection_probability)
+  #   if(length(opt_detection)>0){
+  #     .rstride$create_pdf(project_dir,'incidence_contact_trancing',width = 6, height = 8)
+  #     par(mfrow=c(4,1))
+  #     
+  #     
+  #     i_detection <- opt_detection[1]
+  #     for(i_detection in opt_detection){
+  #       
+  #       # select config_id
+  #       opt_config_id <- unique(input_opt_design$config_id[input_opt_design$detection_probability ==  i_detection])
+  #       
+  #       # select subset
+  #       data_incidence_sel <- data_incidence_all[data_incidence_all$config_id %in% opt_config_id,]
+  #       dim(data_incidence_sel)
+  #       
+  #       # check selection
+  #       if(nrow(data_incidence_sel)>0){
+  #         # plot
+  #         plot_incidence_data(data_incidence_sel,project_summary,
+  #                             hosp_adm_data,input_opt_design,
+  #                             bool_add_param)
+  #       }
+  #     }
+  #     
+  #     # close pdf
+  #     dev.off()
+  #   }
+  # }
+  
   ## PER contact tracing level
-  if('detection_probability' %in% names(input_opt_design)){
-    opt_detection <- unique(input_opt_design$detection_probability)
-    if(length(opt_detection)>0){
+    opt_tracing <- unique(input_opt_design$tracing_id)
+    if(length(opt_tracing)>0){
       .rstride$create_pdf(project_dir,'incidence_contact_trancing',width = 6, height = 8)
       par(mfrow=c(4,1))
       
       
-      i_detection <- opt_detection[1]
-      for(i_detection in opt_detection){
+      i_detection <- opt_tracing[1]
+      for(i_tracing in opt_tracing){
         
         # select config_id
-        opt_config_id <- unique(input_opt_design$config_id[input_opt_design$detection_probability ==  i_detection])
+        opt_config_id <- unique(input_opt_design$config_id[input_opt_design$tracing_id ==  i_tracing])
         
         # select subset
         data_incidence_sel <- data_incidence_all[data_incidence_all$config_id %in% opt_config_id,]
@@ -273,10 +314,9 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
       # close pdf
       dev.off()
     }
-  }
   
   
-  
+
   ## AVERAGE
   .rstride$create_pdf(project_dir,'incidence_average',width = 6, height = 4)
   
@@ -297,7 +337,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   add_breakpoints()
   add_legend_hosp(pcolor<- data.frame(D = 1,H=4))
   
-  tmp_end <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_all[data_incidence_all$sim_date == max(data_incidence_all$sim_date),], mean)
+  tmp_end <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_all[data_incidence_all$sim_date == max(data_incidence_all$sim_date,na.rm=T),], mean)
   tmp_end$config_id
   text(tmp_end$sim_date,
        tmp_end$new_hospital_admissions,

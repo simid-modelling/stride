@@ -20,6 +20,7 @@
 
 #include "PublicHealthAgency.h"
 
+#include "calendar/DaysOffStandard.h"
 #include "pop/Population.h"
 #include "util/FileSys.h"
 #include "util/LogUtils.h"
@@ -37,7 +38,7 @@ using namespace std;
 // Default constructor
 PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),m_detection_probability(0),
 		m_case_finding_efficency(0),m_case_finding_capacity(0),m_delay_testing(0),m_delay_contact_tracing(0),
-		m_test_false_negative(0), m_identify_all_cases(false)
+		m_test_false_negative(0), m_identify_all_cases(false), m_school_system_adjusted(false)
 	{}
 
 void PublicHealthAgency::Initialize(const ptree& config){
@@ -50,6 +51,8 @@ void PublicHealthAgency::Initialize(const ptree& config){
 	m_delay_contact_tracing  = config.get<unsigned int>("run.delay_contact_tracing",1);
 	m_test_false_negative    = config.get<double>("run.test_false_negative",0.3);
 	m_identify_all_cases     = config.get<unsigned int>("run.identify_all_cases",1) == 1;
+
+	m_school_system_adjusted = config.get<unsigned int>("run.school_system_adjusted",0) == 1;
 
 	// account for false negative tests
 	m_detection_probability  *= (1-m_test_false_negative);
@@ -64,6 +67,40 @@ void PublicHealthAgency::SetTelework(std::shared_ptr<Population> pop, util::RnMa
 		}
 	}
 }
+
+bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff, bool isPrimarySchoolOff, bool isSecondarySchoolOff){
+
+	// apply adjusted scheme based on covid-19 exit strategies?
+	if(m_school_system_adjusted){
+
+		// note: use school types to differentiate in timing, with specific ages
+		// "primary school"   => selection for primary school (1st, 5th and 6th)
+		// "secondary school" => only 6th year
+		// "preschool"        => selection of 2nd and 4th of secondary school
+
+		if(!isPrimarySchoolOff && age == 6)  { return false; }
+		if(!isPrimarySchoolOff && age == 10) { return false; }
+		if(!isPrimarySchoolOff && age == 11) { return false; }
+
+		if(!isSecondarySchoolOff && age == 17) { return false; }
+
+		if(!isPreSchoolOff && age == 13) { return false; }
+		if(!isPreSchoolOff && age == 15) { return false; }
+
+
+	} else {// note: use school types to differentiate in timing, with regular age groups
+			if(!isPreSchoolOff && age < 6)                     {  return false; } //TODO : fix hard coded age intervals
+			if(!isPrimarySchoolOff && age < 12 && age >= 6)    {  return false; }
+			if(!isSecondarySchoolOff && age < 18 && age >= 12) {  return false; }
+	}
+
+	return true;
+
+
+
+}
+
+
 
 void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, util::RnMan& rnMan,
                                             unsigned short int simDay)
