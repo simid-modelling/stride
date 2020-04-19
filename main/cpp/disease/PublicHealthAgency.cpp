@@ -49,7 +49,7 @@ void PublicHealthAgency::Initialize(const ptree& config){
 	m_delay_testing          = config.get<unsigned int>("run.delay_testing",3);
 	m_delay_contact_tracing  = config.get<unsigned int>("run.delay_contact_tracing",1);
 	m_test_false_negative    = config.get<double>("run.test_false_negative",0.3);
-	m_identify_all_cases     = config.get<unsigned int>("run.identify_all_cases",0) == 1;
+	m_identify_all_cases     = config.get<unsigned int>("run.identify_all_cases",1) == 1;
 
 	// account for false negative tests
 	m_detection_probability  *= (1-m_test_false_negative);
@@ -104,6 +104,11 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 					const auto& pools  = pop->CRefPoolSys().CRefPools(typ);
 					const auto  poolId = p_case.GetPoolId(typ);
 					if (poolId == 0) {
+							continue;
+					}
+
+					//TODO: skip contact tracing if more than 50p present in this pool
+					if (pools[poolId].GetPool().size() > 50) {
 							continue;
 					}
 
