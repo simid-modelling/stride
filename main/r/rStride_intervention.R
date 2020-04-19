@@ -73,6 +73,7 @@ exp_design <- expand.grid(r0                            = seq(3.5,3.5,0.1),
                           case_finding_efficency         = 0.5,
                           case_finding_capacity          = c(2000),
                           delay_contact_tracing          = c(1),
+                          identify_all_cases             = c(0,1),
                           stringsAsFactors = F)
 
 # add a unique seed for each run

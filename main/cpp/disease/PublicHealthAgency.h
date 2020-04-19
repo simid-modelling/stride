@@ -58,6 +58,7 @@ private:
         unsigned int m_delay_testing;         ///< Number of days after symptom onset to perform a clinical test
         unsigned int m_delay_contact_tracing; ///< Number of days after clinical test to start contact tracing
 		double m_test_false_negative;         ///< False negative rate of PCR tests
+		bool m_identify_all_cases;            ///< Boolean to identify all cases in the network of the index, or only his/her secondary cases
 
 };
 

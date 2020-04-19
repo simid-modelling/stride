@@ -37,7 +37,7 @@ using namespace std;
 // Default constructor
 PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),m_detection_probability(0),
 		m_case_finding_efficency(0),m_case_finding_capacity(0),m_delay_testing(0),m_delay_contact_tracing(0),
-		m_test_false_negative(0)
+		m_test_false_negative(0), m_identify_all_cases(false)
 	{}
 
 void PublicHealthAgency::Initialize(const ptree& config){
@@ -49,6 +49,7 @@ void PublicHealthAgency::Initialize(const ptree& config){
 	m_delay_testing          = config.get<unsigned int>("run.delay_testing",3);
 	m_delay_contact_tracing  = config.get<unsigned int>("run.delay_contact_tracing",1);
 	m_test_false_negative    = config.get<double>("run.test_false_negative",0.3);
+	m_identify_all_cases     = config.get<unsigned int>("run.identify_all_cases",0) == 1;
 
 	// account for false negative tests
 	m_detection_probability  *= (1-m_test_false_negative);
@@ -111,9 +112,9 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 								(typ == Id::Household ||
 										uniform01Gen() < m_case_finding_efficency)) {
 
-								// start quarantine measure if infected and if no false negative
+								// start quarantine measure if infected, no false negative and linked with index cases (optional)
 								if(p_member->GetHealth().IsInfected() &&
-										p_member->GetHealth().GetIdInfector() == p_case.GetId() &&
+										(m_identify_all_cases || p_member->GetHealth().GetIdInfector() == p_case.GetId()) &&
 										uniform01Gen() < (1-m_test_false_negative)){
 
 //									std::cout << "case found!!" << std::endl;
