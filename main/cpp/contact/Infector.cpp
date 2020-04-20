@@ -137,7 +137,9 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
         if(pType == Id::Workplace){
         	contact_probability = contact_probability * (1-cnt_reduction_work);
         }
-		if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity)){
+
+        // persons who are in 'non-compliance hotspot' do not apply contact reduction in community
+		if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity) and not (p1->IsInHotspot()) and not (p2->IsInHotspot())){
 			contact_probability = contact_probability * (1-cnt_reduction_other);
 		}
 

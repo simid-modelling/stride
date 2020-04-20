@@ -36,14 +36,14 @@ class Person
 {
 public:
         /// Default construction (for population vector).
-        Person() : m_age(0.0), m_id(0), m_pool_ids(), m_health(), m_in_pools(), m_is_participant(), m_teleworking() {}
+        Person() : m_age(0.0), m_id(0), m_pool_ids(), m_health(), m_in_pools(), m_is_participant(), m_teleworking(), m_is_in_hotspot() {}
 
         /// Constructor: set the person data.
         Person(unsigned int id, float age, unsigned int householdId, unsigned int k12SchoolId, unsigned int collegeId,
                unsigned int workId, unsigned int primaryCommunityId, unsigned int secondaryCommunityId)
             : m_age(age), m_id(id), m_pool_ids{householdId, k12SchoolId,        collegeId,
                                                workId,      primaryCommunityId, secondaryCommunityId},
-              m_health(), m_in_pools(true), m_is_participant(false), m_teleworking(false)
+              m_health(), m_in_pools(true), m_is_participant(false), m_teleworking(false), m_is_in_hotspot(false)
         {
         }
 
@@ -96,6 +96,8 @@ public:
 
         bool IsTeleworking() const { return m_teleworking;}
 
+        bool IsInHotspot() const { return m_is_in_hotspot; }
+
 private:
         float        m_age; ///< The age.
         unsigned int m_id;  ///< The id.
@@ -115,6 +117,9 @@ private:
 
         ///< Is the participant teleworking?
         bool m_teleworking;
+
+        ///< Is the person in a 'non-compliance' hotspot?
+        bool m_is_in_hotspot;
 };
 
 } // namespace stride
