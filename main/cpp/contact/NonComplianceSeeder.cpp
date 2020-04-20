@@ -60,7 +60,7 @@ shared_ptr<Population> NonComplianceSeeder::Seed(shared_ptr<Population> pop)
 				 }
 
 				 // Set person to be non-complier
-				 p.SetNonComplier();
+				 RegisterNonComplier(pop, p);
 
 				 // Update number of remaining samples
 				 numNonCompliers++;
@@ -80,13 +80,23 @@ shared_ptr<Population> NonComplianceSeeder::Seed(shared_ptr<Population> pop)
 			for (Person& p : population) {
 				auto hhID = p.GetPoolId(Id::Household);
 				if (find(households_in_hotspots.begin(), households_in_hotspots.end(), hhID) != households_in_hotspots.end()) {
-					p.SetNonComplier();
+					RegisterNonComplier(pop, p);
 				}
 			}
 		}
 	}
 
 	return pop;
+}
+
+void NonComplianceSeeder::RegisterNonComplier(std::shared_ptr<Population> pop, Person& p)
+{
+	Population& population  = *pop;
+	auto&       logger      = population.RefContactLogger();
+	// Set person to be non-complier
+	p.SetNonComplier();
+	// Log person details
+	logger->info("[NCOM] {} {} {}", p.GetId(), p.GetAge(), p.GetPoolId(Id::Household));
 }
 
 } // namespace stride

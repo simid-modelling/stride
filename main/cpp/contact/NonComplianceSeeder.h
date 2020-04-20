@@ -64,6 +64,10 @@ public:
     /// Seeds the population with non-compliers.
     /// \param pop               Population.
     std::shared_ptr<Population> Seed(std::shared_ptr<Population> pop);
+
+    /// Register a selected person as a non-complier
+    /// \param p 				Person to register
+    void RegisterNonComplier(std::shared_ptr<Population> pop, Person& p);
 private:
     const boost::property_tree::ptree& m_config; ///< Run config.
     util::RnMan&                       m_rn_man; ///< Random number manager.
