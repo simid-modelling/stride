@@ -74,13 +74,13 @@ bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff, b
 	if(m_school_system_adjusted){
 
 		// note: use school types to differentiate in timing, with specific ages
-		// "primary school"   => selection for primary school (1st, 5th and 6th)
-		// "secondary school" => only 6th year
-		// "preschool"        => selection of 2nd and 4th of secondary school
+		// "primary school"   => all days: 1th year primary school
+		// "secondary school" => 2 days/week only 6th year + 5th and 6th primary school
+		// "preschool"        => 1 day/week (from June 8th) for 2nd and 4th of secondary school
 
 		if(!isPrimarySchoolOff && age == 6)  { return false; }
-		if(!isPrimarySchoolOff && age == 10) { return false; }
-		if(!isPrimarySchoolOff && age == 11) { return false; }
+		if(!isSecondarySchoolOff && age == 10) { return false; }
+		if(!isSecondarySchoolOff && age == 11) { return false; }
 
 		if(!isSecondarySchoolOff && age == 17) { return false; }
 
