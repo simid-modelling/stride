@@ -22,13 +22,14 @@
 
 #include "pop/Population.h"
 #include "util/Exception.h"
+#include "util/FileSys.h"
 #include "util/RnMan.h"
 
 #include <boost/property_tree/ptree.hpp>
 #include <cassert>
 
 using namespace boost::property_tree;
-// using namespace stride::ContactType;
+using namespace stride::ContactType;
 using namespace stride::util;
 using namespace std;
 
@@ -66,7 +67,22 @@ shared_ptr<Population> NonComplianceSeeder::Seed(shared_ptr<Population> pop)
 			 }
 
 		} else if (*nonComplianceType == "Hotspots") {
+			// Get IDs of households that are in non-compliance hotspots
+			const auto hotspotsFile = m_config.get<string>("run.pools_in_hotspots_file");
+			const ptree& hotspots_pt  = FileSys::ReadPtreeFile(hotspotsFile);
+			vector<unsigned int> households_in_hotspots = vector<unsigned int>();
+			for (auto child: hotspots_pt.get_child("hotspots")) {
+				unsigned int hhID = child.second.get_value<int>();
+				households_in_hotspots.push_back(hhID);
+			}
 
+			// Iterate over all persons and set to 'non-compliant' if household is in hotspot
+			for (Person& p : population) {
+				auto hhID = p.GetPoolId(Id::Household);
+				if (find(households_in_hotspots.begin(), households_in_hotspots.end(), hhID) != households_in_hotspots.end()) {
+					p.SetNonComplier();
+				}
+			}
 		}
 	}
 
@@ -74,76 +90,3 @@ shared_ptr<Population> NonComplianceSeeder::Seed(shared_ptr<Population> pop)
 }
 
 } // namespace stride
-
-/*
-
-
-namespace stride {
-{
-                while (numSamples < numSurveyed) {
-                        Person& p = population[generator()];
-                        if (p.IsSurveyParticipant()) {
-                                continue;
-                        }
-
-                        // register new participant
-                        RegisterParticipant(pop,p);
-
-                        // update number of remaining samples
-                        numSamples++;
-                }
-        return pop;
-}
-
-void SurveySeeder::RegisterParticipant(std::shared_ptr<Population> pop, Person& p)
-{
-
-	const string logLevel = m_config.get<string>("run.contact_log_level", "None");
-	if (logLevel != "None") {
-		 Population& population  = *pop;
-
-		auto&       poolSys     = population.CRefPoolSys();
-		auto&       logger      = population.RefContactLogger();
-
-		// set person flag to be survey participant
-		p.ParticipateInSurvey();
-
-		// log person details
-		const auto h    = p.GetHealth();
-		const auto pHH  = p.GetPoolId(Id::Household);
-		const auto pK12 = p.GetPoolId(Id::K12School);
-		const auto pC   = p.GetPoolId(Id::College);
-		const auto pW   = p.GetPoolId(Id::Workplace);
-		const auto pPC  = p.GetPoolId(Id::PrimaryCommunity);
-		const auto pSC  = p.GetPoolId(Id::SecondaryCommunity);
-		// TODO: create a more elegant solution
-		// - gengeopop population ==>> unique pool id over all pool types, so ID != index in
-		// poolType-vector
-		// - default population   ==>> unique pool id per pool type, so ID == index in
-		// poolType-vector
-		//if (p.GetPoolId(Id::SecondaryCommunity) < poolSys[Id::SecondaryCommunity].size()) {
-		if (pSC < poolSys.CRefPools<Id::SecondaryCommunity>().size()) {
-				logger->info("[PART] {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p.GetId(),
-					 p.GetAge(), pHH, pK12, pC, pW, h.IsSusceptible(), h.IsInfected(), h.IsInfectious(),
-					 h.IsRecovered(), h.IsImmune(), h.GetStartInfectiousness(), h.GetStartSymptomatic(),
-					 h.GetEndInfectiousness(), h.GetEndSymptomatic(),
-					 poolSys.CRefPools<Id::Household>()[pHH].GetPool().size(),
-					 poolSys.CRefPools<Id::K12School>()[pK12].GetPool().size(),
-					 poolSys.CRefPools<Id::College>()[pC].GetPool().size(),
-					 poolSys.CRefPools<Id::Workplace>()[pW].GetPool().size(),
-					 poolSys.CRefPools<Id::PrimaryCommunity>()[pPC].GetPool().size(),
-					 poolSys.CRefPools<Id::SecondaryCommunity>()[pSC].GetPool().size(),
-					 p.IsTeleworking());
-		} else {
-				logger->info("[PART] {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p.GetId(),
-					 p.GetAge(), pHH, pK12, pC, pW, h.IsSusceptible(), h.IsInfected(), h.IsInfectious(),
-					 h.IsRecovered(), h.IsImmune(), h.GetStartInfectiousness(), h.GetStartSymptomatic(),
-					 h.GetEndInfectiousness(), h.GetEndSymptomatic(),
-					 -1, -1, -1, -1, -1, -1 -1 );
-		}
-	 }
-}
-
-
-} // namespace stride
-*/
