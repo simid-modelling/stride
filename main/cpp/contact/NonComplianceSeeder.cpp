@@ -39,19 +39,36 @@ NonComplianceSeeder::NonComplianceSeeder(const ptree& config, RnMan& rnMan) : m_
 shared_ptr<Population> NonComplianceSeeder::Seed(shared_ptr<Population> pop)
 {
 	Population& population = *pop;
+	const auto  popCount    = static_cast<unsigned int>(population.size() - 1);
+
+	assert((popCount >= 1U) && "NonComplianceSeeder> Population count zero unacceptable.");
+
 	// Get type of non-compliance seeding (by household or at random)
 	// if no parameter is present in config file, assume NO non-compliance
 	boost::optional<string> nonComplianceType = m_config.get_optional<string>("run.non_compliance_type");
+	if (nonComplianceType) {
+		if (*nonComplianceType == "Random") {
+			unsigned int targetNumNonCompliers = m_config.get<int>("run.num_non_compliant_individuals");
+			assert((popCount >= targetNumNonCompliers) && "NonComplianceSeeder> Pop count has to exceed number of surveyed.");
+			 auto numNonCompliers = 0U;
+			 auto generator = m_rn_man.GetUniformIntGenerator(0, static_cast<int>(popCount), 0U);
+			 while (numNonCompliers < targetNumNonCompliers) {
+				 Person& p = population[generator()];
+				 if (p.IsNonComplier()) {
+					 continue;
+				 }
 
-	/*
-	 *         unsigned int numInfected = 0;
-        boost::optional<float> sRate = m_config.get_optional<float>("run.seeding_rate");
-        if (sRate) {
-        		numInfected = static_cast<unsigned int>(floor(static_cast<double>(popSize) * (*sRate)));
-        } else {
-        		numInfected = m_config.get<int>("run.num_index_cases");
-        }
-	 */
+				 // Set person to be non-complier
+				 p.SetNonComplier();
+
+				 // Update number of remaining samples
+				 numNonCompliers++;
+			 }
+
+		} else if (*nonComplianceType == "Hotspots") {
+
+		}
+	}
 
 	return pop;
 }
@@ -61,24 +78,8 @@ shared_ptr<Population> NonComplianceSeeder::Seed(shared_ptr<Population> pop)
 /*
 
 
-
-
-
 namespace stride {
-
 {
-                Population& population  = *pop;
-                const auto  popCount    = static_cast<unsigned int>(population.size() - 1);
-                const auto  numSurveyed = m_config.get<unsigned int>("run.num_participants_survey");
-
-                assert((popCount >= 1U) && "SurveySeeder> Population count zero unacceptable.");
-                assert((popCount >= numSurveyed) && "SurveySeeder> Pop count has to exceed number of surveyed.");
-
-                // Use while-loop to get 'participants' unique participants (default sampling is with replacement).
-                // A for loop will not do because we might draw the same person twice.
-                auto numSamples = 0U;
-                auto generator  = m_rn_man.GetUniformIntGenerator(0, static_cast<int>(popCount), 0U);
-
                 while (numSamples < numSurveyed) {
                         Person& p = population[generator()];
                         if (p.IsSurveyParticipant()) {

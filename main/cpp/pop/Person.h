@@ -96,7 +96,9 @@ public:
 
         bool IsTeleworking() const { return m_teleworking;}
 
-        bool IsNonComplierCommunity() const { return m_non_complier_community; }
+        void SetNonComplier() { m_non_complier_community = true; }
+
+        bool IsNonComplier() const { return m_non_complier_community; }
 
 private:
         float        m_age; ///< The age.
