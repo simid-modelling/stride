@@ -139,7 +139,7 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
         }
 
         // persons who are in 'non-compliance hotspot' do not apply contact reduction in community
-		if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity) and not (p1->IsInHotspot()) and not (p2->IsInHotspot())){
+		if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity) and not (p1->IsNonComplierCommunity()) and not (p2->IsNonComplierCommunity())){
 			contact_probability = contact_probability * (1-cnt_reduction_other);
 		}
 
