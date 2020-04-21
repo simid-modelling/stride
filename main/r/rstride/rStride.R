@@ -269,19 +269,20 @@ run_rStride <- function(exp_design               = exp_design,
                                                                 row.names = NULL)
                        
                        # store disease burden and hospital admission data (for additional analysis)
-                       names(rstride_out$data_transmission)
-                       rstride_out$data_burden  <- data.frame(day_infection           = rstride_out$data_transmission$sim_day,
-                                                              part_age                = rstride_out$data_transmission$part_age,
-                                                              start_infectiousness    = rstride_out$data_transmission$start_infectiousness,
-                                                              end_infectiousness      = rstride_out$data_transmission$end_infectiousness,
-                                                              start_symptoms          = rstride_out$data_transmission$start_symptoms,
-                                                              end_symptoms            = rstride_out$data_transmission$end_symptoms,
-                                                              hospital_admission      = rstride_out$data_transmission$hospital_admission_start,
-                                                              infector_age            = rstride_out$data_transmission$infector_age,
-                                                              infector_is_symptomatic = rstride_out$data_transmission$infector_is_symptomatic,
-                                                              date_infection          = as.Date(config_exp$start_date,'%Y-%m-%d') + rstride_out$data_transmission$sim_day,
-                                                              exp_id                  = rstride_out$data_transmission$exp_id)
-                                                            
+                       if(!store_transmission_rdata){
+                          rstride_out$data_burden <- data.frame(day_infection           = rstride_out$data_transmission$sim_day,
+                                                                part_age                = rstride_out$data_transmission$part_age,
+                                                                start_infectiousness    = rstride_out$data_transmission$start_infectiousness,
+                                                                end_infectiousness      = rstride_out$data_transmission$end_infectiousness,
+                                                                start_symptoms          = rstride_out$data_transmission$start_symptoms,
+                                                                end_symptoms            = rstride_out$data_transmission$end_symptoms,
+                                                                hospital_admission      = rstride_out$data_transmission$hospital_admission_start,
+                                                                infector_age            = rstride_out$data_transmission$infector_age,
+                                                                infector_is_symptomatic = rstride_out$data_transmission$infector_is_symptomatic,
+                                                                date_infection          = as.Date(config_exp$start_date,'%Y-%m-%d') + rstride_out$data_transmission$sim_day,
+                                                                exp_id                  = rstride_out$data_transmission$exp_id)
+                       }
+                       
                        # if transmission data should not be stored, replace item by NA
                        if(!store_transmission_rdata){
                          rstride_out$data_transmission <- NA
