@@ -73,7 +73,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   ## REFERENCE DATA COVID-19: new hospitalisation
   file_name <- './data/covid19.csv'
   burden_of_disaese  <- read.table(file_name,sep=',',header=T,stringsAsFactors = F)
-  hosp_cases_num     <- burden_of_disaese$Sum.of.NewPatientsNotReferred + burden_of_disaese$Sum.of.NewPatientsReferred 
+  hosp_cases_num     <- burden_of_disaese$Sum.of.NewPatientsNotReferred
   hosp_cases_cum     <- cumsum(hosp_cases_num)
   hosp_cases_date    <- as.Date(burden_of_disaese$DateCase)
   
