@@ -205,7 +205,7 @@ run_rStride <- function(exp_design               = exp_design,
                        config_df   <- config_df[,!names(config_df) %in% names(run_summary)]
                        run_summary <- cbind(run_summary,config_df)
                        
-                       # if we do not wat to parse log data, return run summary
+                       # if we do not want to parse log data, return run summary
                        if(!parse_log_data){
                            return(run_summary)
                        }
@@ -268,6 +268,20 @@ run_rStride <- function(exp_design               = exp_design,
                                                                 exp_id                = config_exp$exp_id,
                                                                 row.names = NULL)
                        
+                       # store disease burden and hospital admission data (for additional analysis)
+                       names(rstride_out$data_transmission)
+                       rstride_out$data_burden  <- data.frame(day_infection           = rstride_out$data_transmission$sim_day,
+                                                              part_age                = rstride_out$data_transmission$part_age,
+                                                              start_infectiousness    = rstride_out$data_transmission$start_infectiousness,
+                                                              end_infectiousness      = rstride_out$data_transmission$end_infectiousness,
+                                                              start_symptoms          = rstride_out$data_transmission$start_symptoms,
+                                                              end_symptoms            = rstride_out$data_transmission$end_symptoms,
+                                                              hospital_admission      = rstride_out$data_transmission$hospital_admission_start,
+                                                              infector_age            = rstride_out$data_transmission$infector_age,
+                                                              infector_is_symptomatic = rstride_out$data_transmission$infector_is_symptomatic,
+                                                              date_infection          = as.Date(config_exp$start_date,'%Y-%m-%d') + rstride_out$data_transmission$sim_day,
+                                                              exp_id                  = rstride_out$data_transmission$exp_id)
+                                                            
                        # if transmission data should not be stored, replace item by NA
                        if(!store_transmission_rdata){
                          rstride_out$data_transmission <- NA
@@ -344,7 +358,7 @@ add_hospital_admission_time <- function(data_transmission){
   data_transmission$part_age
   
   # create columsn for hospital admission start (by age)
-  data_transmission$hospital_admission_start     <- NA
+  data_transmission$hospital_admission_start      <- NA
   data_transmission$hospital_admission_start_age1 <- NA
   data_transmission$hospital_admission_start_age2 <- NA
   data_transmission$hospital_admission_start_age3 <- NA
@@ -374,7 +388,8 @@ add_hospital_admission_time <- function(data_transmission){
     flag_part      <- !is.na(data_transmission$start_symptoms) & data_transmission$part_age %in% hosp_age[[i_hosp]]
     flag_admission <- as.logical(rbinom(n = nrow(data_transmission),size = 1,prob = hospital_probability[[i_hosp]]))
     flag_hosp      <- flag_part & flag_admission
-    data_transmission$hospital_admission_start[flag_hosp] <- hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
+    data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] + 
+                                                                      hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
     if(i_hosp == 1){
       data_transmission$hospital_admission_start_age1[flag_hosp] <- data_transmission$hospital_admission_start[flag_hosp]
     } 

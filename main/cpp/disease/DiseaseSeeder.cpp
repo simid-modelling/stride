@@ -75,7 +75,10 @@ void DiseaseSeeder::ImportInfectedCases(std::shared_ptr<Population> pop, unsigne
                         p.GetHealth().StartInfection(p.GetId(),0);
                         numInfected--;
                         if (log_level != "None") {
-                                logger->info("[PRIM] {} {} {} {} {} {} {}", p.GetId(), -1, p.GetAge(), -1, -1, simDay, p.GetId());
+                                logger->info("[PRIM] {} {} {} {} {} {} {} {} {} {} {} {}",
+                                		p.GetId(), -1, p.GetAge(), -1, -1, simDay, p.GetId(),
+										p.GetHealth().GetStartInfectiousness(),p.GetHealth().GetEndInfectiousness(),
+										p.GetHealth().GetStartSymptomatic(),p.GetHealth().GetEndSymptomatic(), -1);
                         }
 
                         // register as survey participant

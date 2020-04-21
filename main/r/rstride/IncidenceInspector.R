@@ -324,6 +324,12 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   tmp <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_all, mean)
   tmp$new_hospital_admissions[tmp$sim_day == min(tmp$sim_day)] <- NA
   
+  # remove dates with partial info
+  tbl_date <- table(data_incidence_all$sim_date)
+  sel_dates <- names(tbl_date)[tbl_date == median(tbl_date)]
+  tmp <-  tmp[tmp$sim_date %in% as.Date(sel_dates),]
+  
+  # plot average results
   plot(tmp$sim_date,tmp$new_hospital_admissions,
        type='l',
        lwd=3,
@@ -337,7 +343,8 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   add_breakpoints()
   add_legend_hosp(pcolor<- data.frame(D = 1,H=4))
   
-  tmp_end <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_all[data_incidence_all$sim_date == max(data_incidence_all$sim_date,na.rm=T),], mean)
+  # add config_id
+  tmp_end <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_all[data_incidence_all$sim_date == max(tmp$sim_date,na.rm=T),], mean)
   tmp_end$config_id
   text(tmp_end$sim_date,
        tmp_end$new_hospital_admissions,

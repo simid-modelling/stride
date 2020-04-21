@@ -56,13 +56,13 @@ inspect_tracing_data <- function(project_dir)
   data_tracing_all         <- merge(data_tracing_all,project_summary[,c('exp_id','config_id','start_date')] )
 
   ## ENSEMBLE  ####
-  .rstride$create_pdf(project_dir,'contact_tracing',width = 7, height = 7)
+  .rstride$create_pdf(project_dir,'contact_tracing_all',width = 4, height = 4)
   par(mar=c(6,5,4,1))
   
   opt_config <- unique(data_tracing_all$config_id)
-  i_config <- 1
+  i_config <- 2
   for(i_config in 1:length(opt_config)){
-    
+    print(i_config)
     data_tracing_sel <- data_tracing_all[data_tracing_all$config_id == opt_config[i_config],]
     
     # add date
@@ -108,12 +108,14 @@ inspect_tracing_data <- function(project_dir)
          pch=16,
          xlab='',
          ylab='Secondary cases identified and isolated',
+         las=2,
          main=opt_config[i_config])
-    legend('topright',
+    legend('topleft',
            c('asymptomatic',
              'symptomatic'),
            pch=16,
-           col=1:2)
+           col=1:2,
+           cex=0.7)
     
     boxplot(num_contacts_tested ~ sim_day_date, data=tracing_num_day_contacts,
             las=2,ylab='total number of contacts tested',main=opt_config[i_config],
@@ -152,7 +154,7 @@ inspect_tracing_data <- function(project_dir)
   # close pdf stream
   dev.off()
   
-   # command line message
+    # command line message
   smd_print('INSPECTION OF CONTACT TRACING DATA COMPLETE')
 }
 
