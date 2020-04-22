@@ -236,7 +236,8 @@ run_rStride <- function(exp_design               = exp_design,
                        # account for non-symptomatic cases
                        flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
                        rstride_out$data_transmission$start_symptoms[flag] <- NA
-                       
+                       rstride_out$data_transmission$end_symptoms[flag]   <- NA
+            
                        # add estimated hospital admission
                        rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission)
                        
@@ -245,7 +246,7 @@ run_rStride <- function(exp_design               = exp_design,
                        new_infections         <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days)
                        new_infectious_cases   <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_infectiousness,num_sim_days)
                        new_symptomatic_cases  <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_symptoms,num_sim_days)
-                       new_recovered_cases    <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$end_symptoms,num_sim_days)
+                       new_recovered_cases    <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$end_infectiousness,num_sim_days)
                        new_hospital_admissions      <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start,num_sim_days)
                        new_hospital_admissions_age1 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age1,num_sim_days)
                        new_hospital_admissions_age2 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age2,num_sim_days)
@@ -269,7 +270,7 @@ run_rStride <- function(exp_design               = exp_design,
                                                                 row.names = NULL)
                        
                        # store disease burden and hospital admission data (for additional analysis)
-                       if(!store_transmission_rdata){
+                       if(store_transmission_rdata){
                           rstride_out$data_burden <- data.frame(day_infection           = rstride_out$data_transmission$sim_day,
                                                                 part_age                = rstride_out$data_transmission$part_age,
                                                                 start_infectiousness    = rstride_out$data_transmission$start_infectiousness,

@@ -73,7 +73,7 @@ inspect_summary <- function(project_dir)
   mtext("total number of cases", side=2, line=2,cex=0.9)
   
   # exclude 'start date' from the overview, if present in the experimental design
-  if(('start_date' %in% colnames(input_opt_design))){
+  if(('start_date' %in% colnames(input_opt_design) && ncol(input_opt_design)>1)){
     par(mar = c(10, 4, 1, 4) + 0.3)  # Leave space for 3rd axis
     param_selection <- colnames(input_opt_design)[!grepl('start_date',colnames(input_opt_design))]
     boxplot(as.formula(paste("num_cases",paste(param_selection,collapse='+'),sep="~")),
