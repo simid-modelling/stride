@@ -79,7 +79,7 @@ bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff, b
 		// "preschool"        => 1 day/week (from June 8th) for 2nd and 4th of secondary school
 
 		if(!isPrimarySchoolOff && age == 6)  { return false; }
-		if(!isSecondarySchoolOff && age == 10) { return false; }
+		if(!isPrimarySchoolOff && age == 7) { return false; }
 		if(!isSecondarySchoolOff && age == 11) { return false; }
 
 		if(!isSecondarySchoolOff && age == 17) { return false; }
