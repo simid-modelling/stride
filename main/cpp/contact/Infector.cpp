@@ -105,8 +105,8 @@ using namespace stride;
 using namespace stride::ContactType;
 
 inline double GetContactProbability(const AgeContactProfile& profile, const Person* p1,const Person* p2,
-		size_t pool_size, const ContactType::Id pType, double cnt_reduction_work,
-		double cnt_reduction_other)
+		size_t pool_size, const ContactType::Id pType, double cnt_reduction_work, double cnt_reduction_other,
+		double cnt_reduction_school, double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff)
 {
         // get the reference number of contacts, given age and age-contact profile
 		const double reference_num_contacts_p1{profile[EffectiveAge(static_cast<unsigned int>(p1->GetAge()))]};
@@ -138,10 +138,24 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
         	contact_probability = contact_probability * (1-cnt_reduction_work);
         }
 
-        // persons who are in 'non-compliance hotspot' do not apply contact reduction in community
-		if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity) and not (p1->IsNonComplier()) and not (p2->IsNonComplier())){
-			contact_probability = contact_probability * (1-cnt_reduction_other);
+		// persons who are in 'non-compliance hotspot' do not apply contact reduction in community
+        if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity) and not (p1->IsNoneComplier() and not (p2->IsNonComplier()))){
+
+			// apply intergeneration distancing factor if age cutoff is > 0 and at least one age is > cutoff
+			if((cnt_reduction_intergeneration > 0) &&
+				((p1->GetAge() > cnt_reduction_intergeneration_cutoff) || (p2->GetAge() > cnt_reduction_intergeneration_cutoff))){
+				contact_probability = contact_probability * (1-cnt_reduction_intergeneration);
+			} else {
+				// apply uniform community distancing
+				contact_probability = contact_probability * (1-cnt_reduction_other);
+			}
+
 		}
+        // account for social distancing at work and in the community
+		if(pType == Id::K12School){
+			contact_probability = contact_probability * (1-cnt_reduction_school);
+        }
+
 
         return contact_probability;
 }
@@ -158,7 +172,8 @@ template <ContactLogMode::Id LL, bool TIC, bool TO>
 void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& profile,
                                  const TransmissionProfile& transProfile, ContactHandler& cHandler,
                                  unsigned short int simDay, shared_ptr<spdlog::logger> cLogger,
-								 double cnt_reduction_work, double cnt_reduction_other)
+								 double cnt_reduction_work, double cnt_reduction_other, double cnt_reduction_school,
+								 double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff)
 {
         using LP = LOG_POLICY<LL>;
 
@@ -188,7 +203,7 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                         }
                         // check for contact
                         const double cProb = GetContactProbability(profile, p1, p2, pSize, pType,
-                        		cnt_reduction_work, cnt_reduction_other);
+                        		cnt_reduction_work, cnt_reduction_other,cnt_reduction_school,cnt_reduction_intergeneration,cnt_reduction_intergeneration_cutoff);
                         if (cHandler.HasContact(cProb)) {
                                 // log contact if person 1 is participating in survey
                                 LP::Contact(cLogger, p1, p2, pType, simDay, cProb, tProb * p1->GetHealth().GetRelativeTransmission(p2->GetAge()));
@@ -201,12 +216,12 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                                         auto& h2 = p2->GetHealth();
                                         // No secondary infections with TIC; just mark p2 'recovered'
                                         if (h1.IsInfectious() && h2.IsSusceptible()) {
-                                                h2.StartInfection(h1.GetIdIndexCase());
+                                                h2.StartInfection(h1.GetIdIndexCase(),p1->GetId());
                                                 if (TIC)
                                                         h2.StopInfection();
                                                 LP::Trans(cLogger, p1, p2, pType, simDay, h1.GetIdIndexCase());
                                         } else if (h2.IsInfectious() && h1.IsSusceptible()) {
-                                                h1.StartInfection(h2.GetIdIndexCase());
+                                                h1.StartInfection(h2.GetIdIndexCase(),p2->GetId());
                                                 if (TIC)
                                                         h1.StopInfection();
                                                 LP::Trans(cLogger, p2, p1, pType, simDay, h2.GetIdIndexCase());
@@ -225,7 +240,8 @@ template <ContactLogMode::Id LL, bool TIC>
 void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& profile,
                                    const TransmissionProfile& transProfile, ContactHandler& cHandler,
                                    unsigned short int simDay, shared_ptr<spdlog::logger> cLogger,
-								   double cnt_reduction_work, double cnt_reduction_other)
+								   double cnt_reduction_work, double cnt_reduction_other, double cnt_reduction_school,
+								   double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff)
 {
         using LP = LOG_POLICY<LL>;
 
@@ -262,11 +278,11 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                                         continue;
                                 }
                                 const double cProb_p1 = GetContactProbability(profile, p1, p2, pSize, pType,
-                                		cnt_reduction_work, cnt_reduction_other);
+                                		cnt_reduction_work, cnt_reduction_other,cnt_reduction_school, cnt_reduction_intergeneration,cnt_reduction_intergeneration_cutoff);
                                 if (cHandler.HasContactAndTransmission(cProb_p1, tProb * p1->GetHealth().GetRelativeTransmission(p2->GetAge()))) {
                                         auto& h2 = p2->GetHealth();
                                         if (h1.IsInfectious() && h2.IsSusceptible()) {
-                                                h2.StartInfection(h1.GetIdIndexCase());
+                                                h2.StartInfection(h1.GetIdIndexCase(),p1->GetId());
                                                 // No secondary infections with TIC; just mark p2 'recovered'
                                                 if (TIC)
                                                         h2.StopInfection();

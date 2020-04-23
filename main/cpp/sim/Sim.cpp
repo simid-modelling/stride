@@ -40,9 +40,10 @@ using namespace ContactLogMode;
 Sim::Sim()
     : m_config(), m_contact_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
       m_adaptive_symptomatic_behavior(false), m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
-      m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_work(0), m_cnt_reduction_other(0),
-	  m_cnt_reduction_work_exit(0),m_cnt_reduction_other_exit(0),
-	  m_compliance_delay(0), m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_num_daily_imported_cases(0)
+      m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_workplace(0), m_cnt_reduction_other(0),
+	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
+	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),
+	  m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_public_health_agency(),m_num_daily_imported_cases(0)
 {
 }
 
@@ -69,39 +70,52 @@ void Sim::TimeStep()
         // number of sick persons, duration of epidemic etc) what kind of DaysOff scheme you apply.
         const auto daysOff          = std::make_shared<DaysOffStandard>(m_calendar);
         const bool isRegularWeekday = daysOff->IsRegularWeekday();
-        const bool isK12SchoolOff   = daysOff->IsK12SchoolOff();
-        const bool isCollegeOff     = daysOff->IsCollegeOff();
+        const bool isPreSchoolOff       = daysOff->IsPreSchoolOff();
+        const bool isPrimarySchoolOff   = daysOff->IsPrimarySchoolOff();
+        const bool isSecondarySchoolOff = daysOff->IsSecondarySchoolOff();
+        const bool isCollegeOff         = daysOff->IsCollegeOff();
         const bool isWorkplaceDistancingEnforced   = daysOff->IsWorkplaceDistancingEnforced();
         const bool isCommunityDistancingEnforced   = daysOff->IsCommunityDistancingEnforced();
-
+        const bool isContactTracingActivated       = daysOff->IsContactTracingActivated();
 
         // increment the number of days in lock-down and account for compliance
 		double workplace_distancing_factor = 0.0;
 		if(isWorkplaceDistancingEnforced){
 			m_day_of_workplace_distancing += 1;
 
-			workplace_distancing_factor = m_cnt_reduction_work;
+			workplace_distancing_factor = m_cnt_reduction_workplace;
 
-			if(m_day_of_workplace_distancing < m_compliance_delay){
-				workplace_distancing_factor *= 1.0 * m_day_of_workplace_distancing / m_compliance_delay;
+			if(m_day_of_workplace_distancing < m_compliance_delay_workplace){
+				workplace_distancing_factor *= 1.0 * m_day_of_workplace_distancing / m_compliance_delay_workplace;
 			}
 		} else if(m_day_of_workplace_distancing > 0){
-			workplace_distancing_factor = m_cnt_reduction_work_exit;
+			workplace_distancing_factor = m_cnt_reduction_workplace_exit;
 		}
 
 		 // increment the number of days in lock-down and account for compliance
 		double community_distancing_factor = 0.0;
+		double intergeneration_distancing_factor = 0.0;
 		if(isCommunityDistancingEnforced){
 			m_day_of_community_distancing += 1;
 
 			community_distancing_factor = m_cnt_reduction_other;
+			intergeneration_distancing_factor = m_cnt_reduction_intergeneration;
 
-			if(m_day_of_community_distancing < m_compliance_delay){
-				community_distancing_factor *= 1.0 * m_day_of_community_distancing / m_compliance_delay;
+			if(m_day_of_community_distancing < m_compliance_delay_other){
+				community_distancing_factor *= 1.0 * m_day_of_community_distancing / m_compliance_delay_other;
 			}
 		} else if (m_day_of_community_distancing > 0){
-			community_distancing_factor = m_cnt_reduction_other_exit;
+			community_distancing_factor       = m_cnt_reduction_other_exit;
+			intergeneration_distancing_factor = m_cnt_reduction_intergeneration;
 		}
+
+		// get distancing at school
+		double school_distancing_factor = 0.0;
+		if(m_day_of_workplace_distancing > 0){
+			school_distancing_factor = m_cnt_reduction_school_exit;
+
+		}
+
 
         // To be used in update of population & contact pools.
         Population& population    = *m_population;
@@ -123,10 +137,25 @@ void Sim::TimeStep()
 			// we want to track index cases without adaptive behavior
 #pragma omp for schedule(static)
 			for (size_t i = 0; i < population.size(); ++i) {
-					population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
-							m_adaptive_symptomatic_behavior,
-							isWorkplaceDistancingEnforced, m_handlers[thread_num]);
+
+				// adjust K12SchoolOff boolean to school type for individual 'i'
+				bool isK12SchoolOff = m_public_health_agency.IsK12SchoolOff(population[i].GetAge(),isPreSchoolOff,isPrimarySchoolOff,
+						isSecondarySchoolOff, isCollegeOff);
+
+				// update presence
+				population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
+						m_adaptive_symptomatic_behavior,
+						isWorkplaceDistancingEnforced, m_handlers[thread_num]);
 			}
+
+			// Perform contact tracing (if activated)
+			if(isContactTracingActivated){
+				std::cout << "CONTACT TRACING" << endl;
+				m_public_health_agency.PerformContactTracing(m_population, m_rn_man, simDay);
+			}
+
+			// skip all K12 school pools?
+			bool isK12SchoolOff = (isPreSchoolOff && isPrimarySchoolOff && isSecondarySchoolOff);
 
 			// Infector updates individuals for contacts & transmission within each pool.
 			// Skip pools with id = 0, because it means Not Applicable.
@@ -141,7 +170,9 @@ void Sim::TimeStep()
 							infector(poolSys.RefPools(typ)[i], m_contact_profiles[typ], m_transmission_profile,
 									 m_handlers[thread_num], simDay, contactLogger,
 									 workplace_distancing_factor,
-									 community_distancing_factor);
+									 community_distancing_factor,
+									 school_distancing_factor,
+									 intergeneration_distancing_factor,m_cnt_reduction_intergeneration_cutoff);
 					}
 			}
         }

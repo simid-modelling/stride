@@ -100,12 +100,17 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
         // --------------------------------------------------------------
 		// Set Public Health Agency
 		// --------------------------------------------------------------
-		PublicHealthAgency(m_config, sim->m_rn_man).SetTelework(sim->m_population);
-		sim->m_cnt_reduction_work   = m_config.get<double>("run.cnt_reduction_work",0);
-		sim->m_cnt_reduction_other  = m_config.get<double>("run.cnt_reduction_other",0);
-		sim->m_cnt_reduction_work_exit   = m_config.get<double>("run.cnt_reduction_work_exit",0);
-		sim->m_cnt_reduction_other_exit  = m_config.get<double>("run.cnt_reduction_other_exit",0);
-		sim->m_compliance_delay     = m_config.get<unsigned int>("run.compliance_delay",0);
+        sim->m_public_health_agency.Initialize(m_config);
+		sim->m_public_health_agency.SetTelework(sim->m_population,sim->m_rn_man);
+		sim->m_cnt_reduction_workplace              = m_config.get<double>("run.cnt_reduction_workplace",0);
+		sim->m_cnt_reduction_other                  = m_config.get<double>("run.cnt_reduction_other",0);
+		sim->m_cnt_reduction_workplace_exit         = m_config.get<double>("run.cnt_reduction_workplace_exit",0);
+		sim->m_cnt_reduction_other_exit             = m_config.get<double>("run.cnt_reduction_other_exit",0);
+		sim->m_cnt_reduction_school_exit            = m_config.get<double>("run.cnt_reduction_school_exit",0);
+		sim->m_cnt_reduction_intergeneration        = m_config.get<double>("run.cnt_reduction_intergeneration",0);
+		sim->m_cnt_reduction_intergeneration_cutoff = m_config.get<unsigned int>("run.cnt_reduction_intergeneration_cutoff",0);
+		sim->m_compliance_delay_workplace           = m_config.get<unsigned int>("run.compliance_delay_workplace",0);
+		sim->m_compliance_delay_other               = m_config.get<unsigned int>("run.compliance_delay_other",0);
 
         // --------------------------------------------------------------
         // Seed population with survey participants.

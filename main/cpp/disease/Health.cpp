@@ -30,62 +30,83 @@ Health::Health(unsigned short int start_infectiousness, unsigned short int start
 				double rel_transmission_asymptomatic, double rel_susceptibility_children)
     : m_disease_counter(0U), m_status(HealthStatus::Susceptible), m_start_infectiousness(start_infectiousness),
       m_start_symptomatic(start_symptomatic), m_end_infectiousness(start_infectiousness + time_infectious),
-      m_end_symptomatic(start_symptomatic + time_symptomatic), m_id_index_case(0U),
+      m_end_symptomatic(start_symptomatic + time_symptomatic), m_id_index_case(0U), m_id_infector(0U),
 		m_sympt_cnt_reduction_work_school(sympt_cnt_reduction_work_school),
 		m_sympt_cnt_reduction_community(sympt_cnt_reduction_community),
 		m_rel_transmission_asymptomatic(rel_transmission_asymptomatic),
-		m_rel_susceptibility_children(rel_susceptibility_children)
+		m_rel_susceptibility_children(rel_susceptibility_children),
+		m_is_isolated(false), m_start_isolation(0)
 {
 }
 
 
-void Health::StartInfection(unsigned int id_index_case)
+void Health::StartInfection(unsigned int id_index_case, unsigned int id_infector)
 {
         AssertThrow(m_status == HealthStatus::Susceptible, "Inconsistent Health change", nullptr);
         m_status = HealthStatus::Exposed;
         ResetDiseaseCounter();
         m_id_index_case = id_index_case;
+        m_id_infector   = id_infector;
 }
 
 void Health::StopInfection()
 {
         AssertThrow(IsInfected(), "Person not infected", nullptr);
         m_status = HealthStatus::Recovered;
+
+        if(IsInIsolation()){ EndIsolation(); }
 }
 
 void Health::Update()
 {
         if (IsInfected()) {
-                IncrementDiseaseCounter();
-                if (GetDiseaseCounter() == m_start_infectiousness) {
-                        if (m_status == HealthStatus::Symptomatic) {
-                                m_status = HealthStatus::InfectiousAndSymptomatic;
-                        } else {
-                                m_status = HealthStatus::Infectious;
-                        }
-                }
-                if (GetDiseaseCounter() == m_start_symptomatic) {
-                        if (m_status == HealthStatus::Infectious) {
-                                m_status = HealthStatus::InfectiousAndSymptomatic;
-                        } else {
-                                m_status = HealthStatus::Symptomatic;
-                        }
-                }
-                if (GetDiseaseCounter() == m_end_symptomatic) {
-                        if (m_status == HealthStatus::InfectiousAndSymptomatic) {
-                                m_status = HealthStatus::Infectious;
-                        } else if (m_status != HealthStatus::Infectious) {
-                        	 StopInfection();
-                        }
-                }
-                if (GetDiseaseCounter() == m_end_infectiousness) {
-                        if (m_status == HealthStatus::InfectiousAndSymptomatic) {
-                                m_status = HealthStatus::Symptomatic;
-                        } else {
-                                StopInfection();
-                        }
-                }
+			IncrementDiseaseCounter();
+			if (GetDiseaseCounter() == m_start_infectiousness) {
+				if (m_status == HealthStatus::Symptomatic) {
+						m_status = HealthStatus::InfectiousAndSymptomatic;
+				} else {
+						m_status = HealthStatus::Infectious;
+				}
+			}
+			if (GetDiseaseCounter() == m_start_symptomatic) {
+				if (m_status == HealthStatus::Infectious) {
+						m_status = HealthStatus::InfectiousAndSymptomatic;
+				} else {
+						m_status = HealthStatus::Symptomatic;
+				}
+			}
+			if (GetDiseaseCounter() == m_end_symptomatic) {
+				if (m_status == HealthStatus::InfectiousAndSymptomatic) {
+						m_status = HealthStatus::Infectious;
+				} else if (m_status != HealthStatus::Infectious) {
+					 StopInfection();
+				}
+			}
+			if (GetDiseaseCounter() == m_end_infectiousness) {
+				if (m_status == HealthStatus::InfectiousAndSymptomatic) {
+						m_status = HealthStatus::Symptomatic;
+				} else {
+						StopInfection();
+				}
+			}
+			if(GetDiseaseCounter() == m_start_isolation){
+				m_is_isolated = true;
+//				std::cout << "SEC CASE isolated" << std::endl;
+			}
         }
 }
+
+
+void Health::StartIsolation(unsigned int delay_isolation){
+
+	m_start_isolation = GetDiseaseCounter() + delay_isolation;
+
+	if(delay_isolation == 0){
+		m_is_isolated = true;
+//		std::cout << "INDEX CASE isolated" << std::endl;
+	}
+
+}
+
 
 } // namespace stride

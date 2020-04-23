@@ -24,6 +24,8 @@
 #' @param num_selection the number of experiments with minimal LS score to select and present
 inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_param=TRUE)
 {
+  # command line message
+  smd_print('INSPECT INCIDENCE DATA...')
   
   #debug
   if(!exists('num_selection')) {num_selection = 4}
@@ -43,7 +45,6 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     return(NA)
   }
   
- 
   # add config_id 
   # get variable names of input_opt_design (fix if only one column)
   if(ncol(input_opt_design) == 1) {
@@ -54,14 +55,43 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     input_opt_design$config_id <- apply(input_opt_design,1,paste, collapse='_')
   }
   
-  # add config_id to incidence data
-  data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id')] )
-
+  # to generate contact tracing id
+  flag_opt_input_tracing <- !(grepl('cnt_reduction',names(input_opt_design)) | grepl('config_id',names(input_opt_design)))
+  colnames_tracing           <- names(input_opt_design)[flag_opt_input_tracing]
+  if(length(colnames_tracing) == 1) {
+    project_summary$tracing_id  <- project_summary[,colnames_tracing]
+    input_opt_design            <- data.frame(input_opt_design, 
+                                              tracing_id = unlist(input_opt_design[colnames_tracing]))
+  } else{
+    project_summary$tracing_id  <- apply(project_summary[,colnames_tracing],1,paste, collapse='_')
+    input_opt_design$tracing_id <- apply(input_opt_design[,colnames_tracing],1,paste, collapse='_')
+  }
   
+  # add contact id
+  flag_opt_input_tracing <- (grepl('cnt_reduction',names(input_opt_design)) | grepl('exit',names(input_opt_design)))
+  if(any(flag_opt_input_tracing)){
+    colnames_contact           <- names(input_opt_design)[flag_opt_input_tracing]
+    if(length(colnames_contact) == 1) {
+      project_summary$contact_id  <- project_summary[,colnames_contact]
+      input_opt_design            <- data.frame(input_opt_design, 
+                                                contact_id = unlist(input_opt_design[colnames_contact]))
+    } else{
+      project_summary$contact_id  <- apply((1-project_summary[,colnames_contact])*100,1,paste, collapse=',')
+      input_opt_design$contact_id <- apply((1-input_opt_design[,colnames_contact])*100,1,paste, collapse=',')
+    }
+  } else{
+    project_summary$contact_id  <- project_summary$config_id
+    input_opt_design$contact_id <- input_opt_design$config_id
+  }
+  
+  
+  # add config_id and tracing_id to incidence data
+  data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id','tracing_id','contact_id')] )
+
   ## REFERENCE DATA COVID-19: new hospitalisation
   file_name <- './data/covid19.csv'
   burden_of_disaese  <- read.table(file_name,sep=',',header=T,stringsAsFactors = F)
-  hosp_cases_num     <- burden_of_disaese$Sum.of.NewPatientsNotReferred + burden_of_disaese$Sum.of.NewPatientsReferred 
+  hosp_cases_num     <- burden_of_disaese$Sum.of.NewPatientsNotReferred
   hosp_cases_cum     <- cumsum(hosp_cases_num)
   hosp_cases_date    <- as.Date(burden_of_disaese$DateCase)
   
@@ -179,7 +209,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   ## PER R0: plot temporal patterns
   opt_r0 <- unique(input_opt_design$r0)
   if(length(opt_r0)>0){
-    .rstride$create_pdf(project_dir,'incidence_R0',width = 6, height = 8)
+    .rstride$create_pdf(project_dir,'incidence_R0',width = 6, height = 7)
     par(mfrow=c(4,1))
     
     
@@ -206,20 +236,57 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     dev.off()
   }
   
+  ## PER contact tracing level ####
+    opt_tracing <- unique(input_opt_design$tracing_id)
+    if(length(opt_tracing)>0){
+      .rstride$create_pdf(project_dir,'incidence_contact_trancing',width = 6, height = 7)
+      par(mfrow=c(4,1))
+      
+      
+      i_detection <- opt_tracing[1]
+      for(i_tracing in opt_tracing){
+        
+        # select config_id
+        opt_config_id <- unique(input_opt_design$config_id[input_opt_design$tracing_id ==  i_tracing])
+        
+        # select subset
+        data_incidence_sel <- data_incidence_all[data_incidence_all$config_id %in% opt_config_id,]
+        dim(data_incidence_sel)
+        
+        # check selection
+        if(nrow(data_incidence_sel)>0){
+          # plot
+          plot_incidence_data(data_incidence_sel,project_summary,
+                              hosp_adm_data,input_opt_design,
+                              bool_add_param)
+        }
+      }
+      
+      # close pdf
+      dev.off()
+    }
   
-  ## AVERAGE
-  .rstride$create_pdf(project_dir,'incidence_average',width = 6, height = 4)
+  ## AVERAGE ####
+  .rstride$create_pdf(project_dir,'incidence_average',width = 6, height = 2)
+  # change figure margins
+  par(mar=c(3,5,1,2))
   
   num_runs <- unique(table(project_summary$config_id))
   tmp <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_all, mean)
   tmp$new_hospital_admissions[tmp$sim_day == min(tmp$sim_day)] <- NA
   
+  # remove dates with partial info
+  tbl_date <- table(data_incidence_all$sim_date)
+  sel_dates <- names(tbl_date)[tbl_date == median(tbl_date)]
+  tmp <-  tmp[tmp$sim_date %in% as.Date(sel_dates),]
+  
+  # plot average results
   plot(tmp$sim_date,tmp$new_hospital_admissions,
        type='l',
        lwd=3,
        col=alpha(4,0.5),
-       ylab='New hospital admissions',
-       xlab='Time',
+       ylab='Hospital admissions',
+       xlab='',
        main = paste('Average of ', num_runs, 'realisations'),
        xlim = range(tmp$sim_date)+7)
   grid()
@@ -227,15 +294,29 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   add_breakpoints()
   add_legend_hosp(pcolor<- data.frame(D = 1,H=4))
   
-  tmp_end <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_all[data_incidence_all$sim_date == max(data_incidence_all$sim_date),], mean)
+  # add config_id
+  tmp_end <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_all[data_incidence_all$sim_date == max(tmp$sim_date,na.rm=T),], mean)
   tmp_end$config_id
   text(tmp_end$sim_date,
        tmp_end$new_hospital_admissions,
        tmp_end$config_id,
-       adj=-0.5,
-       cex=0.7)
-  
+       pos=4,xpd=TRUE,cex=0.4)
+
   dev.off()
+  
+  
+  ## ALL TOGETHER ####
+  .rstride$create_pdf(project_dir,'incidence_all',width = 6, height = 2.5)
+  par(mar=c(3,5,1,3))
+  
+  # plot
+  plot_incidence_data(data_incidence_all,project_summary,
+                      hosp_adm_data,input_opt_design,
+                      bool_add_param,bool_only_hospital_adm = TRUE) 
+
+  # close pdf
+  dev.off()
+  
   
   #--------------------------#
   # parameters
@@ -249,13 +330,19 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   }
   
   
+   # command line message
+  smd_print('INSPECTION OF INCIDENCE DATA COMPLETE')
+  
 } # end function
 
 plot_incidence_data <- function(data_incidence_sel,project_summary,
-                                hosp_adm_data,input_opt_design,bool_add_param){
+                                hosp_adm_data,input_opt_design,bool_add_param,
+                                bool_only_hospital_adm = FALSE){
 
   # change figure margins
-  par(mar=c(5,5,1,5))
+  if(!bool_only_hospital_adm){
+    par(mar=c(3,5,1,5))
+  }
   
   # set color definitions and other layout definitions
   pcolor <- data.frame(E = "black",  # exposed (or total infections)
@@ -279,7 +366,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   data_incidence_sel[data_incidence_sel$sim_day %in% max(data_incidence_sel$sim_day,na.rm=T),] <- NA
   
   # set y-lim
-  y_lim <- range(0,max(hosp_adm_data$num_adm)*1.3,na.rm=T)
+  y_lim <- range(0,max(hosp_adm_data$num_adm)*2,max(data_incidence_sel$new_hospital_admissions,na.rm=T),na.rm=T)
   
   ## HOSPITAL ADMISSIONS ####
   plot(data_incidence_sel$sim_date,
@@ -287,27 +374,44 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        type='l',
        col=alpha(pcolor$H,pcolor$alpha),
        ylab='Hospital admissions',
-       xlab='Time',
+       xlab='',
        ylim = y_lim,
-       yaxt='n')
+       yaxt='n',
+       xaxt='n')
   axis(2,las=2,cex.axis=0.9)
-  grid()
+  add_x_axis(data_incidence_sel$sim_date)
   points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=16)
   add_breakpoints()
   add_legend_hosp(pcolor)
   
+  # add config tag
+  adm_mean_final <- aggregate(new_hospital_admissions ~ sim_date + config_id + contact_id, data=data_incidence_sel,mean)
+  adm_mean_final <- adm_mean_final[adm_mean_final$sim_date == max(adm_mean_final$sim_date),]
+  # text(adm_mean_final$sim_date,adm_mean_final$new_hospital_admissions,adm_mean_final$config_id,
+  #      pos=4,xpd=TRUE,cex=0.4)
+  if(bool_only_hospital_adm){
+      axis(4,adm_mean_final$new_hospital_admissions,adm_mean_final$contact_id,las=2,cex.axis=0.6) # add contact details
+    } else{
+      axis(4,adm_mean_final$new_hospital_admissions,adm_mean_final$config_id,las=2,cex.axis=0.4) # add full config id
+  }
+  
+  
+  if(bool_only_hospital_adm){ return() } # stop
+  
   ## CUMMULATIVE: HOSPITAL ####
-  y_lim <- range(0,max(hosp_adm_data$cum_adm)*1.5,na.rm=T)
+  y_lim <- range(0,max(hosp_adm_data$cum_adm)*3.5,na.rm=T)
   plot(data_incidence_sel$sim_date,
        data_incidence_sel$cummulative_hospital_cases,
        type='l',
        col=alpha(pcolor$H,pcolor$alpha),
        ylab='Total admissions',
-       xlab='Time',
+       xlab='',
        yaxt='n',
+       xaxt='n',
        ylim= range(y_lim))
   y_ticks <- pretty(y_lim)
   axis(2,y_ticks,paste0(y_ticks/1e3,'k'),las=2,cex.axis=0.9)
+  add_x_axis(data_incidence_sel$sim_date)
   axis(4,y_ticks,paste0(round(y_ticks/pop_size_be*100,digits=2),'%'),las=2,cex.axis=0.9)
   mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
   grid()
@@ -345,11 +449,12 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        type='l',
        col=alpha(pcolor$E,pcolor$alpha),
        ylab='New cases',
-       xlab='Time',
-       yaxt='n')
-  grid()
+       xlab='',
+       yaxt='n',
+       xaxt='n')
   y_ticks <- pretty(data_incidence_sel$new_infections)
   axis(2,y_ticks,paste0(y_ticks/1000,'k'),las=2,cex.axis=0.9)
+  add_x_axis(data_incidence_sel$sim_date)
   lines(data_incidence_sel$sim_date,
         data_incidence_sel$new_infectious_cases,
         col=alpha(pcolor$I,pcolor$alpha))
@@ -372,10 +477,12 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        type='l',
        col=alpha(pcolor$E,pcolor$alpha),
        ylab='Total cases',
-       xlab='Time',
-       yaxt='n')
+       xlab='',
+       yaxt='n',
+       xaxt='n')
   y_ticks <- pretty(y_lim)
   axis(2,y_ticks,paste0(y_ticks/1e3,'k'),las=2,cex.axis=0.9)
+  add_x_axis(data_incidence_sel$sim_date)
   axis(4,y_ticks,paste0(round(y_ticks/pop_size_be*100,digits=2),'%'),las=2,cex.axis=0.9)
   grid()
   mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
@@ -404,20 +511,38 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
 
 # define the vertical breaks on the plots
 add_breakpoints <- function(){
+  
   # add start intervention
-  abline(v=as.Date("2020-03-14"))
-  axis(1,as.Date("2020-03-14"),format(as.Date("2020-03-14"),'%d/%m'),
-       cex.axis=0.5,padj=-3,tck=-0.005)
+  add_vertical_line("2020-03-14")
   
-  # add today
-  abline(v=Sys.Date())
-  axis(1,Sys.Date(),format(Sys.Date(),'%d/%b'),cex.axis=0.5,padj=-3,tck=-0.005)
+  # # add today
+  # add_vertical_line(Sys.Date())
   
-  # add scenario date (exit?)
-  abline(v=as.Date("2020-05-03"))
-  axis(1,as.Date("2020-05-03"),format(as.Date("2020-05-03"),'%d/%m'),
-       cex.axis=0.5,padj=-3,tck=-0.005)
+  # add scenario date (exit wave 1)
+  add_vertical_line("2020-05-03")
+  
+  # add scenario date (exit wave 2)
+  add_vertical_line("2020-05-18")
+  
+  # add scenario date (summer holiday)
+  add_vertical_line("2020-07-01")
 }
+
+# add vertical line on given date + label on x-axis
+add_vertical_line <- function(date_string){
+  
+  plot_limits <- par("usr")
+  
+  v_date <- as.Date(date_string)
+  abline(v=v_date,lty=2)
+  #axis(1,v_date,format(v_date,'%d/%m'),
+       #cex.axis=0.5,padj=-3,tck=-0.005)
+  text(x = v_date,
+       y = mean(plot_limits[3:4]),
+       format(v_date,'%d/%m'),
+       srt=90, pos=3, offset = +1.5,cex=0.6)
+}
+  
 
 # define the legend for hospital(-only) plots
 add_legend_hosp <- function(pcolor){
@@ -428,7 +553,8 @@ add_legend_hosp <- function(pcolor){
          pch=c(16,NA),
          lwd=c(NA,2),
          bg='white',
-         cex = 0.7)
+         cex = 0.6,
+         ncol=2)
 }
 
 # define the legend with all categories
@@ -442,7 +568,7 @@ add_legend_all <- function(pcolor){
          col=unlist(pcolor),
          pch=c(NA,NA,NA,NA,16),
          lwd=c(2,2,2,2,NA),
-         cex=0.7,
+         cex=0.6,
          bg='white')
 }
 
@@ -471,9 +597,10 @@ add_legend_runinfo <- function(project_summary,input_opt_design,
   if(any(opt_calendar != 'none')){
     run_info <- c(run_info,
                   paste0('telework_prob = ',paste(unique(project_summary_sel$telework_probability),collapse=', ')),
-                  paste0('cnt_reduction_work = ',paste(unique(project_summary_sel$cnt_reduction_work),collapse=", ")),
+                  paste0('cnt_reduction_workplace = ',paste(unique(project_summary_sel$cnt_reduction_workplace),collapse=", ")),
+                  paste0('compliance_delay_workplace = ',paste(unique(project_summary_sel$compliance_delay_workplace),collapse=", ")),
                   paste0('cnt_reduction_other = ',paste(unique(project_summary_sel$cnt_reduction_other),collapse=", ")),
-                  paste0('compliance_delay = ',paste(unique(project_summary_sel$compliance_delay),collapse=", "))
+                  paste0('compliance_delay_other = ',paste(unique(project_summary_sel$compliance_delay_other),collapse=", "))
     )
   }
   
@@ -524,5 +651,12 @@ plot_distancing <- function(project_summary){
         
     
   
+}
+
+add_x_axis <- function(sim_dates){
+  x_ticks <- pretty(sim_dates)
+  axis(1,x_ticks, format(x_ticks,'%e %b'),cex.axis=0.9)
+  abline(v=x_ticks,lty=3,col='lightgray')
+  grid(nx=NA,ny=NULL,lty=3,col='lightgray')
 }
 

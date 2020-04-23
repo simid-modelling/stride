@@ -69,12 +69,26 @@ public:
         	return (std::find(m_public_holidays.begin(), m_public_holidays.end(), m_date) != m_public_holidays.end());
         }
 
-        /// Check if K12-schools are closed.
-        bool IsK12SchoolClosed() const
+        /// Check if pre-schools are closed.
+        bool IsPreSchoolClosed() const
         {
-             return (std::find(m_k12school_holidays.begin(), m_k12school_holidays.end(), m_date) !=
-                        m_k12school_holidays.end());
+             return (std::find(m_preschool_holidays.begin(), m_preschool_holidays.end(), m_date) !=
+            		 m_preschool_holidays.end());
         }
+
+        /// Check if primary schools are closed.
+		bool IsPrimarySchoolClosed() const
+		{
+			 return (std::find(m_primary_school_holidays.begin(), m_primary_school_holidays.end(), m_date) !=
+					 m_primary_school_holidays.end());
+		}
+
+        /// Check if secondary schools are closed.
+		bool IsSecondarySchoolClosed() const
+		{
+			 return (std::find(m_secondary_school_holidays.begin(), m_secondary_school_holidays.end(), m_date) !=
+					 m_secondary_school_holidays.end());
+		}
 
         /// Check if Colleges are closed.
         bool IsCollegeClosed() const
@@ -83,7 +97,7 @@ public:
             		 m_college_holidays.end());
         }
 
-        /// Check if it's the weekend.
+        /// Check if it's weekend.
         bool IsWeekend() const { return (GetDayOfTheWeek() == 6 || GetDayOfTheWeek() == 0); }
 
         /// Check if quarantine measures are in place
@@ -100,26 +114,39 @@ public:
 					 m_community_distancing.end());
 		}
 
+		/// Check if contact tracing is place
+		bool IsContactTracingActivated() const
+		{
+			 return (std::find(m_contact_tracing.begin(), m_contact_tracing.end(), m_date) !=
+					 m_contact_tracing.end());
+		}
+
 private:
         ///
-        void InitializeHolidays(const boost::property_tree::ptree& configPt);
+        void Initialize(const boost::property_tree::ptree& configPt);
 
 private:
 #ifdef BOOST_FOUND
-        boost::gregorian::date              m_date;             ///< Current simulated date.
-        std::vector<boost::gregorian::date> m_public_holidays;  ///< Vector of public holidays
-        std::vector<boost::gregorian::date> m_k12school_holidays; ///< Vector of K-12 school holidays
-        std::vector<boost::gregorian::date> m_college_holidays;   ///< Vector of college holidays
-        std::vector<boost::gregorian::date> m_workplace_distancing;    ///< Vector of days with social distancing enforcement for work places
-        std::vector<boost::gregorian::date> m_community_distancing;    ///< Vector of days with social distancing enforcement in the community
+        boost::gregorian::date              m_date;                       ///< Current simulated date.
+        std::vector<boost::gregorian::date> m_public_holidays;            ///< Vector of public holidays
+        std::vector<boost::gregorian::date> m_preschool_holidays;         ///< Vector of pre-school closure
+        std::vector<boost::gregorian::date> m_primary_school_holidays;    ///< Vector of primary school closure
+        std::vector<boost::gregorian::date> m_secondary_school_holidays;  ///< Vector of secondary school closure
+        std::vector<boost::gregorian::date> m_college_holidays;           ///< Vector of college closure
+        std::vector<boost::gregorian::date> m_workplace_distancing;       ///< Vector of days with social distancing enforcement for work places
+        std::vector<boost::gregorian::date> m_community_distancing;       ///< Vector of days with social distancing enforcement in the community
+        std::vector<boost::gregorian::date> m_contact_tracing;            ///< Vector of days with case finding measures
 
 #else
-        date::year_month_day              m_date;               ///< Current simulated date.
-        std::vector<date::year_month_day> m_public_holidays;    ///< Vector of public holidays
-        std::vector<date::year_month_day> m_k12school_holidays; ///< Vector of K-12 school holidays
-        std::vector<date::year_month_day> m_college_holidays;   ///< Vector of college holidays
+        date::year_month_day              m_date;                      ///< Current simulated date.
+        std::vector<date::year_month_day> m_public_holidays;           ///< Vector of public holidays
+        std::vector<date::year_month_day> m_preschool_holidays;        ///< Vector of pre-school closure
+        std::vector<date::year_month_day> m_primary_school_holidays;   ///< Vector of primary school closure
+        std::vector<date::year_month_day> m_secondary_school_holidays; ///< Vector of secondary school closure
+        std::vector<date::year_month_day> m_college_holidays;          ///< Vector of college closure
         std::vector<date::year_month_day> m_workplace_distancing;      ///< Vector o days with social distancing enforcement for work places
         std::vector<date::year_month_day> m_community_distancing;      ///< Vector of days with social distancing enforcement in the community
+        std::vector<date::year_month_day> m_contact_tracing;           ///< Vector of days with case finding measures
 
 #endif
         unsigned short int m_day; ///< Current day since start of simulation.

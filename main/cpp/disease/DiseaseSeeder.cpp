@@ -72,10 +72,13 @@ void DiseaseSeeder::ImportInfectedCases(std::shared_ptr<Population> pop, unsigne
         while (numInfected > 0) {
                 Person& p = pop->at(static_cast<size_t>(generator()));
                 if (p.GetHealth().IsSusceptible() && (p.GetAge() >= sAgeMin) && (p.GetAge() <= sAgeMax)) {
-                        p.GetHealth().StartInfection(p.GetId());
+                        p.GetHealth().StartInfection(p.GetId(),0);
                         numInfected--;
                         if (log_level != "None") {
-                                logger->info("[PRIM] {} {} {} {} {} {} {}", p.GetId(), -1, p.GetAge(), -1, -1, simDay, p.GetId());
+                                logger->info("[PRIM] {} {} {} {} {} {} {} {} {} {} {} {}",
+                                		p.GetId(), -1, p.GetAge(), -1, -1, simDay, p.GetId(),
+										p.GetHealth().GetStartInfectiousness(),p.GetHealth().GetEndInfectiousness(),
+										p.GetHealth().GetStartSymptomatic(),p.GetHealth().GetEndSymptomatic(), -1);
                         }
 
                         // register as survey participant

@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-#############################################################################
+############################################################################ #
 #  This file is part of the Stride software. 
 #  It is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by 
@@ -14,15 +14,15 @@
 #  see http://www.gnu.org/licenses/.
 #
 #  Copyright 2019, Willem L, Kuylen E & Broeckhove J
-#############################################################################
+############################################################################ #
 # 
 # Helpfunction(s) to parse the log file(s)
 #
-#############################################################################
+############################################################################ #
 
-##################################
-## PARSE LOGFILE               ##
-##################################
+################################# #
+## PARSE LOGFILE               ####
+################################# #
 
 "DEVELOPMENT CODE"
 if(0==1){
@@ -59,13 +59,14 @@ if(0==1){
   # - TRAN    transmission event
   # - CONT    contact event
   # - VACC    additional immunization
+  # - TRACE   contact tracing
   # 
   # note:
   # - drop the first column with the log tag
   
-  ######################
-  ## PARTICIPANT DATA ##
-  ######################
+  ###################### #
+  ## PARTICIPANT DATA ####
+  ###################### #
   if(any(data_log[,1] == "[PART]"))
   {
     header_part         <- c('local_id', 'part_age', 'household_id', 'school_id', 'college_id','workplace_id',
@@ -95,9 +96,9 @@ if(0==1){
   }
   
   
-  #######################
-  ## TRANSMISSION DATA ##
-  #######################
+  ####################### #
+  ## TRANSMISSION DATA ####
+  ####################### #
   if(any(c("[PRIM]","[TRAN]") %in% data_log[,1]))
   {
     header_transm       <- c('local_id', 'infector_id','part_age',
@@ -135,9 +136,9 @@ if(0==1){
     rstride_out$data_transmission = NA
   }
   
-  ######################
-  ## CONTACT DATA     ##
-  ###################### 
+  ###################### #
+  ## CONTACT DATA     ####
+  ###################### # 
   if(any(data_log[,1] == "[CONT]"))
   {
     header_cnt          <- c('local_id', 'part_age', 'cnt_age', 'cnt_home', 'cnt_school', 
@@ -165,9 +166,9 @@ if(0==1){
     rstride_out$data_contacts = NA
   }
   
-  ######################
-  ## VACCINATION DATA ##
-  ###################### 
+  ###################### #
+  ## VACCINATION DATA ####
+  ###################### # 
   if(any(data_log[,1] == "[VACC]"))
   {
     header_cnt          <- c('local_id', 'part_age', 'pool_type', 'pool_id', 'pool_has_infant', 'sim_day')
@@ -190,8 +191,34 @@ if(0==1){
     rstride_out$data_vaccination = NA
   }
   
-  # save list with all results
-  # save(rstride_out,file=file.path(exp_dir,'output_log_parsed.RData'))
+  ########################################## #
+  ## CONTACT TRACING DATA ####
+  ########################################## # 
+  if(any(data_log[,1] == "[TRACE]"))
+  {
+    header_cnt           <- c('local_id', 'part_age', 'is_infected', 'is_symptomatic','pool_type', 
+                              'pool_id', 'case_id','case_age','sim_day','num_contacts_tested')
+    data_tracing         <- data_log[data_log[,1] == "[TRACE]",seq_len(length(header_cnt))+1]
+    names(data_tracing)  <- header_cnt
+    data_tracing[1,]
+    
+    # convert text into boolean
+    data_tracing$is_infected <- as.numeric(data_tracing$is_infected == 'true')
+    data_tracing$is_symptomatic <- as.numeric(data_tracing$is_symptomatic == 'true')
+    
+    # make sure, all values are stored as integers
+    pool_type_col <- names(data_tracing) %in% c('pool_type')
+    data_tracing[,!pool_type_col] <- data.frame(apply(data_tracing[,!pool_type_col], 2, as.integer))
+    dim(data_tracing)
+    
+    # add exp_id
+    data_tracing$exp_id <- exp_id
+    
+    # save
+    rstride_out$data_tracing = data_tracing
+  } else {
+    rstride_out$data_tracing = NA
+  }
   
   # terminal message
   cat("LOG PARSING COMPLETE",fill=TRUE)

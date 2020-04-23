@@ -34,7 +34,7 @@ source('./bin/rstride/rStride.R')
 dir_postfix <- '_intervention'
 
 # store all transmission output
-store_transmission_rdata <- TRUE
+store_transmission_rdata <- FALSE
 
 ##################################
 ## DESIGN OF EXPERIMENTS        ##
@@ -47,28 +47,33 @@ store_transmission_rdata <- TRUE
 num_seeds  <- 5
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(r0                            = seq(3.5,3.6,0.1),
-                          num_days                      = 120,
+exp_design <- expand.grid(r0                            = seq(3.5,3.5,0.1),
+                          num_days                      = 50,
                           rng_seed                      = seq(num_seeds),
                           num_participants_survey       = 300,
-                          track_index_case              = 'false',
-                          contact_log_level             = "Transmissions",
                           seeding_rate                  = 30e-5, 
                           disease_config_file           = "disease_covid19_age.xml",
                           population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
-                          adaptive_symptomatic_behavior = 'true',
-                          start_date                    = c('2020-02-28'),
-                          holidays_file                 = c("calendar_belgium_2020_covid19_may_workplace.json"),
-                          telework_probability          = c(0.5),
-                          cnt_reduction_work            = c(0),
-                          age_break_school_types        = c(6,12,1,18),
-                          age_break_school_types        = c(6,12,16,18),
-                          cnt_reduction_other           = c(0.8),
-                          compliance_delay              = c(14),
+                          start_date                    = c('2020-02-22'),
+                          #holidays_file                 = c("calendar_belgium_2020_covid19_may_workplace.json"),
+                          holidays_file                 = c("calendar_belgium_2020_covid19_may_both.json"),
+                          age_break_school_types        = c(12),
+                          school_system_adjusted        = 0:1,
+                          telework_probability          = c(0),
+                          cnt_reduction_workplace       = c(0.7),
+                          cnt_reduction_other           = c(0.7),
+                          compliance_delay_workplace    = c(9),
+                          compliance_delay_other        = c(14),
                           num_daily_imported_cases      = c(0),
-                          cnt_reduction_work_exit       = seq(0,0.5,0.1),
+                          cnt_reduction_workplace_exit  = 0,
                           cnt_reduction_other_exit      = 0,
+                          cnt_reduction_intergeneration = c(0.9),
+                          cnt_reduction_intergeneration_cutoff = 65,
+                          detection_probability          = c(0.1),
+                          case_finding_efficency         = 0.5,
+                          case_finding_capacity          = c(2000),
+                          delay_contact_tracing          = c(1),
                           stringsAsFactors = F)
 
 # add a unique seed for each run
@@ -82,6 +87,7 @@ dim(exp_design)
 project_dir <- run_rStride(exp_design               = exp_design,
                            dir_postfix              = dir_postfix, 
                            store_transmission_rdata = store_transmission_rdata,
+                           remove_run_output = TRUE,
                            ignore_stdout = TRUE)
 
 
@@ -103,11 +109,16 @@ inspect_participant_data(project_dir)
 inspect_incidence_data(project_dir)
 
 
+
 ##################################
 ## EXPLORE TRANSMISSION         ##
 ##################################
 inspect_transmission_data(project_dir)
  
 
+##################################
+## EXPLORE CONTACT TRACING      ##
+##################################
+inspect_tracing_data(project_dir)
 
  

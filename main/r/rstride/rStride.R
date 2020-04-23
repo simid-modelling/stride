@@ -50,6 +50,7 @@ source('./bin/rstride/LogParser.R')
 source('./bin/rstride/IncidenceInspector.R')
 source('./bin/rstride/SummaryInspector.R')
 source('./bin/rstride/SurveyParticipantInspector.R')
+source('./bin/rstride/TracingInspector.R')
 source('./bin/rstride/TransmissionAnalyst.R')
 source('./bin/rstride/TransmissionInspector.R')
 
@@ -72,6 +73,18 @@ run_rStride <- function(exp_design               = exp_design,
                         store_transmission_rdata = TRUE, 
                         use_date_prefix          = TRUE)
 {
+  
+  # debug
+  if(0==1){
+    attach(list(exp_design               = exp_design, 
+                dir_postfix              = '',
+                ignore_stdout            = TRUE, 
+                parse_log_data           = TRUE,
+                get_csv_output           = FALSE,
+                remove_run_output        = TRUE,
+                store_transmission_rdata = TRUE, 
+                use_date_prefix          = TRUE))
+  }
   
   # command line message
   smd_print('STARTING rSTRIDE CONTROLLER')
@@ -126,11 +139,14 @@ run_rStride <- function(exp_design               = exp_design,
   config_default$output_summary   <- 'true'
   config_default$run_tag          <- run_tag
   config_default$num_cea_samples  <- 1e4
+  config_default$track_index_case              <- 'false'
+  config_default$contact_log_level             <- 'Transmissions'
+  config_default$adaptive_symptomatic_behavior <- 'true'
   
   #__________________________________#
   ## PARALLEL SETUP               ####
   #__________________________________#
-  smd_start_cluster(timeout = 600)
+  smd_start_cluster(timeout = 1200)
   
   #__________________________________#
   ## RUN                          ####
@@ -189,7 +205,7 @@ run_rStride <- function(exp_design               = exp_design,
                        config_df   <- config_df[,!names(config_df) %in% names(run_summary)]
                        run_summary <- cbind(run_summary,config_df)
                        
-                       # if we do not wat to parse log data, return run summary
+                       # if we do not want to parse log data, return run summary
                        if(!parse_log_data){
                            return(run_summary)
                        }
@@ -220,7 +236,8 @@ run_rStride <- function(exp_design               = exp_design,
                        # account for non-symptomatic cases
                        flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
                        rstride_out$data_transmission$start_symptoms[flag] <- NA
-                       
+                       rstride_out$data_transmission$end_symptoms[flag]   <- NA
+            
                        # add estimated hospital admission
                        rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission)
                        
@@ -229,7 +246,7 @@ run_rStride <- function(exp_design               = exp_design,
                        new_infections         <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days)
                        new_infectious_cases   <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_infectiousness,num_sim_days)
                        new_symptomatic_cases  <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_symptoms,num_sim_days)
-                       new_recovered_cases    <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$end_symptoms,num_sim_days)
+                       new_recovered_cases    <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$end_infectiousness,num_sim_days)
                        new_hospital_admissions      <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start,num_sim_days)
                        new_hospital_admissions_age1 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age1,num_sim_days)
                        new_hospital_admissions_age2 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age2,num_sim_days)
@@ -251,6 +268,21 @@ run_rStride <- function(exp_design               = exp_design,
                                                                 new_hospital_admissions_age4 = new_hospital_admissions_age4,
                                                                 exp_id                = config_exp$exp_id,
                                                                 row.names = NULL)
+                       
+                       # store disease burden and hospital admission data (for additional analysis)
+                       if(store_transmission_rdata){
+                          rstride_out$data_burden <- data.frame(day_infection           = rstride_out$data_transmission$sim_day,
+                                                                part_age                = rstride_out$data_transmission$part_age,
+                                                                start_infectiousness    = rstride_out$data_transmission$start_infectiousness,
+                                                                end_infectiousness      = rstride_out$data_transmission$end_infectiousness,
+                                                                start_symptoms          = rstride_out$data_transmission$start_symptoms,
+                                                                end_symptoms            = rstride_out$data_transmission$end_symptoms,
+                                                                hospital_admission      = rstride_out$data_transmission$hospital_admission_start,
+                                                                infector_age            = rstride_out$data_transmission$infector_age,
+                                                                infector_is_symptomatic = rstride_out$data_transmission$infector_is_symptomatic,
+                                                                date_infection          = as.Date(config_exp$start_date,'%Y-%m-%d') + rstride_out$data_transmission$sim_day,
+                                                                exp_id                  = rstride_out$data_transmission$exp_id)
+                       }
                        
                        # if transmission data should not be stored, replace item by NA
                        if(!store_transmission_rdata){
@@ -328,7 +360,7 @@ add_hospital_admission_time <- function(data_transmission){
   data_transmission$part_age
   
   # create columsn for hospital admission start (by age)
-  data_transmission$hospital_admission_start     <- NA
+  data_transmission$hospital_admission_start      <- NA
   data_transmission$hospital_admission_start_age1 <- NA
   data_transmission$hospital_admission_start_age2 <- NA
   data_transmission$hospital_admission_start_age3 <- NA
@@ -358,7 +390,8 @@ add_hospital_admission_time <- function(data_transmission){
     flag_part      <- !is.na(data_transmission$start_symptoms) & data_transmission$part_age %in% hosp_age[[i_hosp]]
     flag_admission <- as.logical(rbinom(n = nrow(data_transmission),size = 1,prob = hospital_probability[[i_hosp]]))
     flag_hosp      <- flag_part & flag_admission
-    data_transmission$hospital_admission_start[flag_hosp] <- hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
+    data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] + 
+                                                                      hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
     if(i_hosp == 1){
       data_transmission$hospital_admission_start_age1[flag_hosp] <- data_transmission$hospital_admission_start[flag_hosp]
     } 
