@@ -70,17 +70,25 @@ shared_ptr<Population> NonComplianceSeeder::Seed(shared_ptr<Population> pop)
 			// Get IDs of households that are in non-compliance hotspots
 			const auto hotspotsFile = m_config.get<string>("run.pools_in_hotspots_file");
 			const ptree& hotspots_pt  = FileSys::ReadPtreeFile(hotspotsFile);
-			vector<unsigned int> households_in_hotspots = vector<unsigned int>();
+
+			map<unsigned int, double> households_in_hotspots;
 			for (auto child: hotspots_pt.get_child("hotspots")) {
-				unsigned int hhID = child.second.get_value<int>();
-				households_in_hotspots.push_back(hhID);
+				unsigned int hh_id = child.second.get<unsigned int>("id");
+				double fraction_non_compliers = child.second.get<double>("fraction_non_compliers");
+				households_in_hotspots[hh_id] = fraction_non_compliers;
 			}
 
 			// Iterate over all persons and set to 'non-compliant' if household is in hotspot
-			for (Person& p : population) {
-				auto hhID = p.GetPoolId(Id::Household);
-				if (find(households_in_hotspots.begin(), households_in_hotspots.end(), hhID) != households_in_hotspots.end()) {
-					RegisterNonComplier(pop, p);
+			// and random draw < fraction_non_compliers
+			// TODO or use WeightedCoinFlip?
+			auto generator = m_rn_man.GetUniform01Generator(0U);
+			for (Person& p: population) {
+				auto hh_id = p.GetPoolId(Id::Household);
+				auto hh_in_hotspot = households_in_hotspots.count(hh_id) > 0;
+				if (hh_in_hotspot) {
+					if (generator() < households_in_hotspots[hh_id]) {
+						RegisterNonComplier(pop, p);
+					}
 				}
 			}
 		}
