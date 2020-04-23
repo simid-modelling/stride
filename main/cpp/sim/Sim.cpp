@@ -139,7 +139,8 @@ void Sim::TimeStep()
 			for (size_t i = 0; i < population.size(); ++i) {
 
 				// adjust K12SchoolOff boolean to school type for individual 'i'
-				bool isK12SchoolOff = m_public_health_agency.IsK12SchoolOff(population[i].GetAge(),isPreSchoolOff,isPrimarySchoolOff,isSecondarySchoolOff);
+				bool isK12SchoolOff = m_public_health_agency.IsK12SchoolOff(population[i].GetAge(),isPreSchoolOff,isPrimarySchoolOff,
+						isSecondarySchoolOff, isCollegeOff);
 
 				// update presence
 				population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,

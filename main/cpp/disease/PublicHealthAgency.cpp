@@ -68,7 +68,8 @@ void PublicHealthAgency::SetTelework(std::shared_ptr<Population> pop, util::RnMa
 	}
 }
 
-bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff, bool isPrimarySchoolOff, bool isSecondarySchoolOff){
+bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff,
+		bool isPrimarySchoolOff, bool isSecondarySchoolOff, bool isCollegeOff){
 
 	// apply adjusted scheme based on covid-19 exit strategies?
 	if(m_school_system_adjusted){
@@ -77,6 +78,7 @@ bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff, b
 		// "primary school"   => all days: 1th year primary school
 		// "secondary school" => 2 days/week only 6th year + 5th and 6th primary school
 		// "preschool"        => 1 day/week (from June 8th) for 2nd and 4th of secondary school
+		// "college"          => stay closed
 
 		if(!isPrimarySchoolOff && age == 6)  { return false; }
 		if(!isSecondarySchoolOff && age == 10) { return false; }
@@ -86,6 +88,9 @@ bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff, b
 
 		if(!isPreSchoolOff && age == 13) { return false; }
 		if(!isPreSchoolOff && age == 15) { return false; }
+
+		if(!isCollegeOff && age <= 2 ) { return false; }
+
 
 
 	} else {// note: use school types to differentiate in timing, with regular age groups
