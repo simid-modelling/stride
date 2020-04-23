@@ -44,32 +44,48 @@ store_transmission_rdata <- TRUE
 num_seeds  <- 20 
  
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(  r0                            = 2.5,
-                            num_days                      = 120,
-                            rng_seed                      = seq(num_seeds),
-                            num_participants_survey       = 0,
-                            track_index_case              = 'false',
-                            contact_log_level             = "Transmissions",
-                            seeding_rate                  = 30e-5,
-                            disease_config_file           = "disease_covid19_age.xml",
-                            population_file               = "pop_belgium3000k_c500_teachers_censushh.csv",
+exp_design <- expand.grid(  
                             age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
-                            adaptive_symptomatic_behavior = 'true',
-                            start_date                    = c('2020-02-28'),
-                            holidays_file                 = c("calendar_belgium_2020_covid19_may_workplace.json"),
-                            telework_probability          = c(0.5),
-                            cnt_reduction_work            = c(0),
-                            age_break_school_types        = c(18),
-                            cnt_reduction_other           = c(0.8),
-                            compliance_delay              = c(14),
+                            disease_config_file           = "disease_covid19_age.xml",
+                            holidays_file                 = "calendar_belgium_2020_covid19_july.json",     # all measures in place until 30/6
                             num_daily_imported_cases      = c(0),
-                            cnt_reduction_work_exit       = 0,
-                            cnt_reduction_other_exit      = 0,
-                            #non_compliance_type           = "Hotspots",
-                            #pools_in_hotspots_file        = "data/pop_belgium3000k_c500_teachers_censushh_households_in_hotspots.xml",
+                            num_days                      = 150,
+                            num_participants_survey       = 0,
+                            population_file               = "pop_belgium3000k_c500_teachers_censushh.csv",
+                            r0                            = 3.5,
+                            rng_seed                      = seq(num_seeds),
+                            seeding_rate                  = 3*1e-5, 
+                            start_date                    = '2020-02-17',
                             
-                            #non_compliance_type           = "Random",
-                            #num_non_compliant_individuals = 296776.0, 
+                            # Social distancing parameters
+                            school_system_adjusted        = 1,
+                            telework_probability          = c(0),
+                            cnt_reduction_workplace       = c(0.8),
+                            cnt_reduction_other           = c(0.85),
+                            compliance_delay_workplace    = c(6),
+                            compliance_delay_other        = c(6),
+                            cnt_reduction_workplace_exit  = 0.8,           # from July, same behavior
+                            cnt_reduction_other_exit      = 0.85,          # from July, same behavior
+                            cnt_reduction_school_exit     = 1,             # no mixing in schools
+                            cnt_reduction_intergeneration = 0.9,           # distancing with 'elderly' people (see next)
+                            cnt_reduction_intergeneration_cutoff = 65,     # age break for 'elderly' (see previous)
+                          
+                            # Contact tracing parameters
+                            detection_probability          = 0,            # no tracing (yet)
+                            case_finding_efficency         = 0,            # no tracing (yet)
+                            case_finding_capacity          = 0,            # no tracing (yet)
+                            delay_contact_tracing          = 0,            # no tracing (yet)
+                            delay_testing                  = 0,            # no tracing (yet)
+                            test_false_negative            = 0,            # no tracing (yet)
+                            
+                            # Non-compliance parameters
+                            
+                            # #non_compliance_type           = "Hotspots",
+                            # #pools_in_hotspots_file        = "data/pop_belgium3000k_c500_teachers_censushh_households_in_hotspots.xml",
+                            # 
+                            # #non_compliance_type           = "Random",
+                            # #num_non_compliant_individuals = 296776.0, 
+                            
                             stringsAsFactors = F)
 
 # add a unique seed for each run
@@ -87,4 +103,3 @@ project_dir <- run_rStride(exp_design               = exp_design,
                            parse_log_data = FALSE,
                             ignore_stdout = TRUE,
                            use_date_prefix = FALSE)
-
