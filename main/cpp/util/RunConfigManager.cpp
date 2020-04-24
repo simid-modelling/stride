@@ -164,7 +164,7 @@ string RunConfigManager::CreateTestsCovid19()
         <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
         <contact_log_level>None</contact_log_level>
         <contact_output_file>false</contact_output_file>
-        <disease_config_file>disease_covid19.xml</disease_config_file>
+        <disease_config_file>disease_covid19_age.xml</disease_config_file>
         <holidays_file>holidays_flanders_2020.json</holidays_file>
         <immunity_link_probability>0</immunity_link_probability>
         <immunity_profile>Random</immunity_profile>

@@ -43,23 +43,36 @@ inspect_summary <- function(project_dir)
   
   # calculate values and labels for the second y-axis [cases vs. incidence]
   pop_size          <- median(project_summary$num_cases / project_summary$AR)
-  ticks_name        <- pretty(project_summary$num_cases/pop_size)
-  tick_value        <- ticks_name*pop_size
   
   # OPEN PDF STREAM
   .rstride$create_pdf(project_dir,'summary_inspection',10,7)
+  
+  # set y-asis ticks and labels
+  y_ticks            <- pretty(project_summary$num_cases,10)
+  y_ticks_label      <- paste0(round(y_ticks/1e3),'k')
+  y_ticks_pop        <- pretty(project_summary$num_cases,5)
+  y_ticks_pop_label  <- round(y_ticks_pop/pop_size,digit=2)
   
   # loop over the changing input parameters => plot cases and incidence
   #par(mfrow=c(2,2))
   par(mar = c(10, 4, 4, 4) + 0.3)  # Leave space for 3rd axis
   for(i in 1:ncol(input_opt_design)){
-    boxplot(num_cases ~ project_summary[,colnames(input_opt_design)[i]],
+    bxplt <- boxplot(num_cases ~ project_summary[,colnames(input_opt_design)[i]],
             data = project_summary,
             xlab = colnames(input_opt_design)[i],
-            ylab = '',cex.axis=0.8,las=2)
-    axis(4, at = tick_value , labels = ticks_name )
-    mtext("incidence", side=4, line=2,cex=0.9)
+            ylab = '',cex.axis=0.8,las=2,
+            yaxt='n')
+    
+    # add modified y-axis on the left
+    axis(2, at = y_ticks , labels =y_ticks_label,las=2,cex.axis=0.8)
+    abline(h=y_ticks,lty=3,col='lightgray')
     mtext("number of cases", side=2, line=2,cex=0.9)
+    
+    # add y-axis on the right
+
+    axis(4, at = y_ticks_pop , labels =y_ticks_pop_label,cex.axis=0.8)
+    mtext("incidence", side=4, line=2,cex=0.9)
+    
   }
   
   par(mar = c(10, 4, 1, 4) + 0.3)  # Leave space for 3rd axis
@@ -68,7 +81,7 @@ inspect_summary <- function(project_dir)
           ylab = '',
           las=2,
           cex.axis=0.8)
-  axis(4, at = tick_value , labels = ticks_name )
+  axis(4, at = y_ticks , labels = y_ticks_label )
   mtext("incidence", side=4, line=2,cex=0.9)
   mtext("total number of cases", side=2, line=2,cex=0.9)
   
@@ -81,7 +94,7 @@ inspect_summary <- function(project_dir)
             ylab = '',
             las=2,
             cex.axis=0.8)
-    axis(4, at = tick_value , labels = ticks_name )
+    axis(4, at = y_ticks , labels = y_ticks_label )
     mtext("incidence", side=4, line=2,cex=0.9)
     mtext("total number of cases", side=2, line=2,cex=0.9)
   }
