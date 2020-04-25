@@ -65,11 +65,11 @@ def get_num_non_compliers(output_dir, scenario_name, exp_id):
 def main(output_dir, scenario_names, scenario_display_names):
     if scenario_display_names == None:
         scenario_display_names = scenario_names
-    num_days = 120
-    base = datetime.datetime.strptime("2020-02-28", "%Y-%m-%d")
+    num_days = 150
+    base = datetime.datetime.strptime("2020-02-17", "%Y-%m-%d")
     dates = [base + datetime.timedelta(days=x) for x in range(num_days)]
 
-    scenario_display_names = ["Baseline", "Random non-compliers", "Geographically clustered non-compliers"]
+    #scenario_display_names = ["Baseline", "Random non-compliers", "Geographically clustered non-compliers"]
     all_new_cases_per_day = {}
     all_attack_rates = []
     all_nums_non_compliers = []
@@ -84,7 +84,7 @@ def main(output_dir, scenario_names, scenario_display_names):
             all_nums_non_compliers.append(num_non_compliers)
 
     i = 0
-    colors = ["green", "red", "blue"]
+    colors = ["green", "red", "blue", "yellow", "magenta"]
     plots = []
     for name in scenario_names:
         results = all_new_cases_per_day[name]
@@ -101,21 +101,52 @@ def main(output_dir, scenario_names, scenario_display_names):
     plt.ylabel("New infections")
 
     plt.legend(plots, scenario_display_names)
+    plt.title("Random non-compliers")
     plt.tight_layout()
     plt.savefig("new_cases_per_day_comparison.png")
     plt.clf()
 
-    # FIXME
-    scenario_display_names[2] = "Geographically\n clustered non-compliers"
+    i = 0
+    for name in scenario_names:
+        results = all_new_cases_per_day[name]
+        days = range(num_days)
+        means = []
+        for d in days:
+            results_for_day = []
+            for r in results:
+                results_for_day.append(r[d])
+            means.append(sum(results_for_day) / len(results_for_day))
+        plt.plot(days, means, color=colors[i])
+        i += 1
 
-    plt.boxplot(all_attack_rates, labels=scenario_display_names)
-    plt.ylabel("Attack rate over {} days".format(num_days))
+    plt.xlabel("Day")
+    plt.xticks(range(num_days)[::5], [x.strftime("%d/%m") for x in dates[::5]], rotation=45)
+    plt.ylabel("Mean number of new infections")
+    plt.legend(scenario_display_names)
+    plt.title("Random non-compliers")
     plt.tight_layout()
+    plt.savefig("mean_new_cases_per_day_comparison.png")
+    plt.clf()
+
+
+    # FIXME
+    #scenario_display_names[2] = "Geographically\n clustered non-compliers"
+
+    #scenario_display_names = ["Basline", "25% \nnon-compliers", "50% \nnon-compliers", "75% \nnon-compliers", "100% \nnon-compliers"]
+    scenario_display_names = ["Baseline", "33K \nnon-compliers", "67K \nnon-compliers", "100K \nnon-compliers", "134K \nnon-compliers"]
+    plt.boxplot(all_attack_rates, labels=scenario_display_names)
+    #plt.xticks(rotation=45)
+    plt.ylabel("Attack rate over {} days".format(num_days))
+    plt.title("Random non-compliers")
+    plt.tight_layout()
+
     plt.savefig("attack_rates_comparison.png")
     plt.clf()
 
     plt.boxplot(all_nums_non_compliers, labels=scenario_display_names)
+    #plt.xticks(rotation=45)
     plt.ylabel("Total number of non-compliers")
+    plt.title("Random non-compliers")
     plt.tight_layout()
     plt.savefig("num_non_compliers_comparison.png")
     plt.clf()

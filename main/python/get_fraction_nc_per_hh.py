@@ -3,59 +3,60 @@ import csv
 import os
 import xml.etree.ElementTree as ET
 
-def main(population_dir, population_name, fraction_non_compliers):
-    # Get NIS codes in hotspots
+def main(population_dir, population_name):
+    # Get exceedance probability per NIS code
     exceedance_prob_file = "exprob_R6_BE_PC_1.txt"
-    exceedance_prob_limit = 0.9
 
-    hotspot_nis_codes = []
+    exceedance_prob_by_nis = {}
     with open(exceedance_prob_file) as f:
         # Skip header
         next(f)
         for line in f:
             line = line.split()
+            nis_code = int(line[2])
             exprob = float(line[0])
-            if exprob > exceedance_prob_limit:
-                hotspot_nis_codes.append(int(line[2]))
+            if nis_code in exceedance_prob_by_nis:
+                exceedance_prob_by_nis[nis_code].append(exprob)
+            else:
+                exceedance_prob_by_nis[nis_code] = [exprob]
 
-    # Remove doubles
-    hotspot_nis_codes = list(set(hotspot_nis_codes))
+    for nis_code, exprobs in exceedance_prob_by_nis.items():
+        avg_exprob = sum(exprobs) / len(exprobs)
+        exceedance_prob_by_nis[nis_code] = avg_exprob
+
+    exceedance_prob_by_district = {}
     # Match NIS codes to district IDs in the simulator
-    hotspot_district_ids = []
     with open(os.path.join(population_dir, population_name + "_all", population_name + "_district_data.csv")) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             district_nis_code = int(row["city"])
-            if district_nis_code in hotspot_nis_codes:
-                district_id = int(row["id"])
-                hotspot_district_ids.append(district_id)
+            exceedanc_prob = exceedance_prob_by_nis[district_nis_code]
+            district_id = int(row["id"])
+            exceedance_prob_by_district[district_id] = exceedanc_prob
 
-    # Find households that are in 'hotspot' districts
-    households_in_hotspots = []
+    # Match households to district
+    exceedance_prob_by_hh = {}
     with open(os.path.join(population_dir, population_name + "_all", population_name + "_household_data.csv")) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             district_id = int(row["district_id"])
-            if district_id in hotspot_district_ids:
-                hh_id = int(row["hh_id"])
-                households_in_hotspots.append(hh_id)
+            exceedanc_prob = exceedance_prob_by_district[district_id]
+            hh_id = int(row["hh_id"])
+            exceedance_prob_by_hh[hh_id] = exceedanc_prob
 
     # Write household ids to file
     root = ET.Element("hotspots")
-    for hh_id in households_in_hotspots:
+    for hh_id, exceedanc_prob in exceedance_prob_by_hh.items():
         new_hh = ET.SubElement(root, "hotspot")
         new_hh_id = ET.SubElement(new_hh, "id")
         new_hh_id.text = str(hh_id)
         new_hh_fraction_non_compliers = ET.SubElement(new_hh, "fraction_non_compliers")
-        new_hh_fraction_non_compliers.text = str(fraction_non_compliers)
-
-    ET.ElementTree(root).write(population_name + "_households_in_hotspots_fraction_nc_" + str(fraction_non_compliers) + " .xml")
-
+        new_hh_fraction_non_compliers.text = str(exceedanc_prob)
+    ET.ElementTree(root).write(population_name + "_non_compliers_by_exceedance_prob.xml")
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--population_dir", type=str, default=".")
     parser.add_argument("--population_name", type=str, default="pop_belgium3000k_c500_teachers_censushh")
-    parser.add_argument("--fraction_non_compliers", type=float, default=1)
     args = parser.parse_args()
-    main(args.population_dir, args.population_name, args.fraction_non_compliers)
+    main(args.population_dir, args.population_name)

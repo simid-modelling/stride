@@ -31,7 +31,7 @@ rm(list=ls())
 source('./bin/rstride/rStride.R')
  
 # set directory postfix (optional)
-dir_postfix <- 'geoclustering_baseline'
+dir_postfix <- 'geoclustering_random_exprob'
  
 # store all transmission output
 store_transmission_rdata <- TRUE
@@ -80,11 +80,11 @@ exp_design <- expand.grid(
                             
                             # Non-compliance parameters
                             
-                            # #non_compliance_type           = "Hotspots",
-                            # #pools_in_hotspots_file        = "data/pop_belgium3000k_c500_teachers_censushh_households_in_hotspots.xml",
-                            # 
-                            # #non_compliance_type           = "Random",
-                            # #num_non_compliant_individuals = 296776.0, 
+                            #non_compliance_type            = "Hotspots",
+                            #pools_in_hotspots_file         = "data/pop_belgium3000k_c500_teachers_censushh_non_compliers_by_exceedance_prob.xml",
+                            #pools_in_hotspots_file        = "data/pop_belgium3000k_c500_teachers_censushh_households_in_hotspots_fraction_nc_1.0.xml",
+                            non_compliance_type            = "Random",
+                            num_non_compliant_individuals  = 1371401, 
                             
                             stringsAsFactors = F)
 
