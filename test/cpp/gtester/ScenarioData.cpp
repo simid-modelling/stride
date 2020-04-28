@@ -71,10 +71,10 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
 
 	// Adjust some  parameters, according the scenario
 	if (tag == "influenza_b") {
-			pt.put("run.seeding_rate", 0.0);
+			pt.put("run.num_infected_seeds", 0);
 	}
 	if (tag == "influenza_c") {
-			pt.put("run.seeding_rate", (1 - 0.9991) / 100);
+			pt.put("run.num_infected_seeds", 5);
 			pt.put("run.immunity_rate", 0.9991);
 	}
 	if (tag == "measles_16") {

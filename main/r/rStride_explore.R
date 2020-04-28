@@ -51,7 +51,7 @@ exp_design <- expand.grid(r0                            = seq(2.7,2.8,0.1),
                           num_days                      = 20,
                           rng_seed                      = seq(num_seeds),
                           num_participants_survey       = 3000,
-                          seeding_rate                  = c(30)*1e-5, 
+                          num_infected_seeds            = 180, 
                           disease_config_file           = "disease_covid19.xml",
                           population_file               = c("pop_belgium600k_c500_teachers_censushh.csv"),
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
@@ -96,6 +96,11 @@ inspect_incidence_data(project_dir)
 ##################################
 inspect_transmission_data(project_dir)
 
+
+##################################
+## EXPLORE PREVALENCE           ##
+##################################
+inspect_prevalence_data(project_dir)
 
 
 

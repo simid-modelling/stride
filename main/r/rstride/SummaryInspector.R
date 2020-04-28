@@ -1,4 +1,4 @@
-#############################################################################
+############################################################################ #
 #  This file is part of the Stride software. 
 #  It is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by 
@@ -14,13 +14,13 @@
 #
 #
 #  Copyright 2020, Willem L, Kuylen E & Broeckhove J
-#############################################################################
+############################################################################ #
 #
 # MODEL SUMMARY EXPLORATION
 # - input-output behavior
 # - transmission events and context
 #
-#############################################################################
+############################################################################ #
 
 inspect_summary <- function(project_dir)
 {
@@ -100,15 +100,10 @@ inspect_summary <- function(project_dir)
   }
   
   
-  ## SECONDARY CASES ##
-  
-  # get infected seeds per simulation  
-  project_summary$num_infected_seeds <- floor(project_summary$population_size * project_summary$seeding_rate)
-  
+  ## SECONDARY CASES ####
   # secondary cases  
   project_summary$num_sec_cases     <- project_summary$num_cases - project_summary$num_infected_seeds
   project_summary$avg_num_sec_cases <- project_summary$num_sec_cases / project_summary$num_infected_seeds
-  
   
   # plot
   sec_cases_formula  <- as.formula(paste('avg_num_sec_cases ~ interaction(',paste(colnames(input_opt_design),collapse=' , '),',drop=TRUE)'))
@@ -127,7 +122,7 @@ inspect_summary <- function(project_dir)
     legend('topleft','mean',pch=4,col=1,cex=0.8)
   }
   
-  ## SUBSETS
+  ## SUBSETS ####
   num_subsets <- 10
   project_summary$subset_id <- sample(num_subsets,nrow(project_summary),replace = T)
   sec_cases_formula  <- as.formula(paste('avg_num_sec_cases ~ interaction(subset_id,',paste(colnames(input_opt_design),collapse=' , '),',drop=TRUE)'))
@@ -148,12 +143,12 @@ inspect_summary <- function(project_dir)
   
   dev.off()
   
-  # terminal message
+  # CLI message
   smd_print('INSPECTION OF SUMMARY DATA COMPLETE')
   
 }
 
-## HELP FUNCTION
+## HELP FUNCTION ####
 .rstride$get_variable_model_param <- function(project_summary){
   
   input_opt    <- .rstride$get_unique_param_list(project_summary)
@@ -176,7 +171,7 @@ inspect_summary <- function(project_dir)
   
 }
 
-## HELP FUNCTION
+## HELP FUNCTION ####
 .rstride$get_unique_param_list <- function(project_summary){
   
   col_output <- c('run_time', 'total_time', 'num_cases', 'AR' )

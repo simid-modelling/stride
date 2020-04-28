@@ -48,6 +48,32 @@ void DiseaseSeeder::Seed(std::shared_ptr<Population> pop)
         const auto   popSize     = pop->size();
         auto numInfected = static_cast<unsigned int>(floor(static_cast<double>(popSize) * sRate));
 
+
+        // option to provide a number of cases, instead of a seeding rate.
+	    const auto numInfectedSeeds = m_config.get<unsigned int>("run.num_infected_seeds",0);
+	    if(numInfectedSeeds > 0){
+	    	numInfected = numInfectedSeeds;
+	    }
+
+	    //------------------------------------------------
+		// Check compatibility options issues
+		//------------------------------------------------
+	    if(sRate > 0){
+			std::cout << "The 'seeding_rate' parameter is deprecated. Please use 'num_infected_seeds'" << std::endl;
+			std::cerr << "The 'seeding_rate' parameter is deprecated. Please use 'num_infected_seeds'" << std::endl;
+		}
+	    if(numInfectedSeeds > 0 && sRate > 0){
+    		std::cout << "The 'seeding_rate' parameter is overruled by 'num_infected_seeds'" << std::endl;
+    		std::cerr << "The 'seeding_rate' parameter is overruled by 'num_infected_seeds' " << std::endl;
+    	}
+
+	    //------------------------------------------------
+		// Check validity of input data.
+		//------------------------------------------------
+	    if (numInfected > popSize) {
+				throw runtime_error(string(__func__) + "> Bad input data for infected seeding an/or initially infected cases.");
+		}
+
         // --------------------------------------------------------------
         // Add infected seeds to the population
         // --------------------------------------------------------------

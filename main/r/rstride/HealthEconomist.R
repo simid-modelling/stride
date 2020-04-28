@@ -399,10 +399,7 @@ get_average_burden_averted <- function(project_dir,
   # create factor variable
   project_summary$intervention_tag         <- factor(project_summary$intervention_tag, levels = intervention_levels)
   
-  # add infectious seeds
-  project_summary$num_infected_seeds       <- floor(project_summary$seeding_rate * project_summary$population_size)
-  
-  # add intervention data => use "vaccination data"
+    # add intervention data => use "vaccination data"
   datafile_intervention <- file.path(project_dir,paste0(project_summary$run_tag[1],'_data_vaccination.RData'))
   if(file.exists(datafile_intervention)){
     data_intervention <- load(datafile_intervention)
