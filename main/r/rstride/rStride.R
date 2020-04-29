@@ -47,6 +47,7 @@ source('./bin/rstride/Misc.R')
 source('./bin/rstride/ContactInspector.R')
 source('./bin/rstride/HealthEconomist.R')
 source('./bin/rstride/LogParser.R')
+source('./bin/rstride/PrevalenceInspector.R')
 source('./bin/rstride/IncidenceInspector.R')
 source('./bin/rstride/SummaryInspector.R')
 source('./bin/rstride/SurveyParticipantInspector.R')
@@ -168,7 +169,8 @@ run_rStride <- function(exp_design               = exp_design,
                      .combine='rbind',
                      .packages=c('XML','simid.rtools'),
                      .export = c('.rstride','par_nodes_info','get_counts',
-                                 'add_hospital_admission_time'),
+                                 'add_hospital_admission_time',
+                                 'get_prevalence_data'),
                      .verbose=FALSE) %dopar%
                      {  
                       
@@ -220,18 +222,12 @@ run_rStride <- function(exp_design               = exp_design,
                          rstride_out <- .rstride$parse_contact_logfile(contact_log_filename,i_exp)
                        }
                        
-                       # convert 'cases' file (if present) => "prevalence"
-                       cases_filename <- smd_file_path(config_exp$output_prefix,'cases.csv')
-                       if(file.exists(cases_filename)){
-                         data_cases        <- read.table(cases_filename,sep=',')
-                         names(data_cases) <- paste0('day',seq(length(data_cases))-1)
-                         data_cases$exp_id <- config_exp$exp_id
-                         #save(data_cases,file=file.path(config_exp$output_prefix,'data_prevalence.RData'))
-                         rstride_out$data_prevalence <- data_cases
-                         
-                       } else {
-                         rstride_out$data_prevalence = NA
-                       }
+                       # convert 'prevalence' files (if present) 
+                       rstride_out$data_prevalence_infected    <- get_prevalence_data(config_exp,'infected.csv')
+                       rstride_out$data_prevalence_exposed     <- get_prevalence_data(config_exp,'exposed.csv')
+                       rstride_out$data_prevalence_infectious  <- get_prevalence_data(config_exp,'infectious.csv')
+                       rstride_out$data_prevalence_symptomatic <- get_prevalence_data(config_exp,'symptomatic.csv')
+                       rstride_out$data_prevalence_total       <- get_prevalence_data(config_exp,'cases.csv')
                        
                        # account for non-symptomatic cases
                        flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
@@ -409,3 +405,20 @@ add_hospital_admission_time <- function(data_transmission){
   # return
   return(data_transmission) 
 }
+
+
+# load prevelence data and add colunm names
+get_prevalence_data <- function(config_exp,file_name){
+  prevalence_filename <- smd_file_path(config_exp$output_prefix,file_name)
+  if(file.exists(prevalence_filename)){
+    data_prevalence        <- read.table(prevalence_filename,sep=',')
+    names(data_prevalence) <- paste0('day',seq(length(data_prevalence))-1)
+    data_prevalence$exp_id <- config_exp$exp_id
+   return(data_prevalence)
+  } else {
+    return(NA)
+  }
+
+  }
+
+

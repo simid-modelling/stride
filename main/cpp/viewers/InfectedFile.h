@@ -34,7 +34,7 @@ class InfectedFile
 {
 public:
         /// Constructor: initialize.
-        explicit InfectedFile(const std::string& output_dir = "output");
+        InfectedFile(const std::string& output_dir = "output", const std::string& file_name = "cases");
 
         /// Destructor: close the file stream.
         ~InfectedFile();

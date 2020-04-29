@@ -46,13 +46,13 @@ void CliViewer::Update(const sim_event::Id id)
                 write_xml(ss, m_runner->GetConfig(), xml_writer_make_settings<ptree::key_type>(' ', 8));
                 m_logger->trace("Run config used:\n {}", ss.str());
                 m_logger->info("      Day: {:4}  Done, infected count: {:7}", sim->GetCalendar()->GetSimulationDay(),
-                               sim->GetPopulation()->GetInfectedCount());
+                               sim->GetPopulation()->GetTotalInfected());
                 break;
         }
         case Id::Stepped: {
                 const auto sim = m_runner->GetSim();
                 m_logger->info("      Day: {:4}  Done, infected count: {:7}", sim->GetCalendar()->GetSimulationDay(),
-                               sim->GetPopulation()->GetInfectedCount());
+                               sim->GetPopulation()->GetTotalInfected());
                 break;
         }
         case Id::Finished: {

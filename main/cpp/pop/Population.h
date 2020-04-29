@@ -64,7 +64,20 @@ public:
                              unsigned int secondaryCommunityId);
 
         /// Get the cumulative number of cases.
-        unsigned int GetInfectedCount() const;
+        unsigned int GetTotalInfected() const;
+
+        /// Get the current number of infected cases.
+        unsigned int CountInfectedCases() const;
+
+        /// Get the current number of exposed cases.
+        unsigned int CountExposedCases() const;
+
+        /// Get the current number of infectious cases.
+        unsigned int CountInfectiousCases() const;
+
+        /// Get the current number of symptomatic cases.
+        unsigned int CountSymptomaticCases() const;
+
 
         /// Get the maximum age in the population.
         unsigned int GetMaxAge() const;

@@ -102,12 +102,52 @@ Person* Population::CreatePerson(unsigned int id, double age, unsigned int house
                             secondaryCommunityId);
 }
 
-unsigned int Population::GetInfectedCount() const
+unsigned int Population::GetTotalInfected() const
 {
         unsigned int total{0U};
         for (const auto& p : *this) {
                 const auto& h = p.GetHealth();
                 total += h.IsInfected() || h.IsRecovered();
+        }
+        return total;
+}
+
+unsigned int Population::CountInfectedCases() const
+{
+        unsigned int total{0U};
+        for (const auto& p : *this) {
+                const auto& h = p.GetHealth();
+                total += h.IsInfected();
+        }
+        return total;
+}
+
+unsigned int Population::CountExposedCases() const
+{
+        unsigned int total{0U};
+        for (const auto& p : *this) {
+                const auto& h = p.GetHealth();
+                total += h.IsExposed();
+        }
+        return total;
+}
+
+unsigned int Population::CountInfectiousCases() const
+{
+        unsigned int total{0U};
+        for (const auto& p : *this) {
+                const auto& h = p.GetHealth();
+                total += h.IsInfectious();
+        }
+        return total;
+}
+
+unsigned int Population::CountSymptomaticCases() const
+{
+        unsigned int total{0U};
+        for (const auto& p : *this) {
+                const auto& h = p.GetHealth();
+                total += h.IsSymptomatic();
         }
         return total;
 }

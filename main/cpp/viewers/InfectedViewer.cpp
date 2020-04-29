@@ -30,13 +30,14 @@ using namespace stride::sim_event;
 namespace stride {
 namespace viewers {
 
+
 void InfectedViewer::Update(const sim_event::Id id)
 {
         switch (id) {
         case Id::AtStart:
         case Id::Stepped: {
                 const auto pop = m_runner->GetSim()->GetPopulation();
-                m_infected.push_back(pop->GetInfectedCount());
+                m_infected.push_back(pop->GetTotalInfected());
                 break;
         }
         default: break;
