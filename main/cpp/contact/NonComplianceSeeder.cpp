@@ -44,53 +44,97 @@ shared_ptr<Population> NonComplianceSeeder::Seed(shared_ptr<Population> pop)
 
 	assert((popCount >= 1U) && "NonComplianceSeeder> Population count zero unacceptable.");
 
-	// Get type of non-compliance seeding (by household or at random)
-	// if no parameter is present in config file, assume NO non-compliance
+	// Non-compliance by age
+	// retrieve the maximum age in the population
+	unsigned int maxAge = pop->GetMaxAge();
+
+	std::vector<double> nonComplianceDistribution;
+	boost::optional<string> nonComplianceByAgeFile = m_config.get_optional<string>("run.non_compliance_by_age_file");
+	if (nonComplianceByAgeFile) {
+		const ptree& nonComplianceByAge_pt = FileSys::ReadPtreeFile(*nonComplianceByAgeFile);
+		for (unsigned int index_age = 0; index_age <= maxAge; index_age++) {
+			auto fractionNonCompliant = nonComplianceByAge_pt.get<double>("fraction_non_compliers.age" + std::to_string(index_age));
+			nonComplianceDistribution.push_back(fractionNonCompliant);
+		}
+	} else {
+		cout << "NO by age file" << endl;
+		// Age does not determine non-compliance: set probability of being a non-complier to 1 for all ages
+		for (unsigned int index_age = 0; index_age <= maxAge; index_age++) {
+			nonComplianceDistribution.push_back(1);
+		}
+	}
+
+	// RNG
+	auto generatorInt = m_rn_man.GetUniformIntGenerator(0, static_cast<int>(popCount), 0U);
+	auto generator0to1 = m_rn_man.GetUniform01Generator(0U);
+
+	// Non compliance by district OR random
+	// Get type of non-compliance seeding (by district or random)
+	// If no parameter is present in the config file, assume NO non-compliance
 	boost::optional<string> nonComplianceType = m_config.get_optional<string>("run.non_compliance_type");
 	if (nonComplianceType) {
 		if (*nonComplianceType == "Random") {
-			unsigned int targetNumNonCompliers = m_config.get<int>("run.num_non_compliant_individuals");
-			assert((popCount >= targetNumNonCompliers) && "NonComplianceSeeder> Pop count has to exceed number of surveyed.");
-			 auto numNonCompliers = 0U;
-			 auto generator = m_rn_man.GetUniformIntGenerator(0, static_cast<int>(popCount), 0U);
-			 while (numNonCompliers < targetNumNonCompliers) {
-				 Person& p = population[generator()];
-				 if (p.IsNonComplier()) {
-					 continue;
-				 }
+			unsigned int targetNumNonCompliers = m_config.get<int>("run.num_non_compliers");
+			assert((popCount >= targetNumNonCompliers) && "NonComplianceSeeder> Pop count has to exceed number of non-compliers.");
 
-				 // Set person to be non-complier
-				 RegisterNonComplier(pop, p);
+			auto numNonCompliers = 0U;
 
-				 // Update number of remaining samples
-				 numNonCompliers++;
-			 }
-
-		} else if (*nonComplianceType == "Hotspots") {
-			// Get IDs of households that are in non-compliance hotspots
-			const auto hotspotsFile = m_config.get<string>("run.pools_in_hotspots_file");
-			const ptree& hotspots_pt  = FileSys::ReadPtreeFile(hotspotsFile);
-
-			map<unsigned int, double> households_in_hotspots;
-			for (auto child: hotspots_pt.get_child("hotspots")) {
-				unsigned int hh_id = child.second.get<unsigned int>("id");
-				double fraction_non_compliers = child.second.get<double>("fraction_non_compliers");
-				households_in_hotspots[hh_id] = fraction_non_compliers;
+			while (numNonCompliers < targetNumNonCompliers) {
+				Person& p = population[generatorInt()];
+				if (p.IsNonComplier()) {
+					continue;
+				}
+				if (generator0to1() < nonComplianceDistribution[p.GetAge()]) {
+					// Set person to be non-complier
+					RegisterNonComplier(pop, p);
+					// Update number of remaining non-compliers to be found
+					numNonCompliers++;
+				}
 			}
+		} else if (*nonComplianceType == "Hotspots") {
+			// Calculate the number of non-compliers per district
+			// = number of individuals in households in district * fraction non-compliers in district
+			const auto hotspotsFile = m_config.get<string>("run.non_compliance_hotspots_file");
+			const ptree& hotspots_pt = FileSys::ReadPtreeFile(hotspotsFile);
+			for (auto district: hotspots_pt.get_child("hotspots")) {
+				// Calculate total number of persons in hotspot
+				unsigned int totalPopHotspot = 0U;
+				vector<int> householdsInHotspot;
+				for (auto household: district.second.get_child("households")) {
+					auto hhID = household.second.get_value<int>();
+					householdsInHotspot.push_back(hhID);
+					auto hhSize = population.CRefPoolSys().CRefPools(Id::Household)[hhID].size();
+					totalPopHotspot += hhSize;
+				}
+				// Calculate the number of non-compliers in hotspot
+				double fractionNonCompliersInHotspot = district.second.get<double>("fraction_non_compliers");
+				unsigned int targetNumNonCompliers = floor(totalPopHotspot * fractionNonCompliersInHotspot);
 
-			// Iterate over all persons and set to 'non-compliant' if household is in hotspot
-			// and random draw < fraction_non_compliers
-			// TODO or use WeightedCoinFlip?
-			auto generator = m_rn_man.GetUniform01Generator(0U);
-			for (Person& p: population) {
-				auto hh_id = p.GetPoolId(Id::Household);
-				auto hh_in_hotspot = households_in_hotspots.count(hh_id) > 0;
-				if (hh_in_hotspot) {
-					if (generator() < households_in_hotspots[hh_id]) {
+				// Sample non-compliers
+				auto generatorHH = m_rn_man.GetUniformIntGenerator(0, static_cast<int>(householdsInHotspot.size()), 0U);
+				unsigned int numNonCompliers = 0U;
+
+				while (numNonCompliers < targetNumNonCompliers) {
+					// Choose a random household in the hotspot
+					unsigned int hhID = householdsInHotspot[generatorHH()];
+					const ContactPool&   p_pool = population.CRefPoolSys().CRefPools(Id::Household)[hhID];
+					// Choose a random person in this household
+					auto generatorP = m_rn_man.GetUniformIntGenerator(0, static_cast<int>(p_pool.size()), 0U);
+					Person& p = *p_pool[generatorP()];
+					// Check that person is not already a non-complier
+					if (p.IsNonComplier()) {
+						continue;
+					}
+					// Apply age-dependent probability of being a non-complier
+					if (generator0to1() < nonComplianceDistribution[p.GetAge()]) {
+						// Set person to be non-complier
 						RegisterNonComplier(pop, p);
+						// Update number of remaining non-compliers to be found
+						numNonCompliers++;
 					}
 				}
 			}
+
 		}
 	}
 
