@@ -36,14 +36,14 @@ class Person
 {
 public:
         /// Default construction (for population vector).
-        Person() : m_age(0.0), m_id(0), m_pool_ids(), m_health(), m_in_pools(), m_is_participant(), m_teleworking(), m_non_complier_community() {}
+        Person() : m_age(0.0), m_id(0), m_pool_ids(), m_health(), m_in_pools(), m_is_participant(), m_teleworking(), m_non_complier() {}
 
         /// Constructor: set the person data.
         Person(unsigned int id, float age, unsigned int householdId, unsigned int k12SchoolId, unsigned int collegeId,
                unsigned int workId, unsigned int primaryCommunityId, unsigned int secondaryCommunityId)
             : m_age(age), m_id(id), m_pool_ids{householdId, k12SchoolId,        collegeId,
                                                workId,      primaryCommunityId, secondaryCommunityId},
-              m_health(), m_in_pools(true), m_is_participant(false), m_teleworking(false), m_non_complier_community(false)
+              m_health(), m_in_pools(true), m_is_participant(false), m_teleworking(false), m_non_complier(false)
         {
         }
 
@@ -96,9 +96,9 @@ public:
 
         bool IsTeleworking() const { return m_teleworking;}
 
-        void SetNonComplier() { m_non_complier_community = true; }
+        void SetNonComplier(const ContactType::Id& poolType) {  m_non_complier[poolType] = true; }
 
-        bool IsNonComplier() const { return m_non_complier_community; }
+        bool IsNonComplier(const ContactType::Id& poolType) const { return m_non_complier[poolType]; }
 
 private:
         float        m_age; ///< The age.
@@ -120,8 +120,8 @@ private:
         ///< Is the participant teleworking?
         bool m_teleworking;
 
-        ///< Is the person not complying to social-distancing measures in community?
-        bool m_non_complier_community;
+        ///< Is the person a non-complier to social distancing measures in the contact pools they belong to?
+        ContactType::IdSubscriptArray<bool> m_non_complier;
 };
 
 } // namespace stride

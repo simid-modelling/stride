@@ -138,8 +138,8 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
         	contact_probability = contact_probability * (1-cnt_reduction_work);
         }
 
-		// persons who are in 'non-compliance hotspot' do not apply contact reduction in community
-        if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity) and not (p1->IsNonComplier() and not (p2->IsNonComplier()))){
+		// persons who are non-compliers do not apply contact reduction in community
+        if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity) and not (p1->IsNonComplier(pType) and not (p2->IsNonComplier(pType)))){
 
 			// apply intergeneration distancing factor if age cutoff is > 0 and at least one age is > cutoff
 			if((cnt_reduction_intergeneration > 0) &&

@@ -81,7 +81,7 @@ shared_ptr<Population> NonComplianceSeeder::Seed(shared_ptr<Population> pop)
 
 			while (numNonCompliers < targetNumNonCompliers) {
 				Person& p = population[generatorInt()];
-				if (p.IsNonComplier()) {
+				if (p.IsNonComplier(Id::PrimaryCommunity) or (p.IsNonComplier(Id::SecondaryCommunity))) {
 					continue;
 				}
 				if (generator0to1() < nonComplianceDistribution[p.GetAge()]) {
@@ -122,7 +122,7 @@ shared_ptr<Population> NonComplianceSeeder::Seed(shared_ptr<Population> pop)
 					auto generatorP = m_rn_man.GetUniformIntGenerator(0, static_cast<int>(p_pool.size()), 0U);
 					Person& p = *p_pool[generatorP()];
 					// Check that person is not already a non-complier
-					if (p.IsNonComplier()) {
+					if (p.IsNonComplier(Id::PrimaryCommunity) or p.IsNonComplier(Id::SecondaryCommunity)) {
 						continue;
 					}
 					// Apply age-dependent probability of being a non-complier
@@ -146,7 +146,8 @@ void NonComplianceSeeder::RegisterNonComplier(std::shared_ptr<Population> pop, P
 	Population& population  = *pop;
 	auto&       logger      = population.RefContactLogger();
 	// Set person to be non-complier
-	p.SetNonComplier();
+	p.SetNonComplier(Id::PrimaryCommunity);
+	p.SetNonComplier(Id::SecondaryCommunity);
 	// Log person details
 	logger->info("[NCOM] {} {} {}", p.GetId(), p.GetAge(), p.GetPoolId(Id::Household));
 }
