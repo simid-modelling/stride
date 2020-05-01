@@ -205,6 +205,30 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   dev.off()
   #--------------------------#
   
+  
+  ## ALL PLOTS (zoom) ####
+  .rstride$create_pdf(project_dir,'incidence_inspection_zoom',width = 6, height = 7)
+  par(mfrow=c(4,1))
+  
+  head(data_incidence_all)
+  opt_config_id <- unique(data_incidence_all$config_id)
+  i_config <- opt_config_id[1]
+  for(i_config in opt_config_id){
+    
+    # select subset
+    data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
+    data_incidence_sel <- data_incidence_sel[data_incidence_sel$sim_day > median(data_incidence_sel$sim_day),]
+    
+    # plot
+    plot_incidence_data(data_incidence_sel,project_summary,
+                        hosp_adm_data,input_opt_design,
+                        bool_add_param)
+  }
+  
+  # close pdf
+  dev.off()
+  #--------------------------#
+  
   ## R0     ####
   ## PER R0: plot temporal patterns
   opt_r0 <- unique(input_opt_design$r0)
@@ -318,7 +342,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   dev.off()
   
   
-  #--------------------------#
+   #--------------------------#
   # parameters
   
   if(nrow(input_opt_design)>1){
@@ -378,8 +402,8 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        ylim = y_lim,
        yaxt='n',
        xaxt='n')
-  axis(2,las=2,cex.axis=0.9)
   add_x_axis(data_incidence_sel$sim_date)
+  add_y_axis(y_lim)
   points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=16)
   add_breakpoints()
   add_legend_hosp(pcolor)
@@ -409,10 +433,9 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        yaxt='n',
        xaxt='n',
        ylim= range(y_lim))
-  y_ticks <- pretty(y_lim)
-  axis(2,y_ticks,paste0(y_ticks/1e3,'k'),las=2,cex.axis=0.9)
   add_x_axis(data_incidence_sel$sim_date)
-  axis(4,y_ticks,paste0(round(y_ticks/pop_size_be*100,digits=2),'%'),las=2,cex.axis=0.9)
+  add_y_axis(y_lim)
+  axis(4,pretty(y_lim),paste0(round(pretty(y_lim)/pop_size_be*100,digits=2),'%'),las=2,cex.axis=0.9)
   mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
   grid()
   points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=16)
@@ -444,17 +467,18 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   )
   
   ## INCIDENCE: ALL ####
+  y_lim <- range(0,data_incidence_sel$new_infections,na.rm = T)
   plot(data_incidence_sel$sim_date,
        data_incidence_sel$new_infections,
        type='l',
        col=alpha(pcolor$E,pcolor$alpha),
        ylab='New cases',
        xlab='',
+       ylim = y_lim,
        yaxt='n',
        xaxt='n')
-  y_ticks <- pretty(data_incidence_sel$new_infections)
-  axis(2,y_ticks,paste0(y_ticks/1000,'k'),las=2,cex.axis=0.9)
   add_x_axis(data_incidence_sel$sim_date)
+  add_y_axis(y_lim)
   lines(data_incidence_sel$sim_date,
         data_incidence_sel$new_infectious_cases,
         col=alpha(pcolor$I,pcolor$alpha))
@@ -480,11 +504,9 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        xlab='',
        yaxt='n',
        xaxt='n')
-  y_ticks <- pretty(y_lim)
-  axis(2,y_ticks,paste0(y_ticks/1e3,'k'),las=2,cex.axis=0.9)
   add_x_axis(data_incidence_sel$sim_date)
-  axis(4,y_ticks,paste0(round(y_ticks/pop_size_be*100,digits=2),'%'),las=2,cex.axis=0.9)
-  grid()
+  add_y_axis(y_lim)
+  axis(4,pretty(y_lim),paste0(round(pretty(y_lim)/pop_size_be*100,digits=2),'%'),las=2,cex.axis=0.9)
   mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
   lines(data_incidence_sel$sim_date,
         data_incidence_sel$cummulative_infectious_cases,
@@ -519,7 +541,7 @@ add_breakpoints <- function(){
   # add_vertical_line(Sys.Date())
   
   # add scenario date (exit wave 1)
-  add_vertical_line("2020-05-03")
+  add_vertical_line("2020-05-04")
   
   # add scenario date (exit wave 2)
   add_vertical_line("2020-05-18")
@@ -558,8 +580,9 @@ add_legend_hosp <- function(pcolor){
 }
 
 # define the legend with all categories
-add_legend_all <- function(pcolor){
-  legend('topleft',
+add_legend_all <- function(pcolor,legend_pos = 'topright'){
+  
+  legend(legend_pos,
          c('Infections',
            'Infectious',
            'Symptomatic',
@@ -654,9 +677,19 @@ plot_distancing <- function(project_summary){
 }
 
 add_x_axis <- function(sim_dates){
-  x_ticks <- pretty(sim_dates)
+  x_ticks <- pretty(sim_dates,5)
   axis(1,x_ticks, format(x_ticks,'%e %b'),cex.axis=0.9)
-  abline(v=x_ticks,lty=3,col='lightgray')
-  grid(nx=NA,ny=NULL,lty=3,col='lightgray')
+  abline(v=pretty(sim_dates,7),lty=3,col='lightgray')
+  #grid(nx=NA,ny=NULL,lty=3,col='lightgray')
 }
 
+add_y_axis <- function(y_lim){
+  
+  y_ticks <- pretty(y_lim,5)
+  y_labels <- y_ticks # default
+  if(max(y_ticks)>1e4){ y_labels <- paste0(round(y_ticks/1e3),'k')}
+  if(max(y_ticks)>1e6){ y_labels <- paste0(round(y_ticks/1e6),'M')}
+  
+  axis(2,y_ticks, y_labels,cex.axis=0.9,las=2)
+  abline(h=pretty(y_lim,5),lty=3,col='lightgray')
+}

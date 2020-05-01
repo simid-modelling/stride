@@ -36,10 +36,7 @@ class InfectedFileViewer
 {
 public:
         /// Instantiate cases viewer.
-        InfectedFileViewer(std::shared_ptr<SimRunner> runner, const std::string& output_prefix)
-            : m_infected(), m_infected_file(output_prefix), m_runner(std::move(runner))
-        {
-        }
+        InfectedFileViewer(std::shared_ptr<SimRunner> runner, const std::string& output_prefix);
 
         /// Let viewer perform update.
         void Update(sim_event::Id id);
@@ -47,6 +44,19 @@ public:
 private:
         std::vector<unsigned int>  m_infected;
         output::InfectedFile       m_infected_file;
+
+        std::vector<unsigned int>  m_exposed;
+        output::InfectedFile       m_exposed_file;
+
+        std::vector<unsigned int>  m_infectious;
+        output::InfectedFile       m_infectious_file;
+
+        std::vector<unsigned int>  m_symptomatic;
+        output::InfectedFile       m_symptomatic_file;
+
+        std::vector<unsigned int>  m_infected_total;
+        output::InfectedFile       m_infected_total_file;
+
         std::shared_ptr<SimRunner> m_runner;
 };
 

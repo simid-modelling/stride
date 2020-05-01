@@ -46,7 +46,7 @@ num_seeds  <- 1
 # add parameters and values to combine in a full-factorial grid
 exp_design <- expand.grid(contact_log_level         = "All",
                           num_days                  = 20,
-                          seeding_rate              = 1.7e-6,
+                          num_infected_seeds        = 10,
                           num_participants_survey   = 4000,
                           #start_date                = c('2020-02-16','2020-02-17','2020-02-25',"2020-04-10","2020-04-11","2020-05-03","2020-05-04"),
                           start_date                = c('2020-03-10'),

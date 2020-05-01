@@ -90,6 +90,12 @@ public:
                 return m_status == HealthStatus::Symptomatic || m_status == HealthStatus::InfectiousAndSymptomatic;
         }
 
+        /// Is this person exposed?
+		bool IsExposed() const
+		{
+				return m_status == HealthStatus::Exposed;
+		}
+
         /// Have the symptoms started today?
         bool SymptomsStartedToday() const { return GetDiseaseCounter() == m_start_symptomatic; }
 

@@ -1,4 +1,4 @@
-#############################################################################
+############################################################################ #
 #  This file is part of the Stride software. 
 #  It is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by 
@@ -14,13 +14,13 @@
 #
 #
 #  Copyright 2020, Willem L, Kuylen E & Broeckhove J
-#############################################################################
+############################################################################ #
 #
 # MODEL SUMMARY EXPLORATION
 # - input-output behavior
 # - transmission events and context
 #
-#############################################################################
+############################################################################ #
 
 inspect_summary <- function(project_dir)
 {
@@ -43,23 +43,36 @@ inspect_summary <- function(project_dir)
   
   # calculate values and labels for the second y-axis [cases vs. incidence]
   pop_size          <- median(project_summary$num_cases / project_summary$AR)
-  ticks_name        <- pretty(project_summary$num_cases/pop_size)
-  tick_value        <- ticks_name*pop_size
   
   # OPEN PDF STREAM
   .rstride$create_pdf(project_dir,'summary_inspection',10,7)
+  
+  # set y-asis ticks and labels
+  y_ticks            <- pretty(project_summary$num_cases,10)
+  y_ticks_label      <- paste0(round(y_ticks/1e3),'k')
+  y_ticks_pop        <- pretty(project_summary$num_cases,5)
+  y_ticks_pop_label  <- round(y_ticks_pop/pop_size,digit=2)
   
   # loop over the changing input parameters => plot cases and incidence
   #par(mfrow=c(2,2))
   par(mar = c(10, 4, 4, 4) + 0.3)  # Leave space for 3rd axis
   for(i in 1:ncol(input_opt_design)){
-    boxplot(num_cases ~ project_summary[,colnames(input_opt_design)[i]],
+    bxplt <- boxplot(num_cases ~ project_summary[,colnames(input_opt_design)[i]],
             data = project_summary,
             xlab = colnames(input_opt_design)[i],
-            ylab = '',cex.axis=0.8,las=2)
-    axis(4, at = tick_value , labels = ticks_name )
-    mtext("incidence", side=4, line=2,cex=0.9)
+            ylab = '',cex.axis=0.8,las=2,
+            yaxt='n')
+    
+    # add modified y-axis on the left
+    axis(2, at = y_ticks , labels =y_ticks_label,las=2,cex.axis=0.8)
+    abline(h=y_ticks,lty=3,col='lightgray')
     mtext("number of cases", side=2, line=2,cex=0.9)
+    
+    # add y-axis on the right
+
+    axis(4, at = y_ticks_pop , labels =y_ticks_pop_label,cex.axis=0.8)
+    mtext("incidence", side=4, line=2,cex=0.9)
+    
   }
   
   par(mar = c(10, 4, 1, 4) + 0.3)  # Leave space for 3rd axis
@@ -68,7 +81,7 @@ inspect_summary <- function(project_dir)
           ylab = '',
           las=2,
           cex.axis=0.8)
-  axis(4, at = tick_value , labels = ticks_name )
+  axis(4, at = y_ticks , labels = y_ticks_label )
   mtext("incidence", side=4, line=2,cex=0.9)
   mtext("total number of cases", side=2, line=2,cex=0.9)
   
@@ -81,21 +94,16 @@ inspect_summary <- function(project_dir)
             ylab = '',
             las=2,
             cex.axis=0.8)
-    axis(4, at = tick_value , labels = ticks_name )
+    axis(4, at = y_ticks , labels = y_ticks_label )
     mtext("incidence", side=4, line=2,cex=0.9)
     mtext("total number of cases", side=2, line=2,cex=0.9)
   }
   
   
-  ## SECONDARY CASES ##
-  
-  # get infected seeds per simulation  
-  project_summary$num_infected_seeds <- floor(project_summary$population_size * project_summary$seeding_rate)
-  
+  ## SECONDARY CASES ####
   # secondary cases  
   project_summary$num_sec_cases     <- project_summary$num_cases - project_summary$num_infected_seeds
   project_summary$avg_num_sec_cases <- project_summary$num_sec_cases / project_summary$num_infected_seeds
-  
   
   # plot
   sec_cases_formula  <- as.formula(paste('avg_num_sec_cases ~ interaction(',paste(colnames(input_opt_design),collapse=' , '),',drop=TRUE)'))
@@ -114,7 +122,7 @@ inspect_summary <- function(project_dir)
     legend('topleft','mean',pch=4,col=1,cex=0.8)
   }
   
-  ## SUBSETS
+  ## SUBSETS ####
   num_subsets <- 10
   project_summary$subset_id <- sample(num_subsets,nrow(project_summary),replace = T)
   sec_cases_formula  <- as.formula(paste('avg_num_sec_cases ~ interaction(subset_id,',paste(colnames(input_opt_design),collapse=' , '),',drop=TRUE)'))
@@ -135,12 +143,12 @@ inspect_summary <- function(project_dir)
   
   dev.off()
   
-  # terminal message
+  # CLI message
   smd_print('INSPECTION OF SUMMARY DATA COMPLETE')
   
 }
 
-## HELP FUNCTION
+## HELP FUNCTION ####
 .rstride$get_variable_model_param <- function(project_summary){
   
   input_opt    <- .rstride$get_unique_param_list(project_summary)
@@ -163,7 +171,7 @@ inspect_summary <- function(project_dir)
   
 }
 
-## HELP FUNCTION
+## HELP FUNCTION ####
 .rstride$get_unique_param_list <- function(project_summary){
   
   col_output <- c('run_time', 'total_time', 'num_cases', 'AR' )

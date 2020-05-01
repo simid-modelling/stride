@@ -88,7 +88,7 @@ void RunTest(const string& testTag, tuple<ptree, unsigned int, double> d, unsign
         // -----------------------------------------------------------------------------------------
         // Check results against target number (|res - target| < target * margin).
         // -----------------------------------------------------------------------------------------
-        const unsigned int res = sim->GetPopulation()->GetInfectedCount();
+        const unsigned int res = sim->GetPopulation()->GetTotalInfected();
         EXPECT_NEAR(res, target, target * margin)
             << "Failure at scenario: " << testTag << " with number of threads: " << numThreads << endl;
 

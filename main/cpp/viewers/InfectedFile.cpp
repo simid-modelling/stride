@@ -27,9 +27,9 @@ namespace output {
 using namespace std;
 using namespace stride::util;
 
-InfectedFile::InfectedFile(const std::string& output_prefix) : m_fstream()
+InfectedFile::InfectedFile(const std::string& output_prefix, const std::string& file_name) : m_fstream()
 {
-        const auto p = FileSys::BuildPath(output_prefix, "cases.csv");
+        const auto p = FileSys::BuildPath(output_prefix, file_name + ".csv");
         m_fstream.open(p.c_str());
 }
 

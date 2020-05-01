@@ -111,7 +111,7 @@ string RunConfigManager::CreateTestsInfluenza()
         <population_type>default</population_type>
         <rng_seed>4730214</rng_seed>
         <r0>3</r0>
-        <seeding_rate>0.00089999999999999998</seeding_rate>
+        <num_infected_seeds>540</num_infected_seeds>
         <seeding_age_min>1</seeding_age_min>
         <seeding_age_max>99</seeding_age_max>
         <start_date>2020-04-01</start_date>
@@ -144,7 +144,7 @@ string RunConfigManager::CreateTestsMeasles()
         <rng_seed>1097253,2387652,9963540,4730214</rng_seed>
         <seeding_age_max>99</seeding_age_max>
         <seeding_age_min>1</seeding_age_min>
-        <seeding_rate>0.002</seeding_rate>
+        <num_infected_seeds>1200</num_infected_seeds>
         <start_date>2020-03-29</start_date>
         <stride_log_level>info</stride_log_level>
         <track_index_case>false</track_index_case>
@@ -164,7 +164,7 @@ string RunConfigManager::CreateTestsCovid19()
         <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
         <contact_log_level>None</contact_log_level>
         <contact_output_file>false</contact_output_file>
-        <disease_config_file>disease_covid19.xml</disease_config_file>
+        <disease_config_file>disease_covid19_age.xml</disease_config_file>
         <holidays_file>holidays_flanders_2020.json</holidays_file>
         <immunity_link_probability>0</immunity_link_probability>
         <immunity_profile>Random</immunity_profile>
@@ -177,7 +177,7 @@ string RunConfigManager::CreateTestsCovid19()
         <population_type>default</population_type>
         <rng_seed>4730214</rng_seed>
         <r0>2.5</r0>
-        <seeding_rate>0.00089999999999999998</seeding_rate>
+        <num_infected_seeds>540</num_infected_seeds>
         <seeding_age_min>1</seeding_age_min>
         <seeding_age_max>99</seeding_age_max>
         <start_date>2020-03-05</start_date>

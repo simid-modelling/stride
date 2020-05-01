@@ -100,14 +100,6 @@ shared_ptr<Population> DefaultPopBuilder::MakePersons(shared_ptr<Population> pop
 shared_ptr<Population> DefaultPopBuilder::Build(shared_ptr<Population> pop)
 {
         //------------------------------------------------
-        // Check validity of input data.
-        //------------------------------------------------
-        const auto seedingRate = m_config.get<double>("run.seeding_rate");
-        if (seedingRate > 1.0) {
-                throw runtime_error(string(__func__) + "> Bad input data for seeding_rate.");
-        }
-
-        //------------------------------------------------
         // Add persons
         //------------------------------------------------
         MakePersons(pop);
