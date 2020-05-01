@@ -261,7 +261,7 @@ inspect_transmission_data <- function(project_dir,save_pdf = TRUE)
     boxplot(data_transm$hospital_admission_start ~ data_transm$hosp_age_cat,
             xlab='Age category (years)',
             ylab='Days',
-            main='Time to hospital admission\nsince symptom onset')
+            main='Time to hospital admission\nsince infection')
     
     
     ## (A)SYMPTOMATIC TRANSMISSION    ----

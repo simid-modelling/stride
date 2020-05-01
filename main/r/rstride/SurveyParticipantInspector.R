@@ -41,7 +41,7 @@ inspect_participant_data <- function(project_dir, save_pdf = TRUE)
   # open pdf stream
   if(save_pdf) .rstride$create_pdf(project_dir,'survey_participant_inspection',10,7)
 
-  i_config <- 4
+  i_config <- 1
   for(i_config in 1:nrow(input_opt_design))
   {
     # (re)set figure panels
