@@ -52,7 +52,7 @@ public:
 
     /// Register a selected person as a non-complier
     /// \param p 				Person to register
-    void RegisterNonComplier(std::shared_ptr<Population> pop, Person& p, std::vector<ContactType::Id> pooltypes);
+    bool RegisterNonComplier(std::shared_ptr<Population> pop, Person& p, std::vector<ContactType::Id> pooltypes);
 private:
     const boost::property_tree::ptree& m_config; ///< Run config.
     util::RnMan&                       m_rn_man; ///< Random number manager.

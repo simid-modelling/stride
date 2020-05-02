@@ -133,27 +133,30 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
         	contact_probability = 0.999;
         }
 
-        // account for social distancing at work and in the community
-        if(pType == Id::Workplace){
-        	contact_probability = contact_probability * (1-cnt_reduction_work);
-        }
+        // Check if one of the persons is a non-complier to social distancing
+        // in this particular pooltype.
+        if ((not p1->IsNonComplier(pType)) and (not p2->IsNonComplier(pType))) {
+            // account for social distancing at work and in the community
+            if(pType == Id::Workplace){
+            	contact_probability = contact_probability * (1-cnt_reduction_work);
+            }
 
-		// persons who are non-compliers do not apply contact reduction in community
-        if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity) and not (p1->IsNonComplier(pType) and not (p2->IsNonComplier(pType)))){
+            if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity)){
 
-			// apply intergeneration distancing factor if age cutoff is > 0 and at least one age is > cutoff
-			if((cnt_reduction_intergeneration > 0) &&
-				((p1->GetAge() > cnt_reduction_intergeneration_cutoff) || (p2->GetAge() > cnt_reduction_intergeneration_cutoff))){
-				contact_probability = contact_probability * (1-cnt_reduction_intergeneration);
-			} else {
-				// apply uniform community distancing
-				contact_probability = contact_probability * (1-cnt_reduction_other);
-			}
+    				// apply intergeneration distancing factor if age cutoff is > 0 and at least one age is > cutoff
+    				if((cnt_reduction_intergeneration > 0) &&
+    						((p1->GetAge() > cnt_reduction_intergeneration_cutoff) || (p2->GetAge() > cnt_reduction_intergeneration_cutoff))){
+    					contact_probability = contact_probability * (1-cnt_reduction_intergeneration);
+    				} else {
+    					// apply uniform community distancing
+    					contact_probability = contact_probability * (1-cnt_reduction_other);
+    				}
 
-		}
-        // account for social distancing at work and in the community
-		if(pType == Id::K12School){
-			contact_probability = contact_probability * (1-cnt_reduction_school);
+    			}
+            // account for social distancing at work and in the community
+    			if(pType == Id::K12School){
+    				contact_probability = contact_probability * (1-cnt_reduction_school);
+            }
         }
 
 
