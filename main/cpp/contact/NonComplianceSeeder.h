@@ -23,23 +23,8 @@
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <memory>
 
-/*
+#include "contact/ContactType.h"
 
-namespace stride {
-
- */
-
-/*
-class SurveySeeder
-{
-public:
-
-        /// Register a selected person as a survey participant
-        /// \param p 				Person to register
-        void RegisterParticipant(std::shared_ptr<Population> pop, Person& p);
-};
-
-} // namespace stride */
 
 namespace stride {
 
@@ -67,7 +52,7 @@ public:
 
     /// Register a selected person as a non-complier
     /// \param p 				Person to register
-    void RegisterNonComplier(std::shared_ptr<Population> pop, Person& p);
+    void RegisterNonComplier(std::shared_ptr<Population> pop, Person& p, std::vector<ContactType::Id> pooltypes);
 private:
     const boost::property_tree::ptree& m_config; ///< Run config.
     util::RnMan&                       m_rn_man; ///< Random number manager.
