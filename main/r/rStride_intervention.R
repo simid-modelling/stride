@@ -44,16 +44,16 @@ store_transmission_rdata <- FALSE
 #names(xmlToList('./config/run_default.xml'))
 
 # set the number of realisations per configuration set
-num_seeds  <- 8
+num_seeds  <- 2
 
 # add parameters and values to combine in a full-factorial grid
 exp_design <- expand.grid(r0                            = seq(3.5,3.5,0.1),
-                          num_days                      = 50,
+                          num_days                      = 70,
                           rng_seed                      = seq(num_seeds),
-                          num_participants_survey       = 300,
-                          num_infected_seeds            = c(180),
+                          num_participants_survey       = 3000,
+                          num_infected_seeds            = c(900),
                           disease_config_file           = "disease_covid19_age.xml",
-                          population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
+                          population_file               = "pop_belgium3000k_c500_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           start_date                    = c('2020-02-17'),
                           holidays_file                 = 'calendar_belgium_2020_covid19_exit_school_adjusted.json',
@@ -64,7 +64,7 @@ exp_design <- expand.grid(r0                            = seq(3.5,3.5,0.1),
                            school_system_adjusted        = 1,
                           telework_probability          = c(0),
                           cnt_reduction_workplace       = c(0.8),
-                          cnt_reduction_other           = c(0.85),
+                          cnt_reduction_other           = c(0.8),
                           compliance_delay_workplace    = c(6),
                           compliance_delay_other        = c(6),
                           num_daily_imported_cases      = c(0),
