@@ -688,7 +688,7 @@ add_y_axis <- function(y_lim){
   y_ticks <- pretty(y_lim,5)
   y_labels <- y_ticks # default
   if(max(y_ticks)>1e4){ y_labels <- paste0(round(y_ticks/1e3),'k')}
-  if(max(y_ticks)>1e6){ y_labels <- paste0(round(y_ticks/1e6),'M')}
+  if(max(y_ticks)>1e6){ y_labels <- paste0(round(y_ticks/1e6,digits=2),'M')}
   
   axis(2,y_ticks, y_labels,cex.axis=0.9,las=2)
   abline(h=pretty(y_lim,5),lty=3,col='lightgray')

@@ -17,11 +17,15 @@
 # load simid.rtools package 
 #suppressPackageStartupMessages(library(simid.rtools)) # to save a list as XML
 
-# # # set filename
-# pop_file_name <- 'pop_belgium600k_c500_teachers_censushh.csv'
-# # 
-# # # set maximum age difference between household seniors.
-# max_age_diff <- 3
+if(0==1){
+
+    # set filename
+    pop_file_name <- 'pop_belgium600k_c500_teachers_censushh.csv'
+    
+    # set maximum age difference between household seniors.
+    max_age_diff <- 3
+    
+}
 
 extend_population_data <- function(pop_file_name,max_age_diff){
 
@@ -36,6 +40,7 @@ pop_data <- read.table(smd_file_path('./data',pop_file_name),sep=',',header=T)
 
 # inspection
 names(pop_data)
+names_orig <- names(pop_data)
 
 # get file names for output files
 pop_file_name_out <- paste0('sim_output/',gsub('.csv',paste0('_extended',max_age_diff,'.csv'),pop_file_name))
@@ -133,7 +138,10 @@ hh_data_summary$household_cluster_id <- as.numeric(as.factor(hh_data_summary$hou
 hh_data_summary$household_cluster_id[is.na(hh_data_summary$household_cluster_id )] <- 0
 
 # add household_cluster_id to pop_data
-pop_data <- merge(pop_data,hh_data_summary[,c('household_id','household_cluster_id')])
+names_pop_data   <- names(pop_data)
+names_hh_summary <- c('household_id','household_cluster_id')
+pop_data <- merge(pop_data,hh_data_summary[,names_hh_summary])[, union(names_pop_data, names_hh_summary)]
+names(pop_data)
 
 # check pop_data
 head(pop_data)
