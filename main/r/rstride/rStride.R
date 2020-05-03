@@ -46,6 +46,7 @@ source('./bin/rstride/Misc.R')
 # load specific functions
 source('./bin/rstride/ContactInspector.R')
 source('./bin/rstride/HealthEconomist.R')
+source('./bin/rstride/HouseholdClusterBuilder.R')
 source('./bin/rstride/LogParser.R')
 source('./bin/rstride/PrevalenceInspector.R')
 source('./bin/rstride/IncidenceInspector.R')
