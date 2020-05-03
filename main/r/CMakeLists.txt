@@ -36,6 +36,7 @@ INSTALL( FILES
             rStride_gtester_covid19.R
             rStride_r0.R 	
             rStride_intervention.R
+            rStride_pop.R
 	    	rStride_popsizes.R					 
 	DESTINATION ${BIN_INSTALL_LOCATION}  
 	PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_WRITE GROUP_READ
