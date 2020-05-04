@@ -50,9 +50,12 @@ public:
     /// \param pop               Population.
     std::shared_ptr<Population> Seed(std::shared_ptr<Population> pop);
 
+    template <ContactType::Id pooltype>
+    void SeedPools(std::shared_ptr<Population> pop, std::string nonComplianceType, std::vector<double> nonComplianceByAge);
+
     /// Register a selected person as a non-complier
     /// \param p 				Person to register
-    bool RegisterNonComplier(std::shared_ptr<Population> pop, Person& p, std::vector<ContactType::Id> pooltypes);
+    bool RegisterNonComplier(std::shared_ptr<Population> pop, Person& p, ContactType::Id pooltype);
 private:
     const boost::property_tree::ptree& m_config; ///< Run config.
     util::RnMan&                       m_rn_man; ///< Random number manager.

@@ -39,16 +39,13 @@ NonComplianceSeeder::NonComplianceSeeder(const ptree& config, RnMan& rnMan) : m_
 
 shared_ptr<Population> NonComplianceSeeder::Seed(shared_ptr<Population> pop)
 {
-	Population& population = *pop;
-	const auto  popCount    = static_cast<unsigned int>(population.size() - 1);
-
-	assert((popCount >= 1U) && "NonComplianceSeeder> Population count zero unacceptable.");
 
 	// Non-compliance by age
-	// retrieve the maximum age in the population
+
+	// Retrieve the maximum age in the population
 	unsigned int maxAge = pop->GetMaxAge();
 
-	std::vector<double> nonComplianceDistribution;
+	vector<double> nonComplianceDistribution;
 	boost::optional<string> nonComplianceByAgeFile = m_config.get_optional<string>("run.non_compliance_by_age_file");
 	if (nonComplianceByAgeFile) {
 		const ptree& nonComplianceByAge_pt = FileSys::ReadPtreeFile(*nonComplianceByAgeFile);
@@ -63,144 +60,153 @@ shared_ptr<Population> NonComplianceSeeder::Seed(shared_ptr<Population> pop)
 		}
 	}
 
-	// RNG
-	auto generatorInt = m_rn_man.GetUniformIntGenerator(0, static_cast<int>(popCount), 0U);
-	auto generator0to1 = m_rn_man.GetUniform01Generator(0U);
-
-	// Non compliance by district OR by pool OR random
-	// Get type of non-compliance seeding (by district or random)
-	// If no parameter is present in the config file, assume NO non-compliance
-	boost::optional<string> nonComplianceType = m_config.get_optional<string>("run.non_compliance_type");
-	if (nonComplianceType) {
-		if (*nonComplianceType == "Random") {
-			unsigned int targetNumNonCompliers = m_config.get<int>("run.num_non_compliers");
-			assert((popCount >= targetNumNonCompliers) && "NonComplianceSeeder> Pop count has to exceed number of non-compliers.");
-
-			vector<Id> nonCompliantPoolTypes;
-			for (auto pooltype : m_config.get_child("run.non_compliant_pooltypes")) {
-				nonCompliantPoolTypes.push_back(ToId(pooltype.second.get_value<string>()));
-			}
-
-			auto numNonCompliers = 0U;
-
-			while (numNonCompliers < targetNumNonCompliers) {
-				Person& p = population[generatorInt()];
-
-				if (generator0to1() < nonComplianceDistribution[p.GetAge()]) {
-					// Set person to be non-complier
-					bool registered = RegisterNonComplier(pop, p, nonCompliantPoolTypes);
-					// Update number of remaining non-compliers to be found
-					if (registered) {
-						numNonCompliers++;
-					}
-
-				}
-			}
-		} else if (*nonComplianceType == "Hotspots") {
-			// Calculate the number of non-compliers per district
-			// = number of individuals in households in district * fraction non-compliers in district
-			const auto hotspotsFile = m_config.get<string>("run.non_compliance_hotspots_file");
-			const ptree& hotspots_pt = FileSys::ReadPtreeFile(hotspotsFile);
-			for (auto district: hotspots_pt.get_child("hotspots")) {
-				// Calculate total number of persons in hotspot
-				unsigned int totalPopHotspot = 0U;
-				vector<int> householdsInHotspot;
-				for (auto household: district.second.get_child("households")) {
-					auto hhID = household.second.get_value<int>();
-					householdsInHotspot.push_back(hhID);
-					auto hhSize = population.CRefPoolSys().CRefPools(Id::Household)[hhID].size();
-					totalPopHotspot += hhSize;
-				}
-				// Calculate the number of non-compliers in hotspot
-				double fractionNonCompliersInHotspot = district.second.get<double>("fraction_non_compliers");
-				unsigned int targetNumNonCompliers = floor(totalPopHotspot * fractionNonCompliersInHotspot);
-
-				// Sample non-compliers
-				auto generatorHH = m_rn_man.GetUniformIntGenerator(0, static_cast<int>(householdsInHotspot.size()), 0U);
-				unsigned int numNonCompliers = 0U;
-
-				vector<Id> nonCompliantPoolTypes;
-				nonCompliantPoolTypes.push_back(Id::PrimaryCommunity);
-				nonCompliantPoolTypes.push_back(Id::SecondaryCommunity);
-				while (numNonCompliers < targetNumNonCompliers) {
-					// Choose a random household in the hotspot
-					unsigned int hhID = householdsInHotspot[generatorHH()];
-					const ContactPool&   p_pool = population.CRefPoolSys().CRefPools(Id::Household)[hhID];
-					// Choose a random person in this household
-					auto generatorP = m_rn_man.GetUniformIntGenerator(0, static_cast<int>(p_pool.size()), 0U);
-					Person& p = *p_pool[generatorP()];
-					// Apply age-dependent probability of being a non-complier
-					if (generator0to1() < nonComplianceDistribution[p.GetAge()]) {
-						// Set person to be non-complier
-						bool registered = RegisterNonComplier(pop, p, nonCompliantPoolTypes);
-						// Update number of remaining non-compliers to be found
-						if (registered) {
-							numNonCompliers++;
-						}
-					}
-				}
-			}
-
-		} else if (*nonComplianceType == "Pools") {
-			const auto poolsFile = m_config.get<string>("run.non_compliance_pools_file");
-			const ptree& pools_pt = FileSys::ReadPtreeFile(poolsFile);
-
-			// Get type of pools
-			const Id poolType = ToId(pools_pt.get<string>("non_compliant_pools.pooltype"));
-			vector<Id> poolTypes;
-			poolTypes.push_back(poolType);
-
-
-			// Get ID of pools in which non-compliance occurs
-			vector<int> nonCompliantPools;
-			for (auto pool: pools_pt.get_child("non_compliant_pools.pools")) {
-				int poolID = pool.second.get_value<int>();
-				nonCompliantPools.push_back(poolID);
-			}
-
-			// Set individuals belonging to pools to non-compliant
-			for (auto p : population.CRefPoolSys().CRefPools(poolType)) {
-				const auto poolId = p.GetId();
-				// Check if pool is one of non-compliant pools
-				if (find(nonCompliantPools.begin(), nonCompliantPools.end(), poolId) != nonCompliantPools.end()) {
-					// Make members non compliers in this pool
-					for (unsigned int p_i = 0; p_i < p.size(); p_i++) {
-						Person& person = *p[p_i];
-						RegisterNonComplier(pop, person, poolTypes);
-					}
-				}
-			}
-
+	// Non-compliance in pools
+	boost::optional<string> nonCompliancePooltype = m_config.get_optional<string>("run.non_compliance_pooltype");
+	if (nonCompliancePooltype) {
+		string nonComplianceType = m_config.get<string>("run.non_compliance_type");
+		if (*nonCompliancePooltype == "Workplace") {
+			SeedPools<Id::Workplace>(pop, nonComplianceType, nonComplianceDistribution);
+		} else if (*nonCompliancePooltype == "Community") {
+			SeedPools<Id::PrimaryCommunity>(pop, nonComplianceType, nonComplianceDistribution);
 		}
 	}
 
 	return pop;
 }
 
-bool NonComplianceSeeder::RegisterNonComplier(std::shared_ptr<Population> pop, Person& p, vector<Id> pooltypes)
+template <Id pooltype>
+void NonComplianceSeeder::SeedPools(std::shared_ptr<Population> pop, string nonComplianceType, std::vector<double> nonComplianceByAge) {
+	auto generator0to1 = m_rn_man.GetUniform01Generator(0U);
+
+	if (nonComplianceType == "Random") {
+		// Distribute a given number of non-compliers at random in the population
+
+		// TODO : is there a way to check numPersonsInPools > targetNumNonCompliers?
+		unsigned int targetNumNonCompliers = m_config.get<int>("run.num_non_compliers");
+		unsigned int numNonCompliers = 0U;
+
+		// Get all pools of given pooltype
+		const SegmentedVector<ContactPool>& pools = pop->CRefPoolSys().CRefPools(pooltype);
+		auto generatorPool = m_rn_man.GetUniformIntGenerator(0, static_cast<int>(pools.size()), 0U);
+
+		while (numNonCompliers < targetNumNonCompliers) {
+			// Draw a random pool
+			const ContactPool& pool = pools[generatorPool()];
+			const auto poolSize = static_cast<unsigned int>(pool.GetPool().size());
+			if (poolSize <= 0) {
+				continue;
+			}
+			// Draw a random person in the pool
+			auto generatorPerson = m_rn_man.GetUniformIntGenerator(0, poolSize, 0U);
+			Person& p = *pool[generatorPerson()];
+			// Check if person has not been drawn before
+			if (p.IsNonComplier(pooltype)) {
+				continue;
+			}
+			// Check age distribution
+			if (generator0to1() < nonComplianceByAge[p.GetAge()]) {
+				// Set person to be a non-complier
+				RegisterNonComplier(pop, p, pooltype);
+				// Update number of remaining non-compliers to be found
+				numNonCompliers++;
+			}
+
+		}
+	} else if (nonComplianceType == "Hotspots") {
+		// Non-compliance is dependant on the geographical location of one's household
+
+		const auto hotspotsFile = m_config.get<string>("run.non_compliance_hotspots_file");
+		const ptree& hotspots_pt = FileSys::ReadPtreeFile(hotspotsFile);
+
+		for (auto district : hotspots_pt.get_child("hotspots")) {
+			// Get total number of persons in hotspot
+			unsigned int totalDistrictPop = 0U;
+			// Save IDs of households in hotspot district
+			vector<unsigned int> householdsInDistrict;
+			for (auto household : district.second.get_child("households")) {
+				unsigned int hhID = household.second.get_value<unsigned int>();
+				householdsInDistrict.push_back(hhID);
+				totalDistrictPop += static_cast<int>(pop->CRefPoolSys().CRefPools(Id::Household)[hhID].size());
+			}
+			// Calculate the number of non-compliers per 'hotspot' district
+			// = number of individuals in households belonging to district * fraction non-compliers in district
+			double fractionNonCompliers = district.second.get<double>("fraction_non_compliers");
+			unsigned int targetNumNonCompliers = floor(totalDistrictPop * fractionNonCompliers);
+
+			// Sample non-compliers in this district
+			unsigned int numNonCompliers = 0U;
+
+			auto generatorHH = m_rn_man.GetUniformIntGenerator(0, static_cast<int>(householdsInDistrict.size()), 0U);
+			while (numNonCompliers < targetNumNonCompliers) {
+				// Choose a random household in the hotspot district
+				unsigned int hhID = householdsInDistrict[generatorHH()];
+				const ContactPool& pool = pop->CRefPoolSys().CRefPools(Id::Household)[hhID];
+
+				const auto poolSize = static_cast<unsigned int>(pool.GetPool().size());
+				if (poolSize <= 0) {
+					continue;
+				}
+				// Choose a random person in this household
+				auto generatorPerson = m_rn_man.GetUniformIntGenerator(0, poolSize, 0U);
+				Person& p = *pool[generatorPerson()];
+				// Check if person has not been drawn before
+				if (p.IsNonComplier(pooltype)) {
+					continue;
+				}
+				// Check age distribution
+				if (generator0to1() < nonComplianceByAge[p.GetAge()]) {
+					// Set person to be a non-complier
+					RegisterNonComplier(pop, p, pooltype);
+					// Update the number of remaining non-compliers to be found
+					numNonCompliers++;
+				}
+
+			}
+
+		}
+
+	} else if (nonComplianceType == "Pools") {
+		// Make all individuals belonging to certain contact pools non-compliers
+
+		const auto poolsFile = m_config.get<string>("run.non_compliance_pools_file");
+		const ptree& pools_pt = FileSys::ReadPtreeFile(poolsFile);
+
+		// Get IDs of pools in which members are non-compliant
+		vector<int> nonCompliantPools;
+		for (auto poolID: pools_pt.get_child("non_compliant_pools.pools")) {
+			//unsigned int poolID = pool.second.get_value<unsigned int>();
+			nonCompliantPools.push_back(poolID.second.get_value<unsigned int>());
+		}
+
+		// Set individuals belonging to pools to be non-compliant
+		for (auto pool: pop->CRefPoolSys().CRefPools(pooltype)) {
+			const auto poolID = pool.GetId();
+			// Check if pool is in nonCompliantPools
+			if (find(nonCompliantPools.begin(), nonCompliantPools.end(), poolID) != nonCompliantPools.end()) {
+				// Make each member a non-complier
+				for (unsigned int i_p = 0; i_p < pool.size(); i_p++) {
+					Person& p = *pool[i_p];
+					RegisterNonComplier(pop, p, pooltype);
+				}
+			}
+		}
+	}
+}
+
+
+bool NonComplianceSeeder::RegisterNonComplier(std::shared_ptr<Population> pop, Person& p, Id pooltype)
 {
 	Population& population  = *pop;
 	auto&       logger      = population.RefContactLogger();
-	// Check if person is already a non-complier
-	// And if they actually belong to one of the pools they are set to be a non-complier in
-	bool belongsToPools = false;
-	for (auto pooltype : pooltypes) {
-		if (p.IsNonComplier(pooltype)) {
-			return false;
-		}
-		if (p.GetPoolId(pooltype) != 0) {
-			belongsToPools = true;
-		}
-	}
-	if (not belongsToPools) {
-		return false;
-	}
-
 
 	// Set person to be non-complier for the correct pooltypes
-	for (auto type : pooltypes) {
-		p.SetNonComplier(type);
+	p.SetNonComplier(pooltype);
+
+	// Primary and Secondary community are treated as one when it comes to non-compliance
+	if (pooltype == Id::PrimaryCommunity) {
+		p.SetNonComplier(Id::SecondaryCommunity);
 	}
+
 	// Log person details
 	logger->info("[NCOM] {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p.GetId(), p.GetAge(),
 									p.GetPoolId(Id::Household), p.IsNonComplier(Id::Household),

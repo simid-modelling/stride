@@ -31,7 +31,7 @@ rm(list=ls())
 source('./bin/rstride/rStride.R')
  
 # set directory postfix (optional)
-dir_postfix <- 'geoclustering_random_25'
+dir_postfix <- 'workplaces_random_15'
  
 # store all transmission output
 store_transmission_rdata <- TRUE
@@ -54,7 +54,7 @@ exp_design <- expand.grid(
                             population_file               = "pop_belgium3000k_c500_teachers_censushh.csv",
                             r0                            = 3.5,
                             rng_seed                      = seq(num_seeds),
-                            seeding_rate                  = 3*1e-5, 
+                            num_infected_seeds            = 90, 
                             start_date                    = '2020-02-17',
                             
                             # Social distancing parameters
@@ -80,19 +80,38 @@ exp_design <- expand.grid(
                             
                             # Non-compliance parameters
                             
+                            non_compliance_pooltype        = "Workplace",
+                            non_compliance_type            = "Random",
+                            num_non_compliers              = 179880, 
+                            
                             #non_compliance_type            = "Hotspots",
                             #non_compliance_hotspots_file   = "data/pop_belgium3000k_c500_teachers_censushh_non_compliers_by_exceedance_prob_100.xml",
-                            non_compliance_type            = "Random",
-                            num_non_compliers              = 342600, 
-                            non_compliance_by_age_file     = "data/non_compliance_by_age.xml",
+                            
+                            #non_compliance_by_age_file     = "data/non_compliance_by_age.xml",
                             
                             stringsAsFactors = F)
 
 # add a unique seed for each run
-set.seed(125)
+#set.seed(125)
 exp_design$rng_seed <- sample(nrow(exp_design))
 # dim(exp_design)
- 
+
+#                           holidays_file                 = 'calendar_belgium_2020_covid19_exit_school_adjusted.json',
+#                           # holidays_file                 = c("calendar_belgium_2020_covid19_may_preschool.json",
+#                           #                                   "calendar_belgium_2020_covid19_may_primary_school.json",
+#                           #                                   "calendar_belgium_2020_covid19_may_secondary_school.json",
+#                           #                                   "calendar_belgium_2020_covid19_may_workplace.json"),
+#                           school_system_adjusted        = 1,
+#                           telework_probability          = c(0),
+#                           cnt_reduction_workplace       = c(0.8),
+#                           cnt_reduction_other           = c(0.8),
+#                           compliance_delay_workplace    = c(6),
+#                           compliance_delay_other        = c(6),
+#                           num_daily_imported_cases      = c(0),
+#                           cnt_reduction_workplace_exit  = c(0.4),
+#                           cnt_reduction_other_exit      = 0.75,
+#                           cnt_reduction_school_exit     = 0.5,
+
 ##################################
 ## RUN rSTRIDE                  ##
 ##################################
