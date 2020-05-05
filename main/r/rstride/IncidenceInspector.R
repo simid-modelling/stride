@@ -341,6 +341,19 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   # close pdf
   dev.off()
   
+  ## ALL TOGETHER: NO PARAM ####
+  .rstride$create_pdf(project_dir,'incidence_no_param',width = 6, height = 2.5)
+  par(mar=c(3,5,1,3))
+
+  # plot
+  plot_incidence_data(data_incidence_all,project_summary,
+                      hosp_adm_data,input_opt_design,
+                      bool_add_param = FALSE,
+                      bool_only_hospital_adm = FALSE) 
+  
+  # close pdf
+  dev.off()
+  
   
    #--------------------------#
   # parameters
@@ -382,9 +395,6 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   if(max(table(project_summary$config_id)) < 10){
     pcolor$alpha <- 0.2
   }
-  
-  # set Belgian population
-  pop_size_be <- 11e6
   
   ## FIX FOR PLOTTING: Set all values for the last sim_day to NA
   data_incidence_sel[data_incidence_sel$sim_day %in% max(data_incidence_sel$sim_day,na.rm=T),] <- NA
@@ -435,9 +445,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        ylim= range(y_lim))
   add_x_axis(data_incidence_sel$sim_date)
   add_y_axis(y_lim)
-  axis(4,pretty(y_lim),paste0(round(pretty(y_lim)/pop_size_be*100,digits=2),'%'),las=2,cex.axis=0.9)
-  mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
-  grid()
+  add_y_axis_pop(y_lim)
   points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=16)
   add_breakpoints()
   add_legend_hosp(pcolor)
@@ -506,8 +514,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        xaxt='n')
   add_x_axis(data_incidence_sel$sim_date)
   add_y_axis(y_lim)
-  axis(4,pretty(y_lim),paste0(round(pretty(y_lim)/pop_size_be*100,digits=2),'%'),las=2,cex.axis=0.9)
-  mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
+  add_y_axis_pop(y_lim)
   lines(data_incidence_sel$sim_date,
         data_incidence_sel$cummulative_infectious_cases,
         col=alpha(pcolor$I,pcolor$alpha))
@@ -523,7 +530,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
     add_legend_runinfo(project_summary,input_opt_design,
                        unique(data_incidence_sel$config_id))
   } else {
-    add_legend_all(pcolor)
+    add_legend_all(pcolor,legend_pos = 'topleft')
   }
   
   
@@ -592,7 +599,8 @@ add_legend_all <- function(pcolor,legend_pos = 'topright'){
          pch=c(NA,NA,NA,NA,16),
          lwd=c(2,2,2,2,NA),
          cex=0.6,
-         bg='white')
+         bg='white',
+         ncol=3)
 }
 
 add_legend_runinfo <- function(project_summary,input_opt_design,
@@ -692,4 +700,14 @@ add_y_axis <- function(y_lim){
   
   axis(2,y_ticks, y_labels,cex.axis=0.9,las=2)
   abline(h=pretty(y_lim,5),lty=3,col='lightgray')
+}
+
+add_y_axis_pop <- function(y_lim){
+  
+  # set Belgian population
+  pop_size_be <- 11e6
+  
+  # add axis
+  axis(4,pretty(y_lim),paste0(round(pretty(y_lim)/pop_size_be*100,digits=1),'%'),las=2,cex.axis=0.9)
+  mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
 }

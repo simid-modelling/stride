@@ -71,6 +71,10 @@ void PublicHealthAgency::SetTelework(std::shared_ptr<Population> pop, util::RnMa
 bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff,
 		bool isPrimarySchoolOff, bool isSecondarySchoolOff, bool isCollegeOff){
 
+	if(!isPreSchoolOff && !isPrimarySchoolOff && !isSecondarySchoolOff){
+		return false;
+	}
+
 	// apply adjusted scheme based on covid-19 exit strategies?
 	if(m_school_system_adjusted){
 

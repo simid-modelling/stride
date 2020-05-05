@@ -35,8 +35,8 @@ class Sim;
  * SimController setup functions include (@see ControlHelper):
  * \li checks the OpenMP environment
  * \li checks the file system environment
- * \li interprets and executes the ouput prefix
- * \li intalls a stride logger
+ * \li interprets and executes the output prefix
+ * \li installs a stride logger
  *
  * The SimController execution:
  * \li creates a population (@see Population)

@@ -77,9 +77,9 @@ private:
 private:
         /// The contact pool counters (one per type id) for assigning pool UIDs. Counters
         /// generate a non zero UID that's unique per type of pool, so <type, UID> uniquely
-        /// detemines the pool. UID zero means 'NA" e.g. wor[lace UID for a K12school student
+        /// detemines the pool. UID zero means 'NA" e.g. worklace UID for a K12school student
         /// will be zero. As a defensive measure, the ContactPoolSys gets initialized with
-        /// (for each type) an empty pool in the vecotor storing the contact pools. As a
+        /// (for each type) an empty pool in the vector storing the contact pools. As a
         /// consequence, one has:
         /// if UID != 0 then ContactPoolSys[type][UID].GetId() == UID for all type
         /// the index in the vector with pools is identical to the pool's UID.
