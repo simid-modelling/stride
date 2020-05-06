@@ -127,7 +127,7 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 	auto& logger       = pop->RefContactLogger();
 
 	/// To allow iteration over pool types for the PublicHealthAgency.
-	std::initializer_list<Id> AgencyPoolIdList{Id::Household, Id::Workplace, Id::K12School, Id::College};
+	std::initializer_list<Id> AgencyPoolIdList{Id::Household, Id::Workplace, Id::K12School, Id::College, Id::HouseholdCluster};
 
 	/// Start counting tested cases
 	unsigned int num_index_cases = 0;
