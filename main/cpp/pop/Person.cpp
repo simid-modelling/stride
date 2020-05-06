@@ -30,11 +30,17 @@ using namespace stride::ContactType;
 
 void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOff,
 		bool adaptiveSymptomaticBehavior, bool isWorkplaceDistancingEnforced,
-		ContactHandler& cHandler)
+		bool isHouseholdClusteringAllowed, ContactHandler& cHandler)
 
 {
         // Update health and disease status
         m_health.Update();
+
+        // by default: a person is at home
+        m_in_pools[Id::Household]          = true;
+
+        // household clustering allowed?
+        m_in_pools[Id::HouseholdCluster]   = isHouseholdClusteringAllowed ? true : false;
 
         // Update presence in contact pools by type of day
         if (isRegularWeekday) {
@@ -67,6 +73,9 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
 				m_in_pools[Id::PrimaryCommunity]   = false;
 				m_in_pools[Id::SecondaryCommunity] = false;
         	}
+
+        	// stay home from household cluster when symptomatic
+			m_in_pools[Id::HouseholdCluster]   = false;
         }
 
         if(isWorkplaceDistancingEnforced && IsTeleworking()){
@@ -81,6 +90,7 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
 			m_in_pools[Id::Workplace]          = false;
         	m_in_pools[Id::PrimaryCommunity]   = false;
         	m_in_pools[Id::SecondaryCommunity] = false;
+        	m_in_pools[Id::HouseholdCluster]   = false;
         }
 
 } // Person::Update()

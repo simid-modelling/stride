@@ -77,7 +77,7 @@ public:
 
         /// Update the health status and presence in contact pools.
         void Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOff, bool adaptiveSymptomaticBehavior,
-        		bool isWorkplaceDistancingEnforced, ContactHandler& cHandler);
+        		bool isWorkplaceDistancingEnforced, bool isHouseholdClusteringAllowed, ContactHandler& cHandler);
 
         /// Set the age of the person
         void SetAge(unsigned int newAge) { m_age = newAge; }

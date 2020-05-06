@@ -138,8 +138,8 @@ void Sim::TimeStep()
 
 				// update presence
 				population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
-						m_adaptive_symptomatic_behavior,
-						isWorkplaceDistancingEnforced, m_handlers[thread_num]);
+						m_adaptive_symptomatic_behavior, isWorkplaceDistancingEnforced,
+						isHouseholdClusteringAllowed, m_handlers[thread_num]);
 			}
 
 			// Perform contact tracing (if activated)

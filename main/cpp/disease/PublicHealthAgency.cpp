@@ -160,7 +160,7 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 
 					for (const auto& p_member : pools[poolId].GetPool()) {
 						if (p_case != *p_member &&
-								(typ == Id::Household ||
+								(typ == Id::Household || typ == Id::HouseholdCluster ||
 										uniform01Gen() < m_case_finding_efficency)) {
 
 								// start quarantine measure if infected, no false negative and linked with index cases (optional)
