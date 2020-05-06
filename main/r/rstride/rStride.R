@@ -78,13 +78,10 @@ run_rStride <- function(exp_design               = exp_design,
   
   # debug
   if(0==1){
-    attach(list(exp_design               = exp_design, 
-                dir_postfix              = '',
-                ignore_stdout            = TRUE, 
+    attach(list(ignore_stdout            = FALSE, 
                 parse_log_data           = TRUE,
                 get_csv_output           = FALSE,
                 remove_run_output        = TRUE,
-                store_transmission_rdata = TRUE, 
                 use_date_prefix          = TRUE))
   }
   

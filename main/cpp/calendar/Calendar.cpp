@@ -132,6 +132,14 @@ void Calendar::Initialize(const ptree& configPt)
 							m_contact_tracing.push_back(boost::gregorian::from_simple_string(d));
 					}
 				}
+
+				// read in contact tracing data (if present)
+				if(holidaysPt.count("household_clustering") != 0){
+					for (const auto& date : holidaysPt.get_child("household_clustering." + month)) {
+							const string d = string(lead).append(date.second.get_value<string>());
+							m_household_clustering.push_back(boost::gregorian::from_simple_string(d));
+					}
+				}
         }
 }
 
@@ -260,6 +268,17 @@ void Calendar::Initialize(const ptree& configPt)
 							d << year << "-" << setw(2) << setfill('0') << month << "-" << setw(2) << setfill('0')
 							  << date.second.get_value<string>();
 							m_contact_tracing.push_back(ConvertFromString(d.str()));
+					}
+				}
+
+				// read in household_clustering data (if present)
+				if(holidaysPt.count("household_clustering") != 0){
+					for (const auto& date : holidaysPt.get_child("household_clustering." + month)) {
+							stringstream d;
+							/// Append zero's due to a bug in stdc++ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=45896
+							d << year << "-" << setw(2) << setfill('0') << month << "-" << setw(2) << setfill('0')
+							  << date.second.get_value<string>();
+							m_household_clustering.push_back(ConvertFromString(d.str()));
 					}
 				}
 

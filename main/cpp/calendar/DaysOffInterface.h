@@ -52,6 +52,9 @@ public:
          /// Whether contact tracing is in place
          virtual bool IsContactTracingActivated() = 0;
 
+         /// Whether household clustering is allowed
+         virtual bool IsHouseholdClusteringAllowed() = 0;
+
         /// Virtual destructor.
         virtual ~DaysOffInterface() = default;
 

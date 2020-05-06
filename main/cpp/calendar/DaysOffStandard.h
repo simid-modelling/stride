@@ -81,6 +81,12 @@ public:
 			return m_calendar->IsContactTracingActivated();
 		}
 
+		/// See DaysOffInterface.
+		bool IsHouseholdClusteringAllowed() override
+		{
+			return m_calendar->IsHouseholdClusteringAllowed();
+		}
+
 
 private:
         std::shared_ptr<Calendar> m_calendar; ///< Management of calendar.

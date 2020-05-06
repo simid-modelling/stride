@@ -72,6 +72,10 @@ void Sim::TimeStep()
         const bool isWorkplaceDistancingEnforced   = daysOff->IsWorkplaceDistancingEnforced();
         const bool isCommunityDistancingEnforced   = daysOff->IsCommunityDistancingEnforced();
         const bool isContactTracingActivated       = daysOff->IsContactTracingActivated();
+        const bool isHouseholdClusteringAllowed    = daysOff->IsHouseholdClusteringAllowed();
+
+        // skip all K12 schools?
+        bool areAllK12SchoolsOff = (isPreSchoolOff && isPrimarySchoolOff && isSecondarySchoolOff);
 
         // increment the number of days in lock-down and account for compliance
 		double workplace_distancing_factor = 0.0;
@@ -105,11 +109,7 @@ void Sim::TimeStep()
 		}
 
 		// get distancing at school
-		double school_distancing_factor = 0.0;
-		if(m_day_of_workplace_distancing > 0){
-			school_distancing_factor = m_cnt_reduction_school_exit;
-
-		}
+		double school_distancing_factor = (m_day_of_workplace_distancing > 0) ? m_cnt_reduction_school_exit : 0 ;
 
 
         // To be used in update of population & contact pools.
@@ -148,15 +148,13 @@ void Sim::TimeStep()
 				m_public_health_agency.PerformContactTracing(m_population, m_rn_man, simDay);
 			}
 
-			// skip all K12 school pools?
-			bool isK12SchoolOff = (isPreSchoolOff && isPrimarySchoolOff && isSecondarySchoolOff);
-
 			// Infector updates individuals for contacts & transmission within each pool.
 			// Skip pools with id = 0, because it means Not Applicable.
 			for (auto typ : ContactType::IdList) {
 					if ((typ == ContactType::Id::Workplace && !isRegularWeekday) ||
-						(typ == ContactType::Id::K12School && isK12SchoolOff) ||
-						(typ == ContactType::Id::College && isCollegeOff)) {
+						(typ == ContactType::Id::K12School && areAllK12SchoolsOff) ||
+						(typ == ContactType::Id::College && isCollegeOff) ||
+						(typ == ContactType::Id::HouseholdCluster && !isHouseholdClusteringAllowed)) {
 							continue;
 					}
 #pragma omp for schedule(static)

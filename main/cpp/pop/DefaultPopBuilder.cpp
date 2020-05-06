@@ -62,7 +62,7 @@ shared_ptr<Population> DefaultPopBuilder::MakePersons(shared_ptr<Population> pop
         }
 
         // get age break between 2 school types
-        //TODO: rename school types an/or add 3rd for secondary school
+        //TODO: rename school types and/or add 3rd for secondary school
         const unsigned int age_break_school_types = m_config.get<unsigned int>("run.age_break_school_types",18);
 
         string line;

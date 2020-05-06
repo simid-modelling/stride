@@ -47,17 +47,9 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
             m_in_pools[Id::SecondaryCommunity] = false;
         }
 
-        if (isK12SchoolOff) {
-        	m_in_pools[Id::K12School]          = false;
-        } else{
-        	m_in_pools[Id::K12School]          = true;
-        }
-
-        if (isCollegeOff) {
-			m_in_pools[Id::College]            = false;
-		} else{
-			m_in_pools[Id::College]            = true;
-		}
+        // Update presence at school and college
+        m_in_pools[Id::K12School] = isK12SchoolOff ? false : true;
+        m_in_pools[Id::College]   = isCollegeOff   ? false : true;
 
 
         // Update presence in contact pools by health state
@@ -83,7 +75,6 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
 
         // Update presence in contact pools if person is in quarantine
         if(m_health.IsInIsolation()){
-//        	std::cout << "Person in self-isolation" << std::endl;
         	m_in_pools[Id::Household]          = false;  //TODO: no household transmission in quarantine?
         	m_in_pools[Id::K12School]          = false;
 			m_in_pools[Id::College]            = false;
