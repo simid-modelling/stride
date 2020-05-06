@@ -21,22 +21,28 @@
 
 #pragma once
 
-#include "AbstractPopBuilder.h"
-
+#include <boost/property_tree/ptree_fwd.hpp>
 #include <memory>
+#include <spdlog/logger.h>
 
 namespace stride {
 
 class Population;
+namespace util {
+class RnMan;
+}
 
 /**
  * Initializes Population objects.
  */
-class DefaultPopBuilder : public AbstractPopBuilder
+class PopBuilder
 {
 public:
-        /// Use constructor of base.
-        using AbstractPopBuilder::AbstractPopBuilder;
+        /// Initializing constructor.
+        /// \param config        Property_tree with general configuration settings.
+        /// \param strideLogger  Logging.
+        PopBuilder(const boost::property_tree::ptree& config,
+                           std::shared_ptr<spdlog::logger> strideLogger = nullptr);
 
         /// Build Population and return it afterwards.
         /// The steps are:
@@ -44,11 +50,15 @@ public:
         /// - Read persons from file and instantiate them.
         /// - Fill up the various type of contactpools.
         /// - Seed the population with contact survey participants.
-        std::shared_ptr<Population> Build(std::shared_ptr<Population> pop) override;
+        std::shared_ptr<Population> Build(std::shared_ptr<Population> pop);
+
 
 private:
         /// Generates pop's individuals and return pop.
         std::shared_ptr<Population> MakePersons(std::shared_ptr<Population> pop);
+
+        const boost::property_tree::ptree& m_config;        ///< Configuration property tree.
+        std::shared_ptr<spdlog::logger>    m_stride_logger; /// Logger for build process.
 };
 
 } // namespace stride

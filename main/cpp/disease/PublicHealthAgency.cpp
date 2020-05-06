@@ -20,7 +20,7 @@
 
 #include "PublicHealthAgency.h"
 
-#include "calendar/DaysOffStandard.h"
+#include "calendar/Calendar.h"
 #include "pop/Population.h"
 #include "util/FileSys.h"
 #include "util/LogUtils.h"

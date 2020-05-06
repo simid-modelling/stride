@@ -55,7 +55,7 @@ void SimController::Control()
         // -----------------------------------------------------------------------------------------
         // Sim scenario: step 2, create a population, as described by the parameter in the config.
         // -----------------------------------------------------------------------------------------
-        auto pop = Population::Create(m_config, rnMan, m_stride_logger);
+        auto pop = Population::Create(m_config, m_stride_logger);
 
         // -----------------------------------------------------------------------------------------
         // Sim scenario: step 3, create a simulator, as described by the parameter in the config.

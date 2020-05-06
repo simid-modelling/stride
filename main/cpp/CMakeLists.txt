@@ -44,10 +44,9 @@ set(STRIDE_SRC
     viewers/PersonsFile.cpp
     viewers/SummaryFile.cpp
     #---
-    pop/AbstractPopBuilder.cpp
     pop/Person.cpp
     pop/Population.cpp
-    pop/DefaultPopBuilder.cpp
+    pop/PopBuilder.cpp
     pop/SurveySeeder.cpp
     #---
     sim/SimRunner.cpp

@@ -21,7 +21,6 @@
 #include "Population.h"
 
 #include "disease/Health.h"
-#include "pop/DefaultPopBuilder.h"
 #include "util/Assert.h"
 #include "util/FileSys.h"
 #include "util/LogUtils.h"
@@ -32,6 +31,7 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <utility>
+#include "PopBuilder.h"
 
 using namespace boost::property_tree;
 using namespace std;
@@ -42,7 +42,7 @@ namespace stride {
 
 Population::Population() : m_pool_sys(), m_contact_logger() {}
 
-std::shared_ptr<Population> Population::Create(const boost::property_tree::ptree& config, util::RnMan rnMan,
+std::shared_ptr<Population> Population::Create(const boost::property_tree::ptree& config,
                                                std::shared_ptr<spdlog::logger> strideLogger)
 {
         if (!strideLogger) {
@@ -67,8 +67,8 @@ std::shared_ptr<Population> Population::Create(const boost::property_tree::ptree
         // -----------------------------------------------------------------------------------------
         // Build population.
         // -----------------------------------------------------------------------------------------
-        strideLogger->info("Invoking DefaultPopBuilder.");
-        DefaultPopBuilder(config, rnMan, strideLogger).Build(pop);
+        strideLogger->info("Invoking PopBuilder.");
+        PopBuilder(config, strideLogger).Build(pop);
 
         // -----------------------------------------------------------------------------------------
         // Done.

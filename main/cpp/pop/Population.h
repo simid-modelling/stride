@@ -41,13 +41,12 @@ class RnMan;
  * Key Data structure: container for
  * (a) all individuals in the population
  * (b) the ContactPoolSys which is used to loop over ContactPools of each type
- * (c) (if present) GeoGrid of Locations, each having an index of ContactPools at that location.
  */
 class Population : public util::SegmentedVector<Person, 2048>
 {
 public:
         /// Create a Population initialized by the configuration in property tree.
-        static std::shared_ptr<Population> Create(const boost::property_tree::ptree& config, util::RnMan rnMan,
+        static std::shared_ptr<Population> Create(const boost::property_tree::ptree& config,
                                                   std::shared_ptr<spdlog::logger> strideLogger = nullptr);
 
         /// Create an empty Population, used in gengeopop.

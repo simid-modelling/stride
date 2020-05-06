@@ -19,8 +19,6 @@
  * Initialize populations: implementation.
  */
 
-#include "DefaultPopBuilder.h"
-
 #include "contact/ContactLogMode.h"
 #include "contact/ContactType.h"
 #include "contact/IdSubscriptArray.h"
@@ -29,9 +27,11 @@
 #include "util/FileSys.h"
 #include "util/RnMan.h"
 #include "util/StringUtils.h"
+#include "util/LogUtils.h"
 
 #include <boost/property_tree/ptree.hpp>
 #include <fstream>
+#include "PopBuilder.h"
 
 namespace stride {
 
@@ -41,7 +41,16 @@ using namespace util;
 using namespace boost::property_tree;
 using namespace std;
 
-shared_ptr<Population> DefaultPopBuilder::MakePersons(shared_ptr<Population> pop)
+PopBuilder::PopBuilder(const boost::property_tree::ptree& config,
+                                       std::shared_ptr<spdlog::logger> strideLogger)
+    : m_config(config), m_stride_logger(std::move(strideLogger))
+{
+        if (!m_stride_logger) {
+                m_stride_logger = util::LogUtils::CreateNullLogger("PopBuilder_logger");
+        }
+}
+
+shared_ptr<Population> PopBuilder::MakePersons(shared_ptr<Population> pop)
 {
         //------------------------------------------------
         // Read persons from file.
@@ -101,7 +110,7 @@ shared_ptr<Population> DefaultPopBuilder::MakePersons(shared_ptr<Population> pop
         return pop;
 }
 
-shared_ptr<Population> DefaultPopBuilder::Build(shared_ptr<Population> pop)
+shared_ptr<Population> PopBuilder::Build(shared_ptr<Population> pop)
 {
         //------------------------------------------------
         // Add persons

@@ -63,52 +63,46 @@ public:
         /// Current year in the simulated calendar.
         std::size_t GetYear() const;
 
-        /// Check if it's a public holiday.
-        bool IsPublicHoliday() const
-        {
-        	return (std::find(m_public_holidays.begin(), m_public_holidays.end(), m_date) != m_public_holidays.end());
-        }
 
-        /// Check if pre-schools are closed.
-        bool IsPreSchoolClosed() const
-        {
-             return (std::find(m_preschool_holidays.begin(), m_preschool_holidays.end(), m_date) !=
-            		 m_preschool_holidays.end());
-        }
-
-        /// Check if primary schools are closed.
-		bool IsPrimarySchoolClosed() const
+        /// Check if today is a regular weekday (= NO weekend or holiday).
+		bool IsRegularWeekday() const
 		{
-			 return (std::find(m_primary_school_holidays.begin(), m_primary_school_holidays.end(), m_date) !=
-					 m_primary_school_holidays.end());
+			return !(IsWeekend() || IsPublicHoliday());
 		}
 
-        /// Check if secondary schools are closed.
-		bool IsSecondarySchoolClosed() const
+		/// Check if today pre-schools are off.
+		bool IsPreSchoolOff() const
 		{
-			 return (std::find(m_secondary_school_holidays.begin(), m_secondary_school_holidays.end(), m_date) !=
-					 m_secondary_school_holidays.end());
+			return IsWeekend() || IsPublicHoliday() || IsPreSchoolClosed();
 		}
 
-        /// Check if Colleges are closed.
-        bool IsCollegeClosed() const
-        {
-             return (std::find(m_college_holidays.begin(), m_college_holidays.end(), m_date) !=
-            		 m_college_holidays.end());
-        }
+		/// Check if today primary schools are off.
+		bool IsPrimarySchoolOff() const
+		{
+			return IsWeekend() || IsPublicHoliday() || IsPrimarySchoolClosed();
+		}
 
-        /// Check if it's weekend.
-        bool IsWeekend() const { return (GetDayOfTheWeek() == 6 || GetDayOfTheWeek() == 0); }
+		 /// Check if today secondary schools are off.
+		bool IsSecondarySchoolOff() const
+		{
+			return IsWeekend() || IsPublicHoliday() || IsSecondarySchoolClosed();
+		}
+
+		/// Check if today college is off.
+		bool IsCollegeOff() const
+		{
+			return IsWeekend() || IsPublicHoliday() || IsCollegeClosed();
+		}
 
         /// Check if quarantine measures are in place
-        bool IsWorkplaceDistancingMandated() const
+        bool IsWorkplaceDistancingEnforced() const
         {
 			 return (std::find(m_workplace_distancing.begin(), m_workplace_distancing.end(), m_date) !=
 					 m_workplace_distancing.end());
 		}
 
         /// Check if quarantine measures are in place
-		bool IsCommunityDistancingMandated() const
+		bool IsCommunityDistancingEnforced() const
 		{
 			 return (std::find(m_community_distancing.begin(), m_community_distancing.end(), m_date) !=
 					 m_community_distancing.end());
@@ -128,9 +122,48 @@ public:
 					 m_household_clustering.end());
 		}
 
-
 private:
-        ///
+		/// Check if it's a public holiday.
+		bool IsPublicHoliday() const
+		{
+			return (std::find(m_public_holidays.begin(), m_public_holidays.end(), m_date) != m_public_holidays.end());
+		}
+
+		/// Check if pre-schools are closed.
+		bool IsPreSchoolClosed() const
+		{
+			 return (std::find(m_preschool_holidays.begin(), m_preschool_holidays.end(), m_date) !=
+					 m_preschool_holidays.end());
+		}
+
+		/// Check if primary schools are closed.
+		bool IsPrimarySchoolClosed() const
+		{
+			 return (std::find(m_primary_school_holidays.begin(), m_primary_school_holidays.end(), m_date) !=
+					 m_primary_school_holidays.end());
+		}
+
+		/// Check if secondary schools are closed.
+		bool IsSecondarySchoolClosed() const
+		{
+			 return (std::find(m_secondary_school_holidays.begin(), m_secondary_school_holidays.end(), m_date) !=
+					 m_secondary_school_holidays.end());
+		}
+
+		/// Check if Colleges are closed.
+		bool IsCollegeClosed() const
+		{
+			 return (std::find(m_college_holidays.begin(), m_college_holidays.end(), m_date) !=
+					 m_college_holidays.end());
+		}
+
+		/// Check if it's weekend.
+		bool IsWeekend() const
+		{
+			return (GetDayOfTheWeek() == 6 || GetDayOfTheWeek() == 0);
+		}
+
+		/// Initialize the calendar
         void Initialize(const boost::property_tree::ptree& configPt);
 
 private:

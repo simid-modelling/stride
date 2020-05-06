@@ -71,7 +71,7 @@ private:
         /// \return     The requested reference.
         util::SegmentedVector<ContactPool>& RefPools(ContactType::Id id) { return m_sys[id]; }
 
-        friend class DefaultPopBuilder;
+        friend class PopBuilder;
         friend class Sim;
 
 private:

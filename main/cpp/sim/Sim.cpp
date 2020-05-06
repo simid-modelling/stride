@@ -20,7 +20,7 @@
 
 #include "Sim.h"
 
-#include "calendar/DaysOffStandard.h"
+#include "calendar/Calendar.h"
 #include "contact/ContactType.h"
 #include "contact/InfectorExec.h"
 #include "disease/DiseaseSeeder.h"
@@ -63,16 +63,15 @@ void Sim::TimeStep()
 {
         // Logic where you compute (on the basis of input/config for initial day or on the basis of
         // number of sick persons, duration of epidemic etc) what kind of DaysOff scheme you apply.
-        const auto daysOff          = std::make_shared<DaysOffStandard>(m_calendar);
-        const bool isRegularWeekday = daysOff->IsRegularWeekday();
-        const bool isPreSchoolOff       = daysOff->IsPreSchoolOff();
-        const bool isPrimarySchoolOff   = daysOff->IsPrimarySchoolOff();
-        const bool isSecondarySchoolOff = daysOff->IsSecondarySchoolOff();
-        const bool isCollegeOff         = daysOff->IsCollegeOff();
-        const bool isWorkplaceDistancingEnforced   = daysOff->IsWorkplaceDistancingEnforced();
-        const bool isCommunityDistancingEnforced   = daysOff->IsCommunityDistancingEnforced();
-        const bool isContactTracingActivated       = daysOff->IsContactTracingActivated();
-        const bool isHouseholdClusteringAllowed    = daysOff->IsHouseholdClusteringAllowed();
+        const bool isRegularWeekday = m_calendar->IsRegularWeekday();
+        const bool isPreSchoolOff       = m_calendar->IsPreSchoolOff();
+        const bool isPrimarySchoolOff   = m_calendar->IsPrimarySchoolOff();
+        const bool isSecondarySchoolOff = m_calendar->IsSecondarySchoolOff();
+        const bool isCollegeOff         = m_calendar->IsCollegeOff();
+        const bool isWorkplaceDistancingEnforced   = m_calendar->IsWorkplaceDistancingEnforced();
+        const bool isCommunityDistancingEnforced   = m_calendar->IsCommunityDistancingEnforced();
+        const bool isContactTracingActivated       = m_calendar->IsContactTracingActivated();
+        const bool isHouseholdClusteringAllowed    = m_calendar->IsHouseholdClusteringAllowed();
 
         // skip all K12 schools?
         bool areAllK12SchoolsOff = (isPreSchoolOff && isPrimarySchoolOff && isSecondarySchoolOff);
