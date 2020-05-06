@@ -40,6 +40,8 @@ bool IsId(const string& s)
             make_pair("WORKPLACE", Id::Workplace),
             make_pair("PRIMARY_COMMUNITY", Id::PrimaryCommunity),
             make_pair("SECONDARY_COMMUNITY", Id::SecondaryCommunity),
+			make_pair("HOUSEHOLD_CLUSTER", Id::HouseholdCluster),
+
         };
         string t{s};
         to_upper(t);
@@ -55,6 +57,8 @@ Id ToId(const string& s)
             make_pair("WORKPLACE", Id::Workplace),
             make_pair("PRIMARY_COMMUNITY", Id::PrimaryCommunity),
             make_pair("SECONDARY_COMMUNITY", Id::SecondaryCommunity),
+			make_pair("HOUSEHOLD_CLUSTER", Id::HouseholdCluster),
+
         };
         string t{s};
         to_upper(t);
@@ -70,6 +74,7 @@ string ToString(Id c)
             make_pair(Id::Workplace, "Workplace"),
             make_pair(Id::PrimaryCommunity, "PrimaryCommunity"),
             make_pair(Id::SecondaryCommunity, "SecondaryCommunity"),
+			make_pair(Id::HouseholdCluster, "HouseholdCluster"),
         };
         return (names.count(c) == 1) ? names[c] : throw runtime_error("ContactType::ToString> not available:");
 }

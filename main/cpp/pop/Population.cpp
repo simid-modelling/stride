@@ -76,15 +76,10 @@ std::shared_ptr<Population> Population::Create(const boost::property_tree::ptree
         return pop;
 }
 
-std::shared_ptr<Population> Population::Create(const string& configString, util::RnMan rnMan,
-                                               std::shared_ptr<spdlog::logger> stride_logger)
-{
-        return Create(RunConfigManager::FromString(configString), std::move(rnMan), std::move(stride_logger));
-}
-
 std::shared_ptr<Population> Population::Create()
 {
-        // --------------------------------------------------------------
+
+		// --------------------------------------------------------------
         // Create (empty) population and return it
         // --------------------------------------------------------------
         struct make_shared_enabler : public Population
@@ -96,10 +91,10 @@ std::shared_ptr<Population> Population::Create()
 
 Person* Population::CreatePerson(unsigned int id, double age, unsigned int householdId, unsigned int k12SchoolId,
                                  unsigned int college, unsigned int workId, unsigned int primaryCommunityId,
-                                 unsigned int secondaryCommunityId)
+                                 unsigned int secondaryCommunityId, unsigned int householdClusterId)
 {
         return emplace_back(id, age, householdId, k12SchoolId, college, workId, primaryCommunityId,
-                            secondaryCommunityId);
+                            secondaryCommunityId, householdClusterId);
 }
 
 unsigned int Population::GetTotalInfected() const

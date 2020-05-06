@@ -78,6 +78,10 @@ shared_ptr<Population> DefaultPopBuilder::MakePersons(shared_ptr<Population> pop
                 const auto primaryCommunityId   = FromString<unsigned int>(values[4]);
                 const auto secondaryCommunityId = FromString<unsigned int>(values[5]);
 
+                unsigned int householdClusterId = 0;
+                if(values.size() == 7){
+                	householdClusterId = FromString<unsigned int>(values[6]);
+                }
                 //TODO: rename school types to current approach
                 unsigned int collegeId = 0;
                 if(schoolId != 0 && age >= age_break_school_types && age < 23){
@@ -86,7 +90,7 @@ shared_ptr<Population> DefaultPopBuilder::MakePersons(shared_ptr<Population> pop
                 }
 
                 pop->CreatePerson(person_id, age, householdId, schoolId, collegeId, workId, primaryCommunityId,
-                                  secondaryCommunityId);
+                                  secondaryCommunityId, householdClusterId);
                 ++person_id;
         }
 

@@ -50,10 +50,6 @@ public:
         static std::shared_ptr<Population> Create(const boost::property_tree::ptree& config, util::RnMan rnMan,
                                                   std::shared_ptr<spdlog::logger> strideLogger = nullptr);
 
-        /// For use in python environment: create Population using configuration string i.o ptree.
-        static std::shared_ptr<Population> Create(const std::string& configString, util::RnMan rnMan,
-                                                  std::shared_ptr<spdlog::logger> stride_logger = nullptr);
-
         /// Create an empty Population, used in gengeopop.
         static std::shared_ptr<Population> Create();
 
@@ -61,7 +57,7 @@ public:
         /// Create Person in the population.
         Person* CreatePerson(unsigned int id, double age, unsigned int householdId, unsigned int k12SchoolId,
                              unsigned int collegeId, unsigned int workId, unsigned int primaryCommunityId,
-                             unsigned int secondaryCommunityId);
+                             unsigned int secondaryCommunityId, unsigned int householdClusterId);
 
         /// Get the cumulative number of cases.
         unsigned int GetTotalInfected() const;
