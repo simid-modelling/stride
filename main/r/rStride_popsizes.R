@@ -53,7 +53,6 @@ for (i in 1:length(popSizes)) {
                               disease_config_file           = "disease_covid19.xml",
                               population_file               = c(paste0("pop_belgium", popSizes[i], "_c500_teachers_censushh.csv")),
                               age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
-                              adaptive_symptomatic_behavior = 'true',
                               start_date                    = c('2020-02-01'),
                               holidays_file                 = "holidays_flanders_2020.json",
                               # No interventions

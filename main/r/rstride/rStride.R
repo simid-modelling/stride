@@ -140,7 +140,6 @@ run_rStride <- function(exp_design               = exp_design,
   config_default$num_cea_samples  <- 1e4
   config_default$track_index_case              <- 'false'
   config_default$contact_log_level             <- 'Transmissions'
-  config_default$adaptive_symptomatic_behavior <- 'true'
   
   ################################## #
   ## PARALLEL SETUP               ####

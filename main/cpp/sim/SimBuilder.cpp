@@ -48,7 +48,6 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
         sim->m_config                        = m_config;
         sim->m_population                    = std::move(pop);
         sim->m_track_index_case              = m_config.get<bool>("run.track_index_case");
-        sim->m_adaptive_symptomatic_behavior = m_config.get<bool>("run.adaptive_symptomatic_behavior", true);
         sim->m_num_threads                   = m_config.get<unsigned int>("run.num_threads");
         sim->m_calendar                      = make_shared<Calendar>(m_config);
         sim->m_contact_log_mode = ContactLogMode::ToMode(m_config.get<string>("run.contact_log_level", "None"));

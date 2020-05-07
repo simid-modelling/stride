@@ -63,7 +63,7 @@ void PublicHealthAgency::SetTelework(std::shared_ptr<Population> pop, util::RnMa
 	auto       generator   = rnMan.GetUniform01Generator();
 	for (auto& p : *pop) {
 		if(p.GetPoolId(ContactType::Id::Workplace) != 0 &&  generator() < m_telework_probability){
-			p.SetTeleworking();
+			p.SetTeleworkAbility();
 		}
 	}
 }

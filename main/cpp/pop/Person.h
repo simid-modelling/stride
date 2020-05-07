@@ -36,7 +36,7 @@ class Person
 {
 public:
         /// Default construction (for population vector).
-        Person() : m_age(0.0), m_id(0), m_pool_ids(), m_health(), m_in_pools(), m_is_participant(), m_teleworking() {}
+        Person() : m_age(0.0), m_id(0), m_pool_ids(), m_health(), m_in_pools(), m_is_participant(), m_able_to_telework() {}
 
         /// Constructor: set the person data.
         Person(unsigned int id, float age, unsigned int householdId, unsigned int k12SchoolId, unsigned int collegeId,
@@ -44,7 +44,7 @@ public:
             : m_age(age), m_id(id), m_pool_ids{householdId, k12SchoolId,        collegeId,
                                                workId,      primaryCommunityId, secondaryCommunityId,
 											   householdClusterId},
-              m_health(), m_in_pools(true), m_is_participant(false), m_teleworking(false)
+              m_health(), m_in_pools(true), m_is_participant(false), m_able_to_telework(false)
         {
         }
 
@@ -76,7 +76,7 @@ public:
         void ParticipateInSurvey() { m_is_participant = true; }
 
         /// Update the health status and presence in contact pools.
-        void Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOff, bool adaptiveSymptomaticBehavior,
+        void Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOff,
         		bool isWorkplaceDistancingEnforced, bool isHouseholdClusteringAllowed, ContactHandler& cHandler);
 
         /// Set the age of the person
@@ -92,10 +92,10 @@ public:
                 m_in_pools[type] = (poolId != 0); // Means present in Household, absent elsewhere.
         }
 
-        // define ability to telework
-        void SetTeleworking() { m_teleworking = true; }
+        // set ability to telework
+        void SetTeleworkAbility() { m_able_to_telework = true; }
 
-        bool IsTeleworking() const { return m_teleworking;}
+        bool IsAbleToTelework() const { return m_able_to_telework;}
 
 private:
         float        m_age; ///< The age.
@@ -114,8 +114,8 @@ private:
         ///< Is this a participant in the social contact study?
         bool m_is_participant;
 
-        ///< Is the participant teleworking?
-        bool m_teleworking;
+        ///< Is the participant able to telework?
+        bool m_able_to_telework;
 };
 
 } // namespace stride

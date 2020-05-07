@@ -39,7 +39,7 @@ using namespace ContactLogMode;
 
 Sim::Sim()
     : m_config(), m_contact_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
-      m_adaptive_symptomatic_behavior(false), m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
+      m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_workplace(0), m_cnt_reduction_other(0),
 	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
 	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),
@@ -138,8 +138,8 @@ void Sim::TimeStep()
 
 				// update presence
 				population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
-						m_adaptive_symptomatic_behavior, isWorkplaceDistancingEnforced,
-						isHouseholdClusteringAllowed, m_handlers[thread_num]);
+						isWorkplaceDistancingEnforced, isHouseholdClusteringAllowed,
+						m_handlers[thread_num]);
 			}
 
 			// Perform contact tracing (if activated)
