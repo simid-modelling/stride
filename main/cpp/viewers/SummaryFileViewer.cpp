@@ -15,7 +15,7 @@
 
 /**
  * @file
- * Definition of Observer for SimEvents for command line interface usage.
+ * Definition of Observer for Summary output.
  */
 
 #include "SummaryFileViewer.h"
@@ -40,7 +40,9 @@ void SummaryFileViewer::Update(const sim_event::Id id)
                 const auto pop      = m_runner->GetSim()->GetPopulation();
                 const auto dur      = duration_cast<milliseconds>(m_runner->GetClock().Get());
                 const auto milli    = static_cast<unsigned int>(dur.count());
-                m_summary_file.Print(configPt, static_cast<unsigned int>(pop->size()), pop->GetTotalInfected(),
+
+                output::SummaryFile  summary_file(m_output_prefix);
+                summary_file.Print(configPt, static_cast<unsigned int>(pop->size()), pop->GetTotalInfected(),
                                      sim->RefTransmissionProfile().GetProbability(), milli, milli);
                 break;
         }

@@ -40,10 +40,6 @@ set(STRIDE_SRC
     execs/ControlHelper.cpp
     execs/SimController.cpp
     #---
-    viewers/InfectedFile.cpp
-    viewers/PersonsFile.cpp
-    viewers/SummaryFile.cpp
-    #---
     pop/Person.cpp
     pop/Population.cpp
     pop/PopBuilder.cpp
@@ -67,9 +63,9 @@ set(STRIDE_SRC
     util/TimeToString.cpp
     #---
     viewers/CliViewer.cpp
+    viewers/InfectedFile.cpp
     viewers/InfectedFileViewer.cpp
-    viewers/InfectedViewer.cpp
-    viewers/PersonsFileViewer.cpp
+    viewers/SummaryFile.cpp
     viewers/SummaryFileViewer.cpp
 )
 

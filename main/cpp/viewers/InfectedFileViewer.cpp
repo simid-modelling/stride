@@ -15,7 +15,7 @@
 
 /**
  * @file
- * Definition of Observer for SimEvents for commandline interface usage.
+ * Definition of Observer for Infected output.
  */
 
 #include "InfectedFileViewer.h"
@@ -31,11 +31,7 @@ namespace stride {
 namespace viewers {
 
 InfectedFileViewer::InfectedFileViewer(std::shared_ptr<SimRunner> runner, const std::string& output_prefix)
-            : m_infected(), m_infected_file(output_prefix,"infected"),
-			  m_exposed(), m_exposed_file(output_prefix,"exposed"),
-			  m_infectious(),m_infectious_file(output_prefix,"infectious"),
-			  m_symptomatic(),m_symptomatic_file(output_prefix,"symptomatic"),
-			  m_infected_total(),m_infected_total_file(output_prefix,"cases"),
+            : m_output_prefix(output_prefix), m_infected(), m_exposed(), m_infectious(), m_symptomatic(), m_infected_total(),
 			  m_runner(std::move(runner))
         {
         }
@@ -56,11 +52,20 @@ void InfectedFileViewer::Update(const sim_event::Id id)
                 break;
         }
         case Id::Finished: {
-                m_infected_file.Print(m_infected);
-                m_exposed_file.Print(m_exposed);
-                m_infectious_file.Print(m_infectious);
-                m_symptomatic_file.Print(m_symptomatic);
-                m_infected_total_file.Print(m_infected_total);
+        		output::InfectedFile infected_file(m_output_prefix, "infected");
+        		infected_file.Print(m_infected);
+
+        		output::InfectedFile exposed_file(m_output_prefix, "exposed");
+        		exposed_file.Print(m_exposed);
+
+        		output::InfectedFile infectious_file(m_output_prefix, "infectious");
+        		infectious_file.Print(m_infectious);
+
+        		output::InfectedFile symptomatic_file(m_output_prefix, "symptomatic");
+        		symptomatic_file.Print(m_symptomatic);
+
+        		output::InfectedFile infected_total_file(m_output_prefix, "cases");
+        		infected_total_file.Print(m_infected_total);
                 break;
         }
         default: break;
