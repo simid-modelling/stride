@@ -34,6 +34,11 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   # load project summary
   project_summary    <- .rstride$load_project_summary(project_dir)
   
+  # reduce population filenames
+  project_summary$population_file <- gsub('_belgium','',project_summary$population_file)
+  project_summary$population_file <- gsub('_c500_teachers_censushh','',project_summary$population_file)
+  project_summary$population_file <- gsub('.csv','',project_summary$population_file)
+
   # retrieve all variable model parameters
   input_opt_design   <- .rstride$get_variable_model_param(project_summary)
   
@@ -44,6 +49,8 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     smd_print('NO INCIDENCE DATA AVAILABLE.')
     return(NA)
   }
+  
+  
   
   # add config_id 
   # get variable names of input_opt_design (fix if only one column)
@@ -290,46 +297,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
       dev.off()
     }
   
-  ## AVERAGE ####
-  .rstride$create_pdf(project_dir,'incidence_average',width = 6, height = 2)
-  # change figure margins
-  par(mar=c(3,5,1,2))
-  
-  num_runs <- unique(table(project_summary$config_id))
-  tmp <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_all, mean)
-  tmp$new_hospital_admissions[tmp$sim_day == min(tmp$sim_day)] <- NA
-  
-  # remove dates with partial info
-  tbl_date <- table(data_incidence_all$sim_date)
-  sel_dates <- names(tbl_date)[tbl_date == median(tbl_date)]
-  tmp <-  tmp[tmp$sim_date %in% as.Date(sel_dates),]
-  
-  # plot average results
-  plot(tmp$sim_date,tmp$new_hospital_admissions,
-       type='l',
-       lwd=3,
-       col=alpha(4,0.5),
-       ylab='Hospital admissions',
-       xlab='',
-       main = paste('Average of ', num_runs, 'realisations'),
-       xlim = range(tmp$sim_date)+7)
-  grid()
-  points(hosp_cases_date,hosp_cases_num,col=1,pch=16)
-  add_breakpoints()
-  add_legend_hosp(pcolor<- data.frame(D = 1,H=4))
-  
-  # add config_id
-  tmp_end <- aggregate( new_hospital_admissions ~ sim_day + sim_date + config_id, data = data_incidence_all[data_incidence_all$sim_date == max(tmp$sim_date,na.rm=T),], mean)
-  tmp_end$config_id
-  text(tmp_end$sim_date,
-       tmp_end$new_hospital_admissions,
-       tmp_end$config_id,
-       pos=4,xpd=TRUE,cex=0.4)
-
-  dev.off()
-  
-  
-  ## ALL TOGETHER ####
+  ## ALL TOGETHER (PDF) ####
   .rstride$create_pdf(project_dir,'incidence_all',width = 6, height = 2.5)
   par(mar=c(3,5,1,3))
   
@@ -338,6 +306,18 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
                       hosp_adm_data,input_opt_design,
                       bool_add_param,bool_only_hospital_adm = TRUE) 
 
+  # close pdf
+  dev.off()
+  
+  ## ALL TOGETHER (JPEG) ####
+  .rstride$create_jpg(project_dir,'incidence_all',width = 6, height = 2.5)
+  par(mar=c(3,5,1,5))
+  
+  # plot
+  plot_incidence_data(data_incidence_all,project_summary,
+                      hosp_adm_data,input_opt_design,
+                      bool_add_param,bool_only_hospital_adm = TRUE) 
+  
   # close pdf
   dev.off()
   

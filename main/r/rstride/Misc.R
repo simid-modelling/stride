@@ -88,6 +88,26 @@ if(!(exists('.rstride'))){
 }
 
 ############################# #
+## OPEN JPG STREAM         ####
+############################# #
+.rstride$create_jpg <- function(project_dir,file_name,width=7,height=7){
+  
+  # load project summary
+  project_summary   <- .rstride$load_project_summary(project_dir)
+  
+  # get run_tag
+  run_tag           <- unique(project_summary$run_tag)
+  
+  # get file name with path
+  file_name_path    <- file.path(project_dir,paste0(run_tag,'_',file_name,'.jpg'))
+  
+  # open pdf stream
+  jpeg(file_name_path,width,height,units='in',res=100)
+  
+  return(file_name_path)
+}
+
+############################# #
 ## CREATE EXPERIMENT TAG   ####
 ############################# #
 
