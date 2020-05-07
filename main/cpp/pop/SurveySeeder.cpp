@@ -89,31 +89,18 @@ void SurveySeeder::RegisterParticipant(std::shared_ptr<Population> pop, Person& 
 		const auto pW   = p.GetPoolId(Id::Workplace);
 		const auto pPC  = p.GetPoolId(Id::PrimaryCommunity);
 		const auto pSC  = p.GetPoolId(Id::SecondaryCommunity);
-		// TODO: create a more elegant solution
-		// - gengeopop population ==>> unique pool id over all pool types, so ID != index in
-		// poolType-vector
-		// - default population   ==>> unique pool id per pool type, so ID == index in
-		// poolType-vector
-		//if (p.GetPoolId(Id::SecondaryCommunity) < poolSys[Id::SecondaryCommunity].size()) {
-		if (pSC < poolSys.CRefPools<Id::SecondaryCommunity>().size()) {
-				logger->info("[PART] {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p.GetId(),
-					 p.GetAge(), pHH, pK12, pC, pW, h.IsSusceptible(), h.IsInfected(), h.IsInfectious(),
-					 h.IsRecovered(), h.IsImmune(), h.GetStartInfectiousness(), h.GetStartSymptomatic(),
-					 h.GetEndInfectiousness(), h.GetEndSymptomatic(),
-					 poolSys.CRefPools<Id::Household>()[pHH].GetPool().size(),
-					 poolSys.CRefPools<Id::K12School>()[pK12].GetPool().size(),
-					 poolSys.CRefPools<Id::College>()[pC].GetPool().size(),
-					 poolSys.CRefPools<Id::Workplace>()[pW].GetPool().size(),
-					 poolSys.CRefPools<Id::PrimaryCommunity>()[pPC].GetPool().size(),
-					 poolSys.CRefPools<Id::SecondaryCommunity>()[pSC].GetPool().size(),
-					 p.IsTeleworking());
-		} else {
-				logger->info("[PART] {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p.GetId(),
-					 p.GetAge(), pHH, pK12, pC, pW, h.IsSusceptible(), h.IsInfected(), h.IsInfectious(),
-					 h.IsRecovered(), h.IsImmune(), h.GetStartInfectiousness(), h.GetStartSymptomatic(),
-					 h.GetEndInfectiousness(), h.GetEndSymptomatic(),
-					 -1, -1, -1, -1, -1, -1 -1 );
-		}
+		const auto pHC  = p.GetPoolId(Id::HouseholdCluster);
+		logger->info("[PART] {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p.GetId(),
+			 p.GetAge(), pHH, pK12, pC, pW, pHC, h.IsSusceptible(), h.IsInfected(), h.IsInfectious(),
+			 h.IsRecovered(), h.IsImmune(), h.GetStartInfectiousness(), h.GetStartSymptomatic(),
+			 h.GetEndInfectiousness(), h.GetEndSymptomatic(),
+			 poolSys.CRefPools<Id::Household>()[pHH].GetPool().size(),
+			 poolSys.CRefPools<Id::K12School>()[pK12].GetPool().size(),
+			 poolSys.CRefPools<Id::College>()[pC].GetPool().size(),
+			 poolSys.CRefPools<Id::Workplace>()[pW].GetPool().size(),
+			 poolSys.CRefPools<Id::PrimaryCommunity>()[pPC].GetPool().size(),
+			 poolSys.CRefPools<Id::SecondaryCommunity>()[pSC].GetPool().size(),
+			 p.IsAbleToTelework());
 	 }
 }
 

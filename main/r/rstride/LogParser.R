@@ -69,7 +69,7 @@ if(0==1){
   ###################### #
   if(any(data_log[,1] == "[PART]"))
   {
-    header_part         <- c('local_id', 'part_age', 'household_id', 'school_id', 'college_id','workplace_id',
+    header_part         <- c('local_id', 'part_age', 'household_id', 'school_id', 'college_id','workplace_id', 'household_cluster_id',
                              'is_susceptible','is_infected','is_infectious','is_recovered','is_immune',
                              'start_infectiousness','start_symptomatic','end_infectiousness','end_symptomatic',
                              'household_size','school_size','college_size','workplace_size','primarycommunity_size','secundarycommunity_size','is_teleworking')
@@ -142,7 +142,7 @@ if(0==1){
   if(any(data_log[,1] == "[CONT]"))
   {
     header_cnt          <- c('local_id', 'part_age', 'cnt_age', 'cnt_home', 'cnt_school', 
-                             'cnt_college','cnt_work', 'cnt_prim_comm', 'cnt_sec_comm', 
+                             'cnt_college','cnt_work', 'cnt_prim_comm', 'cnt_sec_comm', 'cnt_hh_cluster', 
                              'sim_day', 'cnt_prob', 'trm_prob','part_sympt','cnt_sympt')
     data_cnt            <- data_log[data_log[,1] == "[CONT]",seq_len(length(header_cnt))+1]
     names(data_cnt)     <- header_cnt

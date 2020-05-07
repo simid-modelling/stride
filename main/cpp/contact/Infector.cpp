@@ -75,13 +75,15 @@ public:
                             ContactType::Id type, unsigned short int sim_day, const double cProb, const double tProb)
         {
                 if (p1->IsSurveyParticipant()) {
-                        logger->info("[CONT] {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p1->GetId(), p1->GetAge(),
+                        logger->info("[CONT] {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}", p1->GetId(), p1->GetAge(),
                                      p2->GetAge(), static_cast<unsigned int>(type == ContactType::Id::Household),
                                      static_cast<unsigned int>(type == ContactType::Id::K12School),
                                      static_cast<unsigned int>(type == ContactType::Id::College),
                                      static_cast<unsigned int>(type == ContactType::Id::Workplace),
                                      static_cast<unsigned int>(type == ContactType::Id::PrimaryCommunity),
-                                     static_cast<unsigned int>(type == ContactType::Id::SecondaryCommunity), sim_day,
+                                     static_cast<unsigned int>(type == ContactType::Id::SecondaryCommunity),
+									 static_cast<unsigned int>(type == ContactType::Id::HouseholdCluster),
+									 sim_day,
 									 cProb, tProb,p2->GetHealth().IsSymptomatic(),p1->GetHealth().IsSymptomatic());
                 }
         }
@@ -124,7 +126,7 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
 		}
 
 		// assume fully connected households
-	    if(pType == Id::Household){
+	    if(pType == Id::Household || pType == Id::HouseholdCluster){
 	    	contact_probability = 0.999;
 	    }
 
@@ -140,7 +142,7 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
 
         if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity)){
 
-			// apply intergeneration distancing factor if age cutoff is > 0 and at least one age is > cutoff
+			// apply inter-generation distancing factor if age cutoff is > 0 and at least one age is > cutoff
 			if((cnt_reduction_intergeneration > 0) &&
 				((p1->GetAge() > cnt_reduction_intergeneration_cutoff) || (p2->GetAge() > cnt_reduction_intergeneration_cutoff))){
 				contact_probability = contact_probability * (1-cnt_reduction_intergeneration);

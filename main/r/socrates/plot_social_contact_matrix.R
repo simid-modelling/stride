@@ -64,6 +64,9 @@ plot_socrates_location <- function(data_cnt,data_part,age_cat_breaks,survey_day)
   ## SECONDARY COMMUNITY
   plot_contact_matrix_socrates(data_cnt[data_cnt$cnt_sec_comm==1,],data_part,'@week community',age_cat_breaks)
   
+  ## HOUSEHOLD CLUSTER
+  plot_contact_matrix_socrates(data_cnt[data_cnt$cnt_hh_cluster==1,],data_part,'@household cluster',age_cat_breaks)
+  
   plot(0,0,col=0,axes=F,xlab='',ylab='')
   # survey_day <- as.Date(exp_summary$start_date) + unique(data_cnt$sim_day)
   survey_day <- as.Date(survey_day)

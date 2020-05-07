@@ -41,8 +41,11 @@ pop_file_name <- 'pop_belgium3000k_c500_teachers_censushh.csv'
 # set maximum age difference between household seniors.
 max_age_diff <- 3
 
+# max number of households in one cluster?
+household_cluster_size <- 1
+
 # run function to extend population data
-extend_population_data(pop_file_name,max_age_diff)
+extend_population_data(pop_file_name,max_age_diff,household_cluster_size)
 
 
 # end.
