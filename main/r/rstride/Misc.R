@@ -101,6 +101,11 @@ if(!(exists('.rstride'))){
   # get file name with path
   file_name_path    <- file.path(project_dir,paste0(run_tag,'_',file_name,'.jpg'))
   
+  # check X11 environment
+  if(nchar(Sys.getenv("DISPLAY"))==0){
+    options(bitmapType='cairo')
+  }
+  
   # open pdf stream
   jpeg(file_name_path,width,height,units='in',res=100)
   
