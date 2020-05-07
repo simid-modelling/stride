@@ -79,8 +79,9 @@ exp_design$rng_seed <- sample(nrow(exp_design))
 ##################################
 project_dir <- run_rStride(exp_design  = exp_design,
                            dir_postfix = dir_postfix,
-                           ignore_stdout = FALSE,
-                           remove_run_output = TRUE)
+                           store_transmission_rdata = FALSE,
+                           ignore_stdout            = FALSE,
+                           remove_run_output        = TRUE)
 
 
 #####################################################
