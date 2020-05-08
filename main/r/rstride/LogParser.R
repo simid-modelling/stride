@@ -78,8 +78,8 @@ if(0==1){
     data_part[1,]
     
     # set 'true' and 'false' in the R-format
-    data_part[data_part=="true"] <- TRUE
-    data_part[data_part=="false"] <- FALSE
+    data_part[data_part=="true"] <- 1
+    data_part[data_part=="false"] <- 0
     
     # make sure, all values (except the booleans) are stored as integers
     col_non_numeric <- which(grepl('is_',header_part))

@@ -28,9 +28,9 @@ plot_socrates_all <- function(data_cnt,data_part,age_cat_breaks,project_dir,exp_
   # symptomatic
   for(i_day in opt_day){
    
-    # data_cnt_day    <- data_cnt[data_cnt$sim_day == i_day & data_cnt$part_sympt == 1,]
+    # select contacts of 'i_day' and symptomatic participants (of the infected seeds)
     data_cnt_day    <- data_cnt[data_cnt$sim_day == i_day,]
-    data_part_sympt <- data_part[data_part$start_symptomatic < i_day & data_part$end_symptomatic > i_day & data_part$end_infectiousness > i_day ,]
+    data_part_sympt <- data_part[data_part$is_infected == 1  & (data_part$start_symptomatic-1) <= i_day & (data_part$end_symptomatic-1) > i_day,]
 
     if(nrow(data_part_sympt)>0 & nrow(data_cnt_day)>0){
       print(i_day)  
@@ -41,7 +41,7 @@ plot_socrates_all <- function(data_cnt,data_part,age_cat_breaks,project_dir,exp_
    dev.off()
   
   }
- # data_cnt <- data_cnt_day; data_part <- data_part_sympt;survey_day <- as.Date(survey_start) + i_day
+   # data_cnt <- data_cnt_day; data_part <- data_part_sympt;survey_day <- as.Date(survey_start) + i_day
 plot_socrates_location <- function(data_cnt,data_part,age_cat_breaks,survey_day){
   
   par(mfrow=c(3,2))

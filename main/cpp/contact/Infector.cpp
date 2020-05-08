@@ -126,9 +126,15 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
 		}
 
 		// assume fully connected households
-	    if(pType == Id::Household || pType == Id::HouseholdCluster){
+	    if(pType == Id::Household){
 	    	contact_probability = 0.999;
 	    }
+
+	    // assume fully connected household clusters, but exclude contacts with household members
+	    if(pType == Id::HouseholdCluster){
+	    	contact_probability = (p1->GetPoolId(Id::Household) == p2->GetPoolId(Id::Household)) ? 0.0 : 0.999;
+	    }
+
 
         // limit probability to 0.999
         if (contact_probability >= 1) {

@@ -36,8 +36,8 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
         // Update health and disease status
         m_health.Update();
 
-        // by default: a person is at home unless household clustering allowed
-        m_in_pools[Id::Household]          = isHouseholdClusteringAllowed ? false : true;;
+        // by default: a person is at home
+        m_in_pools[Id::Household]          = true;
 
         // is household clustering allowed?
         m_in_pools[Id::HouseholdCluster]   = isHouseholdClusteringAllowed ? true : false;
@@ -74,10 +74,8 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
 				m_in_pools[Id::SecondaryCommunity] = false;
         	}
 
-//        	// prevent transmission at home when symptomatic
-//			m_in_pools[Id::Household]   = false;
-//			// stay home from household cluster when symptomatic
-//			m_in_pools[Id::HouseholdCluster]   = false;
+        	// stay home from household cluster when symptomatic
+			m_in_pools[Id::HouseholdCluster]   = false;
 
         }
 

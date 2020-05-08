@@ -87,7 +87,7 @@ shared_ptr<Population> PopBuilder::MakePersons(shared_ptr<Population> pop)
                 const auto primaryCommunityId   = FromString<unsigned int>(values[4]);
                 const auto secondaryCommunityId = FromString<unsigned int>(values[5]);
 
-                unsigned int householdClusterId = householdId;
+                unsigned int householdClusterId = 0;
                 if(values.size() == 7){
                 	householdClusterId = FromString<unsigned int>(values[6]);
                 }
