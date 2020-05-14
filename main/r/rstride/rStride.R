@@ -73,7 +73,7 @@ run_rStride <- function(exp_design               = exp_design,
                         parse_log_data           = TRUE,
                         get_csv_output           = FALSE,
                         remove_run_output        = TRUE,
-                        store_transmission_rdata = TRUE, 
+                        store_transmission_rdata = FALSE, 
                         use_date_prefix          = TRUE)
 {
   
@@ -83,6 +83,7 @@ run_rStride <- function(exp_design               = exp_design,
                 parse_log_data           = TRUE,
                 get_csv_output           = FALSE,
                 remove_run_output        = TRUE,
+                store_transmission_rdata = TRUE,
                 use_date_prefix          = TRUE))
   }
   

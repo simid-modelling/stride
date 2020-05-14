@@ -141,7 +141,8 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     
     # Sum of Squares: score
     flag_hosp_data       <- flag_exp & data_incidence_all$sim_date %in% hosp_adm_data$date
-    ls_score_hosp        <- sum(sqrt((data_incidence_all$new_hospital_admissions[flag_hosp_data] - hosp_adm_data$num_adm)^2))
+    flag_hosp_ref        <- hosp_adm_data$date %in% data_incidence_all$sim_date[flag_exp]
+    ls_score_hosp        <- sum(sqrt((data_incidence_all$new_hospital_admissions[flag_hosp_data] - hosp_adm_data$num_adm[flag_hosp_ref])^2),na.rm = T)
     hosp_data_ls[i_exp,] <- sum(ls_score_hosp)
     hosp_data_tag[i_exp,]<- unique(data_incidence_all$config_id[flag_exp])
   }
