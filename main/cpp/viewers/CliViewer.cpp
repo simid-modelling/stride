@@ -38,7 +38,10 @@ namespace viewers {
 
 void CliViewer::Update(const sim_event::Id id)
 {
-        switch (id) {
+    	// firstly, flush the buffer
+		m_logger->flush();
+
+		switch (id) {
         case Id::AtStart: {
                 const auto sim = m_runner->GetSim();
                 m_logger->info("   SimRunner at start:");

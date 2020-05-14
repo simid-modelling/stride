@@ -193,10 +193,10 @@ if(!(exists('.rstride'))){
   
   # get output files
   # data_filenames <- unique(dir(file.path(project_summary$output_prefix),pattern='.RData',full.names = T))
-  data_filenames <- unique(dir(file.path(project_dir,'exp_all'),pattern='.RData',full.names = T))
+  data_filenames <- unique(dir(file.path(project_dir,'exp_all'),pattern='.rds',full.names = T))
   
   # get output types
-  data_type_all <- names(get(load(data_filenames[1])))
+  data_type_all <- names(readRDS(data_filenames[1]))
   
   # loop over the output data types
   data_type <- data_type_all[1]
@@ -215,7 +215,7 @@ if(!(exists('.rstride'))){
       exp_file_name <- data_filenames[i_file]
       
       # load output data
-      data_exp_all    <- get(load(exp_file_name))
+      data_exp_all    <- readRDS(exp_file_name)
   
       # check if data type present, if not, next experiment
       #if(!data_type %in% names(data_exp_all)){
