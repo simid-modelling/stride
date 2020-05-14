@@ -146,7 +146,7 @@ run_rStride <- function(exp_design               = exp_design,
   config_default$contact_log_level             <- 'Transmissions'
   
   ## MAX LOG FILE SIZE
-  config_default$max_logfile_size <- 300e6
+  config_default$max_logfile_size <- 500e6
   
   ################################## #
   ## PARALLEL SETUP               ####

@@ -36,7 +36,7 @@ inspect_transmission_dynamics <- function(project_dir,save_pdf = TRUE)
   
   if(length(data_incidence_all) == 1 && is.na(data_incidence_all)){
     smd_print('NO TRANSMISSION DATA AVAILABLE.')
-    return()
+    return(.rstride$no_return_value())
   }
   
   # open pdf stream

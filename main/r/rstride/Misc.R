@@ -196,7 +196,8 @@ if(!(exists('.rstride'))){
   data_filenames <- unique(dir(file.path(project_dir,'exp_all'),pattern='.rds',full.names = T))
   
   # get output types
-  data_type_all <- names(readRDS(data_filenames[1]))
+  data_type_all <- unique(c(names(readRDS(data_filenames[1])),
+                            names(readRDS(data_filenames[length(data_filenames)]))))
   
   # loop over the output data types
   data_type <- data_type_all[1]

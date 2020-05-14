@@ -48,7 +48,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   
   if(length(data_incidence_all) == 1 && is.na(data_incidence_all)){
     smd_print('NO INCIDENCE DATA AVAILABLE.')
-    return(NA)
+    return(.rstride$no_return_value())
   }
   
   

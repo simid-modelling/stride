@@ -37,8 +37,8 @@ inspect_tracing_data <- function(project_dir)
   data_tracing_all <- .rstride$load_aggregated_output(project_dir,'data_tracing')
   
   if(length(data_tracing_all) == 1 && is.na(data_tracing_all)){
-    smd_print('NO CONTACT TRACE DATA AVAILABLE.')
-    return(NA)
+    smd_print('NO CONTACT TRACING DATA AVAILABLE.')
+    return(.rstride$no_return_value())
   }
   
  

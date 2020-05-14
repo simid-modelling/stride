@@ -31,6 +31,14 @@ inspect_participant_data <- function(project_dir, save_pdf = TRUE)
   # if no participants are surveyed, stop
   if(any(project_summary$num_participants_survey==0)){
     # command line message
+    smd_print('NO PARTICIPANTS SELECTED')
+    return(.rstride$no_return_value())
+  }
+  
+  # get all transmission output
+  data_participants_all      <- .rstride$load_aggregated_output(project_dir,'data_participants')
+  if(all(is.na(data_participants_all))){
+    # command line message
     smd_print('NO PARTICIPANT DATA AVAILABLE')
     return(.rstride$no_return_value())
   }
