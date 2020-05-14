@@ -71,34 +71,32 @@ void PublicHealthAgency::SetTelework(std::shared_ptr<Population> pop, util::RnMa
 bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff,
 		bool isPrimarySchoolOff, bool isSecondarySchoolOff, bool isCollegeOff){
 
-	if(!isPreSchoolOff && !isPrimarySchoolOff && !isSecondarySchoolOff){
-		return false;
+	if(isPreSchoolOff && isPrimarySchoolOff && isSecondarySchoolOff){
+		return true;
 	}
 
 	// apply adjusted scheme based on covid-19 exit strategies?
 	if(m_school_system_adjusted){
 
 		// note: use school types to differentiate in timing, with specific ages
-		// "primary school"   => all days: 1th year primary school
-		// "secondary school" => 2 days/week only 6th year + 5th and 6th primary school
-		// "preschool"        => 1 day/week (from June 8th) for 2nd and 4th of secondary school
+		// "pre-school"       => 4 days/week: 1th and 2th year primary school + children in daycare (0-2y)
+		// "primary school"   => 2 days/week: 6th of primary school
+		// "secondary school" => 1 day/week:  6th of secondary school
 		// "college"          => stay closed
 
-		if(!isPrimarySchoolOff && age == 6)  { return false; }
-		if(!isSecondarySchoolOff && age == 10) { return false; }
-		if(!isSecondarySchoolOff && age == 11) { return false; }
+		if(!isPreSchoolOff && age <= 2) { return false; }
+		if(!isPreSchoolOff && age == 6)  { return false; }
+		if(!isPreSchoolOff && age == 7)  { return false; }
+
+		if(!isPrimarySchoolOff && age == 11) { return false; }
 
 		if(!isSecondarySchoolOff && age == 17) { return false; }
 
-		if(!isPreSchoolOff && age == 13) { return false; }
-		if(!isPreSchoolOff && age == 15) { return false; }
-
-		if(!isCollegeOff && age <= 2 ) { return false; }
-
+		if(!isCollegeOff) { return false; }
 
 
 	} else {// note: use school types to differentiate in timing, with regular age groups
-			if(!isPreSchoolOff && age < 6)                     {  return false; } //TODO : fix hard coded age intervals
+			if(!isPreSchoolOff && age < 6)                     {  return false; } //TODO : fix hardcoded age intervals
 			if(!isPrimarySchoolOff && age < 12 && age >= 6)    {  return false; }
 			if(!isSecondarySchoolOff && age < 18 && age >= 12) {  return false; }
 	}
