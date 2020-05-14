@@ -38,7 +38,8 @@ library('simid.rtools',quietly = T)
 # data.table  to use convenience functions for range subsets (e.g. "between")
 # openxlsx    to read excel files (reference data on incidence)
 # scales      to plot ensembles with transparant colors
-smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table','openxlsx'))
+# tidyr       to easily replace na's by 0 (replace_na)
+smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table','openxlsx','tidyr'))
 
 # load general help functions
 source('./bin/rstride/Misc.R')
@@ -167,7 +168,9 @@ run_rStride <- function(exp_design               = exp_design,
                      .packages=c('XML','simid.rtools'),
                      .export = c('.rstride','par_nodes_info','get_counts',
                                  'add_hospital_admission_time',
-                                 'get_prevalence_data'),
+                                 'get_prevalence_data',
+                                 'get_summary_table',
+                                 'get_transmission_statistics'),
                      .verbose=FALSE) %dopar%
                      {  
                       
@@ -234,33 +237,9 @@ run_rStride <- function(exp_design               = exp_design,
                        # add estimated hospital admission
                        rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission)
                        
-                       # save incidence
-                       num_sim_days           <- config_exp$num_days
-                       new_infections         <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days)
-                       new_infectious_cases   <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_infectiousness,num_sim_days)
-                       new_symptomatic_cases  <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$start_symptoms,num_sim_days)
-                       new_recovered_cases    <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$end_infectiousness,num_sim_days)
-                       new_hospital_admissions      <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start,num_sim_days)
-                       new_hospital_admissions_age1 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age1,num_sim_days)
-                       new_hospital_admissions_age2 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age2,num_sim_days)
-                       new_hospital_admissions_age3 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age3,num_sim_days)
-                       new_hospital_admissions_age4 <- get_counts(rstride_out$data_transmission$sim_day + rstride_out$data_transmission$hospital_admission_start_age4,num_sim_days)
-                       sim_day                <- get_counts(rstride_out$data_transmission$sim_day,num_sim_days,output_col = 'mids')
-                       sim_date               <- as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day
-                       
-                       rstride_out$data_incidence <- data.frame(sim_day               = sim_day,
-                                                                sim_date              = sim_date,
-                                                                new_infections        = new_infections,
-                                                                new_infectious_cases  = new_infectious_cases,
-                                                                new_symptomatic_cases = new_symptomatic_cases,
-                                                                new_recovered_cases   = new_recovered_cases,
-                                                                new_hospital_admissions = new_hospital_admissions,
-                                                                new_hospital_admissions_age1 = new_hospital_admissions_age1,
-                                                                new_hospital_admissions_age2 = new_hospital_admissions_age2,
-                                                                new_hospital_admissions_age3 = new_hospital_admissions_age3,
-                                                                new_hospital_admissions_age4 = new_hospital_admissions_age4,
-                                                                exp_id                = config_exp$exp_id,
-                                                                row.names = NULL)
+                       # get incidence data
+                       rstride_out$data_transmission$infection_date  <- as.Date(config_exp$start_date,'%Y-%m-%d') + rstride_out$data_transmission$sim_day
+                       rstride_out$data_incidence <- get_transmission_statistics(rstride_out$data_transmission)
                        
                        # store disease burden and hospital admission data (for additional analysis)
                        if(store_transmission_rdata){

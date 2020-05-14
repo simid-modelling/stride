@@ -94,7 +94,7 @@ inspect_incidence_data(project_dir)
 ##################################
 ## EXPLORE TRANSMISSION         ##
 ##################################
-inspect_transmission_data(project_dir)
+inspect_transmission_dynamics(project_dir)
 
 
 ##################################

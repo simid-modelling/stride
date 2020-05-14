@@ -24,7 +24,7 @@
 inspect_prevalence_data <- function(project_dir)
 {
   # command line message
-  smd_print('INSPECT PREVELENCE DATA...')
+  smd_print('INSPECT PREVALENCE DATA...')
   
   # load project summary
   project_summary    <- .rstride$load_project_summary(project_dir)
@@ -33,13 +33,13 @@ inspect_prevalence_data <- function(project_dir)
   input_opt_design   <- .rstride$get_variable_model_param(project_summary)
   
   # get all prevalence output
-  data_prevelence_infected      <- .rstride$load_aggregated_output(project_dir,'data_prevalence_infected')
-  data_prevelence_exposed       <- .rstride$load_aggregated_output(project_dir,'data_prevalence_exposed')
-  data_prevelence_infectious    <- .rstride$load_aggregated_output(project_dir,'data_prevalence_infectious')
-  data_prevelence_symptomatic   <- .rstride$load_aggregated_output(project_dir,'data_prevalence_symptomatic')
-  data_prevelence_total         <- .rstride$load_aggregated_output(project_dir,'data_prevalence_total')
+  data_prevalence_infected      <- .rstride$load_aggregated_output(project_dir,'data_prevalence_infected')
+  data_prevalence_exposed       <- .rstride$load_aggregated_output(project_dir,'data_prevalence_exposed')
+  data_prevalence_infectious    <- .rstride$load_aggregated_output(project_dir,'data_prevalence_infectious')
+  data_prevalence_symptomatic   <- .rstride$load_aggregated_output(project_dir,'data_prevalence_symptomatic')
+  data_prevalence_total         <- .rstride$load_aggregated_output(project_dir,'data_prevalence_total')
   
-  if(length(data_prevelence_total) == 1 && is.na(data_prevelence_total)){
+  if(length(data_prevalence_total) == 1 && is.na(data_prevalence_total)){
     smd_print('NO PREVALENCE DATA AVAILABLE.')
     return(NA)
   }
@@ -61,7 +61,7 @@ inspect_prevalence_data <- function(project_dir)
   .rstride$create_pdf(project_dir,'prevalence',width = 6, height = 2.5)
   par(mar=c(3,5,1,3))
   
-  col_days <- which(grepl('day',names(data_prevelence_exposed)))
+  col_days <- which(grepl('day',names(data_prevalence_exposed)))
   sim_dates_all <- range(as.Date(project_summary$start_date[1]) + (1:length(col_days))-1)
   #sim_dates[2] <- sim_dates[2] - 68
   
@@ -71,7 +71,7 @@ inspect_prevalence_data <- function(project_dir)
   
   for(sim_dates in sim_dates_opt){
     
-    y_lim <- range(data_prevelence_exposed,data_prevelence_infectious)
+    y_lim <- range(data_prevalence_exposed,data_prevalence_infectious)
     if(any(sim_dates != sim_dates_all)){
       y_lim <- c(0,3e4)
     }
@@ -88,18 +88,18 @@ inspect_prevalence_data <- function(project_dir)
   add_legend_prevalence(pcolor,'topright')
   
   i_exp <- 1
-  for(i_exp in 1:nrow(data_prevelence_exposed)){
+  for(i_exp in 1:nrow(data_prevalence_exposed)){
     
     flag_exp <- project_summary$exp_id == i_exp
     sim_date <- as.Date(project_summary$start_date[flag_exp]) + (1:length(col_days))-1
       lines(x = sim_date,
-           y = data_prevelence_exposed[i_exp,col_days],
+           y = data_prevalence_exposed[i_exp,col_days],
            col = pcolor$E)
       lines(x = sim_date,
-            y = data_prevelence_infectious[i_exp,col_days],
+            y = data_prevalence_infectious[i_exp,col_days],
             col = pcolor$I)
       lines(x = sim_date,
-            y = data_prevelence_symptomatic[i_exp,col_days],
+            y = data_prevalence_symptomatic[i_exp,col_days],
             col = pcolor$S)
   }
   

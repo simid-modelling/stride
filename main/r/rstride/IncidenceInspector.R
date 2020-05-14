@@ -20,6 +20,7 @@
 #
 ############################################################################# #
 
+
 #' @param project_dir   name of the project folder
 #' @param num_selection the number of experiments with minimal LS score to select and present
 inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_param=TRUE)
@@ -127,16 +128,16 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     flag_exp       <- data_incidence_all$exp_id == i_exp
     
     # calculate cummulative cases
-    data_incidence_all$cummulative_infections[flag_exp]        <- cumsum(data_incidence_all$new_infections[flag_exp])
-    data_incidence_all$cummulative_infectious_cases[flag_exp]  <- cumsum(data_incidence_all$new_infectious_cases[flag_exp])
-    data_incidence_all$cummulative_symptomatic_cases[flag_exp] <- cumsum(data_incidence_all$new_symptomatic_cases[flag_exp])
-    data_incidence_all$cummulative_hospital_cases[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions[flag_exp])
+    data_incidence_all$cummulative_infections[flag_exp]        <- .rstride$cumsum_na(data_incidence_all$new_infections[flag_exp])
+    data_incidence_all$cummulative_infectious_cases[flag_exp]  <- .rstride$cumsum_na(data_incidence_all$new_infectious_cases[flag_exp])
+    data_incidence_all$cummulative_symptomatic_cases[flag_exp] <- .rstride$cumsum_na(data_incidence_all$new_symptomatic_cases[flag_exp])
+    data_incidence_all$cummulative_hospital_cases[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions[flag_exp])
     
     # age specific hospital admissions
-    data_incidence_all$cummulative_hospital_cases_age1[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions_age1[flag_exp])
-    data_incidence_all$cummulative_hospital_cases_age2[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions_age2[flag_exp])
-    data_incidence_all$cummulative_hospital_cases_age3[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions_age3[flag_exp])
-    data_incidence_all$cummulative_hospital_cases_age4[flag_exp]    <- cumsum(data_incidence_all$new_hospital_admissions_age4[flag_exp])
+    data_incidence_all$cummulative_hospital_cases_age1[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age1[flag_exp])
+    data_incidence_all$cummulative_hospital_cases_age2[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age2[flag_exp])
+    data_incidence_all$cummulative_hospital_cases_age3[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age3[flag_exp])
+    data_incidence_all$cummulative_hospital_cases_age4[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age4[flag_exp])
     
     # Sum of Squares: score
     flag_hosp_data       <- flag_exp & data_incidence_all$sim_date %in% hosp_adm_data$date
@@ -224,7 +225,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     
     # select subset
     data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
-    data_incidence_sel <- data_incidence_sel[data_incidence_sel$sim_day > median(data_incidence_sel$sim_day),]
+    data_incidence_sel <- data_incidence_sel[data_incidence_sel$sim_date > median(data_incidence_sel$sim_date),]
     
     # plot
     plot_incidence_data(data_incidence_sel,project_summary,
@@ -369,6 +370,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
                        D = 'black',
                        alpha = 0.1,
                        lwd = 3,
+                       pch=20, # if points are used
                        stringsAsFactors = F)  # data
   
   # change transparancey for low number of rng-runs
@@ -377,7 +379,8 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   }
   
   ## FIX FOR PLOTTING: Set all values for the last sim_day to NA
-  data_incidence_sel[data_incidence_sel$sim_day %in% max(data_incidence_sel$sim_day,na.rm=T),] <- NA
+  data_incidence_sel[data_incidence_sel$sim_date %in% max(data_incidence_sel$sim_date,na.rm=T),] <- NA
+  
   
   # set y-lim
   y_lim <- range(0,max(hosp_adm_data$num_adm)*2,max(data_incidence_sel$new_hospital_admissions,na.rm=T),na.rm=T)
@@ -394,7 +397,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        xaxt='n')
   add_x_axis(data_incidence_sel$sim_date)
   add_y_axis(y_lim)
-  points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=16)
+  points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=pcolor$pch)
   add_breakpoints()
   add_legend_hosp(pcolor)
   
@@ -426,7 +429,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   add_x_axis(data_incidence_sel$sim_date)
   add_y_axis(y_lim)
   add_y_axis_pop(y_lim)
-  points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=16)
+  points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=pcolor$pch)
   add_breakpoints()
   add_legend_hosp(pcolor)
   
@@ -478,7 +481,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   lines(data_incidence_sel$sim_date,
         data_incidence_sel$new_hospital_admissions,
         col=alpha(pcolor$H,pcolor$alpha))
-  points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=16)
+  points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=pcolor$pch)
   add_breakpoints()
   add_legend_all(pcolor)
   
@@ -504,7 +507,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   lines(data_incidence_sel$sim_date,
         data_incidence_sel$cummulative_hospital_cases,
         col=alpha(pcolor$H,pcolor$alpha))
-  points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=16)
+  points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=pcolor$pch)
   add_breakpoints()
   if(bool_add_param) {
     add_legend_runinfo(project_summary,input_opt_design,

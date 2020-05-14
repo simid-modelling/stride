@@ -514,3 +514,9 @@ if(!(exists('.rstride'))){
   
   
 }
+
+
+# cumulative sum, ignoring NA's
+.rstride$cumsum_na <- function(x){
+  cumsum(replace_na(x,0))
+}

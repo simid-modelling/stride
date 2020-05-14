@@ -124,7 +124,7 @@ inspect_prevalence_data(project_dir)
 ############################# #
 ## TRANSMISSION            ####
 ############################# #
-inspect_transmission_data(project_dir)
+inspect_transmission_dynamics(project_dir)
  
 
 ############################# #
