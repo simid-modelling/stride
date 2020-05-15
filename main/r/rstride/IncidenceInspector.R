@@ -226,7 +226,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     
     # select subset
     data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
-    data_incidence_sel <- data_incidence_sel[data_incidence_sel$sim_date > median(data_incidence_sel$sim_date),]
+    data_incidence_sel <- data_incidence_sel[data_incidence_sel$sim_date > median(data_incidence_sel$sim_date,na.rm=TRUE),]
     
     # plot
     plot_incidence_data(data_incidence_sel,project_summary,

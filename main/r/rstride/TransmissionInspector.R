@@ -50,7 +50,7 @@ inspect_transmission_dynamics <- function(project_dir,save_pdf = TRUE)
     
     # subset transmission output corresponding the 'input_opt_design' row
     flag_exp            <- .rstride$get_equal_rows(project_summary,input_opt_design[i_config,])
-    data_incidence         <- data_incidence_all[data_incidence_all$exp_id %in% project_summary$exp_id[flag_exp],]
+    data_incidence      <- data_incidence_all[data_incidence_all$exp_id %in% project_summary$exp_id[flag_exp],]
     num_runs_exp        <- sum(flag_exp)
     num_infected_seeds  <- data_incidence$new_infections[1]
   
@@ -65,8 +65,9 @@ inspect_transmission_dynamics <- function(project_dir,save_pdf = TRUE)
     
     
     ## REPRODUCTION NUMBER ----
-    plot_ymax <- range(c(0,4,data_incidence$sec_cases_mean),na.rm = T)
-    plot(data_incidence$sim_date,data_incidence$sec_cases_mean,
+    data_incidence$sec_cases[data_incidence$sim_date == min(data_incidence$sim_date,na.rm=T)] <- NA
+    plot_ymax <- range(c(0,4,data_incidence$sec_cases),na.rm = T)
+    plot(data_incidence$sim_date,data_incidence$sec_cases,
          type='l',
          col=alpha(1,0.5),
          xlab='day of infection',ylab='secondary infections',
@@ -74,13 +75,13 @@ inspect_transmission_dynamics <- function(project_dir,save_pdf = TRUE)
          main='reproduction number',
          xaxt='n')
     abline(h=1,lty=3)
-    add_x_axis(range(data_incidence$sim_date))
+    add_x_axis(range(data_incidence$sim_date,na.rm = T))
     add_breakpoints()
     
     ## GENERATION INTERVAL   ----
     # note: the generation interval is the time between the infection time of an infected person and the infection time of his or her infector.
     # reference: Kenah et al (2007)
-    plot(data_incidence$sim_date,data_incidence$gen_interval_mean,type='l',
+    plot(data_incidence$sim_date,data_incidence$gen_interval,type='l',
          xlab='day of infection',ylab='generation interval [infection]',
          main='generation interval\n[infection]',
          xaxt='n',
@@ -192,13 +193,16 @@ inspect_transmission_data <- function(project_dir,save_pdf = TRUE){
 
 #data_transm <- rstride_out$data_transmission
 # get all transmission output
- #data_transm_all      <- .rstride$load_aggregated_output(project_dir,'data_transmission')
+# data_transm_all      <- .rstride$load_aggregated_output(project_dir,'data_transmission')
 # data_transm <- data_transm_all[data_transm_all$exp_id == 1,]
 get_transmission_statistics <- function(data_transm)
 {
   # # tmp
   # data_transm$infection_date <- data_transm$sim_day_date
 
+  # convert to data.table
+  data_transm <- data.table(data_transm)
+  data_transm[,ID := 1:nrow(data_transm),]
   
   if(length(unique(data_transm$exp_id))>1){
     smd_print("TRANSMISSION STATISTICS ERROR: MULTIPLE EXPERIMENTS !!", WARNING = T, FORCED = T)
@@ -206,12 +210,12 @@ get_transmission_statistics <- function(data_transm)
   
   ## REPRODUCTION NUMBER ----
   # day of infection: case
-  infection_time <- data.frame(local_id       = data_transm$local_id,
+  infection_time <- data.table(local_id       = data_transm$local_id,
                                infector_id    = data_transm$infector_id,
                                infection_date = data_transm$infection_date)
   
   # day of infection: infector
-  infector_time  <- data.frame(infector_id            = data_transm$local_id,
+  infector_time  <- data.table(infector_id            = data_transm$local_id,
                                infector_infection_date = data_transm$infection_date)
   
   
@@ -222,29 +226,34 @@ get_transmission_statistics <- function(data_transm)
   infection_time <- merge(infection_time,infector_time, all.x = TRUE)
   
   # count secondary cases per local_id
-  tbl_infections <- table(data_transm$infector_id)
-  data_infectors <- data.frame(local_id     = as.numeric(names(tbl_infections)),
-                               sec_cases    = as.numeric(tbl_infections))
-  
+  # tbl_infections <- table(data_transm$infector_id)
+  # data_infectors <- data.table(local_id     = as.numeric(names(tbl_infections)),
+  #                              sec_cases    = as.numeric(tbl_infections))
+  data_infectors <- data_transm[,.(sec_cases = .N),by=infector_id]
+  names(data_infectors)[1] <- 'local_id'
 
   # merge secondary cases with time of infection
-  sec_transm    <- merge(infection_time,data_infectors,all=T)
-  sec_transm$sec_cases[is.na(sec_transm$sec_cases)] <- 0
+  sec_transm    <- merge(infection_time,data_infectors,by='local_id',all=T)
+  sec_transm[is.na(sec_cases),sec_cases := 0] # adjust for '0' secondary cases
+  sec_transm = sec_transm[!is.na(local_id),]  # remove the "secondary cases as a result of the infected seeding"
   
   ## GENERATION INTERVAL   ----
   # note: the generation interval is the time between the infection time of an infected person and the infection time of his or her infector.
   # reference: Kenah et al (2007)
   # remove the generation intervals counted form the initial infected seed infections
-  sec_transm$gen_interval <- as.numeric(sec_transm$infection_date - sec_transm$infector_infection_date)
+  #sec_transm$gen_interval <- as.numeric(sec_transm$infection_date - sec_transm$infector_infection_date)
+  sec_transm[, gen_interval := infection_date - infector_infection_date]
 
   ## RENAME DATE COLUMN
-  sec_transm$sim_date  <- sec_transm$infection_date
-  data_transm$sim_date <- data_transm$infection_date
+  sec_transm[,sim_date := infection_date]
+  data_transm[,sim_date := infection_date]
   
   # AGE CATEGORIES     ----
   age_breaks               <- c(0,18,59,79,110)
-  data_transm$age_cat_num  <- cut(data_transm$part_age,age_breaks,include.lowest = T,right = T)
-  data_transm$age_cat      <- paste0('age',as.numeric(data_transm$age_cat_num))
+  # data_transm$age_cat_num  <- cut(data_transm$part_age,age_breaks,include.lowest = T,right = T)
+  # data_transm$age_cat      <- paste0('age',as.numeric(data_transm$age_cat_num))
+  data_transm[,age_cat_num := .(cut(part_age,age_breaks,include.lowest = T,right = T)),]
+  data_transm[,age_cat := .(paste0('age',as.numeric(age_cat_num))),]
   
   
   ## INCIDENCE ----
@@ -252,19 +261,23 @@ get_transmission_statistics <- function(data_transm)
   summary_infections   <- get_summary_table(data_transm,'infection_date','age_cat','new_infections')
 
   # infectious
-  data_transm$date_infectiousness <- data_transm$infection_date + data_transm$start_infectiousness
+  #data_transm$date_infectiousness <- data_transm$infection_date + data_transm$start_infectiousness
+  data_transm[, date_infectiousness := infection_date + start_infectiousness]
   summary_infectious  <- get_summary_table(data_transm,'date_infectiousness','age_cat','new_infectious_cases')
   
   # symptomatic
-  data_transm$date_infectiousness <- data_transm$infection_date + data_transm$start_symptoms
-  summary_symptomatic <- get_summary_table(data_transm,'date_infectiousness','age_cat','new_symptomatic_cases')
+  #data_transm$date_symptomatic <- data_transm$infection_date + data_transm$start_symptoms
+  data_transm[, date_symptomatic := infection_date + start_symptoms]
+  summary_symptomatic <- get_summary_table(data_transm,'date_symptomatic','age_cat','new_symptomatic_cases')
   
   # recovered
-  data_transm$date_infectiousness <- data_transm$infection_date + data_transm$end_symptoms
-  summary_recovered   <- get_summary_table(data_transm,'date_infectiousness','age_cat','new_recovered_cases')
+  #data_transm$date_recovered <- data_transm$infection_date + data_transm$end_symptoms
+  data_transm[, date_recovered := infection_date + end_symptoms]
+  summary_recovered   <- get_summary_table(data_transm,'date_recovered','age_cat','new_recovered_cases')
   
   # hospital admission     
-  data_transm$date_hosp_adm <- data_transm$infection_date + data_transm$hospital_admission_start
+  #data_transm$date_hosp_adm <- data_transm$infection_date + data_transm$hospital_admission_start
+  data_transm[, date_hosp_adm := infection_date + hospital_admission_start]
   summary_hospital          <- get_summary_table(data_transm,'date_hosp_adm','age_cat','new_hospital_admissions')
   
   ## DOUBLING TIME      ----
@@ -282,25 +295,28 @@ get_transmission_statistics <- function(data_transm)
 
   ## (A)SYMPTOMATIC TRANSMISSION    ----
   # use dummy column to aggregte
-  data_transm$num_symptomatic_infectors <- as.numeric(data_transm$infector_is_symptomatic)
-  summary_symptomatic_infectors         <- aggregate(num_symptomatic_infectors ~ sim_date, data = data_transm, sum,na.rm=T)
+  #data_transm$num_symptomatic_infectors <- as.numeric(data_transm$infector_is_symptomatic)
+  # summary_symptomatic_infectors         <- aggregate(num_symptomatic_infectors ~ sim_date, data = data_transm, sum,na.rm=T)
+  summary_symptomatic_infectors <- data_transm[,.(num_symptomatic_infectors = sum(infector_is_symptomatic)), by=c('sim_date')]
 
+  
   ## LOCATION ----
   summary_location <- get_summary_table(data_transm,'infection_date','cnt_location','location')
   summary_location$location <- NULL # remove
   
   ## AGGREGATE & MERGE ----
-  summary_col    <- c('sim_date','sec_cases','gen_interval')
-  summary_mean   <- aggregate(. ~ sim_date, data = sec_transm[,summary_col],mean)
-  summary_median <- aggregate(. ~ sim_date, data = sec_transm[,summary_col],median)
-  summary_out    <- merge(summary_mean,summary_median,by='sim_date',suffixes = c('_mean','_median'))
-  
-  summary_out    <- merge(summary_out,summary_infections,by='sim_date',all = TRUE)
-  summary_out    <- merge(summary_out,summary_infectious,by='sim_date',all.x = TRUE,nomatch=0)
-  summary_out    <- merge(summary_out,summary_symptomatic,by='sim_date',all.x = TRUE)
-  summary_out    <- merge(summary_out,summary_hospital,by='sim_date',all.x = TRUE)
-  summary_out    <- merge(summary_out,summary_symptomatic_infectors,by='sim_date',all.x = TRUE)
-  summary_out    <- merge(summary_out,summary_location,by='sim_date',all.x = TRUE)
+  # summary_col    <- c('sim_date','sec_cases','gen_interval')
+  # summary_mean   <- aggregate(. ~ sim_date, data = sec_transm[,summary_col],mean)
+  # summary_median <- aggregate(. ~ sim_date, data = sec_transm[,summary_col],median)
+  summary_out     <- sec_transm[,.(sec_cases = mean(sec_cases,na.rm=T),gen_interval = mean(gen_interval)),by=sim_date]
+#  summary_out    <- merge(summary_mean,summary_median,by='sim_date',suffixes = c('_mean','_median'))
+  setkey(summary_out,'sim_date')
+  summary_out    <- merge(summary_out,summary_infections,all = TRUE)
+  summary_out    <- merge(summary_out,summary_infectious,all.x = TRUE,nomatch=0)
+  summary_out    <- merge(summary_out,summary_symptomatic,all.x = TRUE)
+  summary_out    <- merge(summary_out,summary_hospital,all.x = TRUE)
+  summary_out    <- merge(summary_out,summary_symptomatic_infectors,all.x = TRUE)
+  summary_out    <- merge(summary_out,summary_location,all.x = TRUE)
 
   # add exp_id
   summary_out$exp_id <- unique(data_transm$exp_id)
@@ -309,6 +325,9 @@ get_transmission_statistics <- function(data_transm)
   head(summary_out)
   dim(summary_out)
 
+  # temporary: convert to data.frame
+  summary_out <- as.data.frame(summary_out)
+  
   # return
   return(summary_out)
 }
@@ -319,17 +338,19 @@ get_transmission_statistics <- function(data_transm)
 get_summary_table <- function(data_transm,colname_date,colname_value,prefix){
   
   # overal summary
-  summary_table_general        <- as.data.frame(table(data_transm[,colname_date]))
-  names(summary_table_general) <- c('sim_date',prefix)
-  summary_table_general$sim_date <- as.Date(summary_table_general$sim_date) 
-  
+  #summary_table_general        <- as.data.frame(table(data_transm[,colname_date]))
+  summary_table_general         <- data_transm[,.N,by=colname_date]
+  names(summary_table_general)  <- c('sim_date',prefix)
+
   # specific summary
-  summary_table                <- as.data.frame.matrix(table(data_transm[,colname_date],data_transm[,colname_value]))
-  names(summary_table)         <- paste(prefix,names(summary_table),sep='_')
-  summary_table$sim_date       <- as.Date(row.names(summary_table)) 
-  
+  # summary_table                <- as.data.frame.matrix(table(data_transm[,colname_date],data_transm[,colname_value]))
+  # names(summary_table)         <- paste(prefix,names(summary_table),sep='_')
+  # summary_table$sim_date       <- as.Date(row.names(summary_table)) 
+  summary_table                  <- dcast(data_transm, formula(paste(colname_date, '~' ,colname_value)), value.var='ID', length)
+  names(summary_table)           <- c('sim_date',paste(prefix,names(summary_table)[-1],sep='_'))
+
   # merge
-  summary_table <- merge(summary_table,summary_table_general,by='sim_date',all=T)
+  summary_table <- merge(summary_table,summary_table_general)
   
   #check
   head(summary_table)

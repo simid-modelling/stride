@@ -39,7 +39,8 @@ library('simid.rtools',quietly = T)
 # openxlsx    to read excel files (reference data on incidence)
 # scales      to plot ensembles with transparant colors
 # tidyr       to easily replace na's by 0 (replace_na)
-smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table','openxlsx','tidyr'))
+# data.table  to process (large) transmission data sets, much better performance!! 
+smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table','openxlsx','tidyr','data.table'))
 
 # load general help functions
 source('./bin/rstride/Misc.R')
@@ -145,9 +146,6 @@ run_rStride <- function(exp_design               = exp_design,
   config_default$track_index_case              <- 'false'
   config_default$contact_log_level             <- 'Transmissions'
   
-  ## MAX LOG FILE SIZE
-  config_default$max_logfile_size <- 500e6
-  
   ################################## #
   ## PARALLEL SETUP               ####
   ################################## #
@@ -171,7 +169,7 @@ run_rStride <- function(exp_design               = exp_design,
   # run all experiments (in parallel)
   par_out <- foreach(i_exp=1:nrow(exp_design),
                      .combine='rbind',
-                     .packages=c('XML','simid.rtools'),
+                     .packages=c('XML','simid.rtools','data.table'),
                      .export = c('.rstride','par_nodes_info','get_counts',
                                  'add_hospital_admission_time',
                                  'get_prevalence_data',
@@ -224,7 +222,7 @@ run_rStride <- function(exp_design               = exp_design,
                        
                        # parse contact_log (if present)
                        contact_log_filename <- smd_file_path(config_exp$output_prefix,'contact_log.txt')
-                       if(file.exists(contact_log_filename) && file.size(contact_log_filename) < config_default$max_logfile_size){
+                       if(file.exists(contact_log_filename)){
                          rstride_out <- .rstride$parse_contact_logfile(contact_log_filename,i_exp)
                        
                          # account for non-symptomatic cases
