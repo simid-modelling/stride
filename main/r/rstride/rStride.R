@@ -68,6 +68,7 @@ source('./bin/rstride/TransmissionInspector.R')
 #' @param get_csv_output            store aggregated log data also in csv format
 #' @param store_transmission_rdata  parse and store transmission data as RData file
 #' @param use_date_prefix           add date tag as prefix to output directory and file names
+#' @param num_parallel_workers      number of parallel workers (NA = use the number of CPU cores)
 run_rStride <- function(exp_design               = exp_design, 
                         dir_postfix              = '',
                         ignore_stdout            = TRUE, 
@@ -76,7 +77,8 @@ run_rStride <- function(exp_design               = exp_design,
                         remove_run_output        = TRUE,
                         get_transmission_rdata   = FALSE, 
                         get_burden_rdata         = FALSE,
-                        use_date_prefix          = TRUE)
+                        use_date_prefix          = TRUE,
+                        num_parallel_workers     = NA)
 {
   
   # debug
@@ -87,7 +89,8 @@ run_rStride <- function(exp_design               = exp_design,
                 remove_run_output        = TRUE,
                 get_transmission_rdata   = TRUE,
                 get_burden_rdata         = TRUE,
-                use_date_prefix          = TRUE))
+                use_date_prefix          = TRUE,
+                num_parallel_workers     = NA))
   }
   
   # command line message
@@ -149,7 +152,7 @@ run_rStride <- function(exp_design               = exp_design,
   ################################## #
   ## PARALLEL SETUP               ####
   ################################## #
-  smd_start_cluster(timeout = 2400)
+  smd_start_cluster(timeout = 2400, num_proc = num_parallel_workers)
   
   ################################## #
   ## RUN                          ####
