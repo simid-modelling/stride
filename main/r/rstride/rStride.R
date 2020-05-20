@@ -68,7 +68,7 @@ source('./bin/rstride/TransmissionInspector.R')
 #' @param get_csv_output            store aggregated log data also in csv format
 #' @param store_transmission_rdata  parse and store transmission data as RData file
 #' @param use_date_prefix           add date tag as prefix to output directory and file names
-#' @param num_parallel_workers      number of parallel workers (NA = use the number of CPU cores)
+#' @param num_parallel_workers      number of parallel workers (NA = use default settings)
 run_rStride <- function(exp_design               = exp_design, 
                         dir_postfix              = '',
                         ignore_stdout            = TRUE, 

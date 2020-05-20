@@ -110,10 +110,7 @@ dim(exp_design)
 ## RUN rSTRIDE                  ####
 ################################## #
 project_dir <- run_rStride(exp_design               = exp_design,
-                           dir_postfix              = dir_postfix, 
-                           store_transmission_rdata = store_transmission_rdata,
-                           remove_run_output = TRUE,
-                           ignore_stdout = TRUE)
+                           dir_postfix              = dir_postfix)
 
 
 ##################################### #

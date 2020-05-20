@@ -99,7 +99,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   ## REFERENCE DATA COVID-19: new hospitalisation
   file_name <- './data/covid19.csv'
   burden_of_disaese  <- read.table(file_name,sep=',',header=T,stringsAsFactors = F)
-  hosp_cases_num     <- burden_of_disaese$Sum.of.NewPatientsNotReferred
+  hosp_cases_num     <- burden_of_disaese$NewPatientsNotReferredHospital
   hosp_cases_cum     <- cumsum(hosp_cases_num)
   hosp_cases_date    <- as.Date(burden_of_disaese$DateCase)
   
@@ -355,7 +355,9 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
 } # end function
 
 plot_incidence_data <- function(data_incidence_sel,project_summary,
-                                hosp_adm_data,input_opt_design,bool_add_param,
+                                hosp_adm_data,input_opt_design,
+                                bool_add_param,
+                                bool_add_axis4 = TRUE,
                                 bool_only_hospital_adm = FALSE){
 
   # change figure margins
@@ -371,7 +373,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
                        D = 'black',
                        alpha = 0.1,
                        lwd = 3,
-                       pch=20, # if points are used
+                       pch = 20 , # if points are used
                        stringsAsFactors = F)  # data
   
   # change transparancey for low number of rng-runs
@@ -385,7 +387,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   
   # set y-lim
   y_lim <- range(0,max(hosp_adm_data$num_adm)*2,max(data_incidence_sel$new_hospital_admissions,na.rm=T),na.rm=T)
-  
+
   ## HOSPITAL ADMISSIONS ####
   plot(data_incidence_sel$sim_date,
        data_incidence_sel$new_hospital_admissions,
@@ -407,11 +409,14 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   adm_mean_final <- adm_mean_final[adm_mean_final$sim_date == max(adm_mean_final$sim_date),]
   # text(adm_mean_final$sim_date,adm_mean_final$new_hospital_admissions,adm_mean_final$config_id,
   #      pos=4,xpd=TRUE,cex=0.4)
-  if(bool_only_hospital_adm){
+  if(bool_add_axis4){
+    if(bool_only_hospital_adm){
       axis(4,adm_mean_final$new_hospital_admissions,adm_mean_final$contact_id,las=2,cex.axis=0.6) # add contact details
     } else{
       axis(4,adm_mean_final$new_hospital_admissions,adm_mean_final$config_id,las=2,cex.axis=0.4) # add full config id
+    }  
   }
+  
   
   
   if(bool_only_hospital_adm){ return() } # stop
