@@ -302,7 +302,18 @@ get_transmission_statistics <- function(data_transm)
   
   ## LOCATION ----
   summary_location <- get_summary_table(data_transm,'infection_date','cnt_location','location')
-  summary_location$location <- NULL # remove
+  summary_location$location    <- NULL # remove
+  summary_location$location_NA <- NULL # remove
+  
+  
+  # make sure HouseholdCluster is present
+  if(!('location_HouseholdCluster'%in%names(summary_location))){
+    summary_location$location_HouseholdCluster <- 0
+  }
+  # sort
+  sorted_names <- (sort(names(summary_location)))
+  summary_location <- summary_location[,..sorted_names,]
+    
   
   ## AGGREGATE & MERGE ----
   # summary_col    <- c('sim_date','sec_cases','gen_interval')

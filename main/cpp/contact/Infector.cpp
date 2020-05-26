@@ -108,12 +108,36 @@ using namespace stride::ContactType;
 
 inline double GetContactProbability(const AgeContactProfile& profile, const Person* p1,const Person* p2,
 		size_t pool_size, const ContactType::Id pType, double cnt_reduction_work, double cnt_reduction_other,
-		double cnt_reduction_school, double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff)
+		double cnt_reduction_school, double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff,
+		std::shared_ptr<Population> population, double cnt_intensity_householdCluster)
 {
         // get the reference number of contacts, given age and age-contact profile
-		const double reference_num_contacts_p1{profile[EffectiveAge(static_cast<unsigned int>(p1->GetAge()))]};
-        const double reference_num_contacts_p2{profile[EffectiveAge(static_cast<unsigned int>(p2->GetAge()))]};
+		double reference_num_contacts_p1{profile[EffectiveAge(static_cast<unsigned int>(p1->GetAge()))]};
+        double reference_num_contacts_p2{profile[EffectiveAge(static_cast<unsigned int>(p2->GetAge()))]};
         const double potential_num_contacts{static_cast<double>(pool_size - 1)};
+
+        // special case: reduce the number of community contacts if part of a HouseholdCluster
+        if(cnt_intensity_householdCluster > 0 && (pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity)){
+
+        	// get the number of non-household members in the HouseholdCluster
+        	double householdCluster_non_household_members_p1 = static_cast<double>(population->GetPoolSize(Id::HouseholdCluster,p1)) -
+        											                  population->GetPoolSize(Id::Household,p1);
+
+        	double householdCluster_non_household_members_p2 = static_cast<double>(population->GetPoolSize(Id::HouseholdCluster,p2)) -
+        	        											      population->GetPoolSize(Id::Household,p2);
+
+        	// account for negative values ==>> not part of a HouseholdCluster
+        	householdCluster_non_household_members_p1 = householdCluster_non_household_members_p1 < 0 ? 0 : householdCluster_non_household_members_p1;
+        	householdCluster_non_household_members_p2 = householdCluster_non_household_members_p2 < 0 ? 0 : householdCluster_non_household_members_p2;
+
+        	// account for the HouseholdCluster size and contact intensity
+        	reference_num_contacts_p1 -= householdCluster_non_household_members_p1 * cnt_intensity_householdCluster;
+        	reference_num_contacts_p2 -= householdCluster_non_household_members_p2 * cnt_intensity_householdCluster;
+
+        	// account for negative values
+        	reference_num_contacts_p1 = reference_num_contacts_p1 < 0 ? 0 : reference_num_contacts_p1;
+        	reference_num_contacts_p2 = reference_num_contacts_p2 < 0 ? 0 : reference_num_contacts_p2;
+        }
 
         // calculate the contact probability based on the (possible) number of contacts
         double individual_contact_probability_p1 = reference_num_contacts_p1 / potential_num_contacts;
@@ -132,7 +156,7 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
 
 	    // assume fully connected household clusters, but exclude contacts with household members
 	    if(pType == Id::HouseholdCluster){
-	    	contact_probability = (p1->GetPoolId(Id::Household) == p2->GetPoolId(Id::Household)) ? 0.0 : 0.999;
+	    	contact_probability = (p1->GetPoolId(Id::Household) == p2->GetPoolId(Id::Household)) ? 0.0 : cnt_intensity_householdCluster;
 	    }
 
 
@@ -179,7 +203,8 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                                  const TransmissionProfile& transProfile, ContactHandler& cHandler,
                                  unsigned short int simDay, shared_ptr<spdlog::logger> cLogger,
 								 double cnt_reduction_work, double cnt_reduction_other, double cnt_reduction_school,
-								 double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff)
+								 double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff,
+								 std::shared_ptr<Population> population, double m_cnt_intensity_householdCluster)
 {
         using LP = LOG_POLICY<LL>;
 
@@ -209,7 +234,8 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                         }
                         // check for contact
                         const double cProb = GetContactProbability(profile, p1, p2, pSize, pType,
-                        		cnt_reduction_work, cnt_reduction_other,cnt_reduction_school,cnt_reduction_intergeneration,cnt_reduction_intergeneration_cutoff);
+                        		cnt_reduction_work, cnt_reduction_other,cnt_reduction_school,cnt_reduction_intergeneration,
+								cnt_reduction_intergeneration_cutoff,population,m_cnt_intensity_householdCluster);
                         if (cHandler.HasContact(cProb)) {
                                 // log contact if person 1 is participating in survey
                                 LP::Contact(cLogger, p1, p2, pType, simDay, cProb, tProb * p1->GetHealth().GetRelativeTransmission(p2->GetAge()));
@@ -247,7 +273,8 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                                    const TransmissionProfile& transProfile, ContactHandler& cHandler,
                                    unsigned short int simDay, shared_ptr<spdlog::logger> cLogger,
 								   double cnt_reduction_work, double cnt_reduction_other, double cnt_reduction_school,
-								   double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff)
+								   double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff,
+								   std::shared_ptr<Population> population, double m_cnt_intensity_householdCluster)
 {
         using LP = LOG_POLICY<LL>;
 
@@ -284,7 +311,8 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                                         continue;
                                 }
                                 const double cProb_p1 = GetContactProbability(profile, p1, p2, pSize, pType,
-                                		cnt_reduction_work, cnt_reduction_other,cnt_reduction_school, cnt_reduction_intergeneration,cnt_reduction_intergeneration_cutoff);
+                                		cnt_reduction_work, cnt_reduction_other,cnt_reduction_school, cnt_reduction_intergeneration,
+										cnt_reduction_intergeneration_cutoff,population,m_cnt_intensity_householdCluster);
                                 if (cHandler.HasContactAndTransmission(cProb_p1, tProb * p1->GetHealth().GetRelativeTransmission(p2->GetAge()))) {
                                         auto& h2 = p2->GetHealth();
                                         if (h1.IsInfectious() && h2.IsSusceptible()) {

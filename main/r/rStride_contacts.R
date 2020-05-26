@@ -68,6 +68,7 @@ exp_design <- expand.grid(contact_log_level         = "All",
                           num_daily_imported_cases      = c(0),
                           cnt_reduction_intergeneration = 0.95,
                           cnt_reduction_intergeneration_cutoff = 65,
+                          cnt_intensity_householdCluster = c(0,0.99),
                           stringsAsFactors = F)
 
 # add a unique seed for each run

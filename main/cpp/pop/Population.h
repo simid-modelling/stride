@@ -73,7 +73,6 @@ public:
         /// Get the current number of symptomatic cases.
         unsigned int CountSymptomaticCases() const;
 
-
         /// Get the maximum age in the population.
         unsigned int GetMaxAge() const;
 
@@ -85,6 +84,9 @@ public:
 
         /// Reference the ContactPoolSys of the Population.
         ContactPoolSys& RefPoolSys() { return m_pool_sys; }
+
+        /// Get the ContactPool size of a given type and id
+        unsigned int GetPoolSize(ContactType::Id typeId, const Person* p) const;
 
 
 private:

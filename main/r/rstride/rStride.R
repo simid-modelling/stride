@@ -260,8 +260,8 @@ run_rStride <- function(exp_design               = exp_design,
                            rstride_out$data_transmission <- NA
                          }
                          
-                       } else { # end if logfile exists and not to large
-                          smd_print("LOGFILE NOT FOUND OR OVERSIZED!!",WARNING = T)
+                       } else { # end if logfile does not existse
+                          smd_print("LOGFILE NOT FOUND!!",WARNING = T)
                        }
                        
                        # convert 'prevalence' files (if present) 

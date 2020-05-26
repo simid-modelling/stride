@@ -158,4 +158,19 @@ unsigned int Population::GetMaxAge() const
         return maxAge;
 }
 
+unsigned int Population::GetPoolSize(ContactType::Id typeId, const Person* p) const {
+
+	// get ContactPool id
+	unsigned int poolId = p->GetPoolId(typeId);
+
+	// poolId 0 means "not part of such a PoolType"
+	if(poolId == 0){
+		return 0;
+	}
+
+	// return ContactPool size
+	return m_pool_sys.CRefPools(typeId)[poolId].size();
+}
+
+
 } // namespace stride

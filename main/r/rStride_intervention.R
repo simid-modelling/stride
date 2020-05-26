@@ -66,6 +66,7 @@ exp_design <- expand.grid(r0                            = seq(3.4,3.4,0.1),
                           cnt_reduction_school_exit     = 0.5,
                           cnt_reduction_intergeneration = 0.9,
                           cnt_reduction_intergeneration_cutoff = 65,
+                          cnt_intensity_householdCluster = 0,
                           detection_probability          = 0.5,
                           case_finding_efficency         = 0.7,
                           case_finding_capacity          = 10000, # no limit at this stage

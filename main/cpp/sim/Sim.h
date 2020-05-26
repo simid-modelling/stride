@@ -108,6 +108,7 @@ private:
         unsigned int                m_compliance_delay_other;
         unsigned int                m_day_of_community_distancing;
         unsigned int     	        m_day_of_workplace_distancing;
+        double                      m_cnt_intensity_householdCluster;
 
         PublicHealthAgency          m_public_health_agency;
 

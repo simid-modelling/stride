@@ -43,7 +43,9 @@ Sim::Sim()
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_workplace(0), m_cnt_reduction_other(0),
 	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
 	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),
-	  m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_public_health_agency(),m_num_daily_imported_cases(0)
+	  m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_cnt_intensity_householdCluster(0),
+	  m_public_health_agency(),m_num_daily_imported_cases(0)
+
 {
 }
 
@@ -110,13 +112,18 @@ void Sim::TimeStep()
 		// get distancing at school
 		double school_distancing_factor = (m_day_of_workplace_distancing > 0) ? m_cnt_reduction_school_exit : 0 ;
 
-
-        // To be used in update of population & contact pools.
+		// To be used in update of population & contact pools.
         Population& population    = *m_population;
         auto&       poolSys       = population.RefPoolSys();
         auto        contactLogger = population.RefContactLogger();
         const auto  simDay        = m_calendar->GetSimulationDay();
         const auto& infector      = *m_infector;
+
+        // set HouseholdCluster intensity
+        double cnt_intensity_householdCluster = 0.0;
+		if (isHouseholdClusteringAllowed && poolSys.RefPools(ContactType::Id::HouseholdCluster).size() > 1){
+			cnt_intensity_householdCluster = m_cnt_intensity_householdCluster;
+		}
 
         // Import infected cases into the population
         if(m_num_daily_imported_cases > 0){
@@ -163,7 +170,8 @@ void Sim::TimeStep()
 									 workplace_distancing_factor,
 									 community_distancing_factor,
 									 school_distancing_factor,
-									 intergeneration_distancing_factor,m_cnt_reduction_intergeneration_cutoff);
+									 intergeneration_distancing_factor,m_cnt_reduction_intergeneration_cutoff,
+									 m_population,cnt_intensity_householdCluster);
 					}
 			}
         }
