@@ -130,16 +130,17 @@ if(num_other_households == 0){
                             table(flag_opt)
                             
                             if(any(flag_opt)){
-                                    if(sum(flag_opt) == 1){
-                                            household_id_sample <- hh_data_community$household_id[flag_opt]
-                                    } else{
-                                            household_id_sample <- sample(hh_data_community$household_id[flag_opt],household_cluster_size-1)
-                                    }
-                                    flag_cluster <- hh_data_community$household_id %in% c(household_id,household_id_sample)
-                                    hh_data_community$household_cluster_id[flag_cluster] <- paste0(i_community,'-',hh_cluster_counter)
-                                            
-                                    # update
-                                    hh_cluster_counter = hh_cluster_counter + 1
+                                
+                                # set cluster size and sample
+                                c_size <- min(sum(flag_opt),household_cluster_size-1)
+                                household_id_sample <- sample(hh_data_community$household_id[flag_opt],c_size)
+                                
+                                # select households
+                                flag_cluster <- hh_data_community$household_id %in% c(household_id,household_id_sample)
+                                hh_data_community$household_cluster_id[flag_cluster] <- paste0(i_community,'-',hh_cluster_counter)
+                                        
+                                # update
+                                hh_cluster_counter = hh_cluster_counter + 1
                             } # end if-clause: any in flag_opt
                     } # end if-clause: household is not part a cluster (yet)
             } # end for-loop: households within one community
