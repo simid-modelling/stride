@@ -78,7 +78,7 @@ public:
 						 std::shared_ptr<Population> population, double m_cnt_intensity_householdCluster);
 };
 
-/// Time-optimized version (For NoLocalInformation && (None || Transmission logging)).
+/// Time-optimized version (For None || Transmission logging).
 /// \tparam LL          LogLevel
 /// \tparam TIC         TrackIndexCase
 template <ContactLogMode::Id LL, bool TIC>

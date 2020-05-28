@@ -111,10 +111,46 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
 		double cnt_reduction_school, double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff,
 		std::shared_ptr<Population> population, double cnt_intensity_householdCluster)
 {
-        // get the reference number of contacts, given age and age-contact profile
+
+		// initiate a contact adjustment factor, to account for physical distancing and/or contact intensity
+    	double cnt_adjustment_factor = 1;
+
+		// account for physical distancing at work and in the community
+		if(pType == Id::Workplace){
+			cnt_adjustment_factor = (1-cnt_reduction_work);
+		}
+		// account for physical distancing in the community
+		if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity)){
+
+			// apply inter-generation distancing factor if age cutoff is > 0 and at least one age is > cutoff
+			if((cnt_reduction_intergeneration > 0) &&
+				((p1->GetAge() > cnt_reduction_intergeneration_cutoff) || (p2->GetAge() > cnt_reduction_intergeneration_cutoff))){
+				cnt_adjustment_factor = (1-cnt_reduction_intergeneration);
+			} else {
+				// apply uniform community distancing
+				cnt_adjustment_factor = (1-cnt_reduction_other);
+			}
+		}
+		// account for physical distancing at school
+		if(pType == Id::K12School){
+			cnt_adjustment_factor = (1-cnt_reduction_school);
+		}
+
+		// account for contact intensity in household clusters
+		if(pType == Id::HouseholdCluster){
+			cnt_adjustment_factor = cnt_intensity_householdCluster;
+		}
+
+
+		// get the reference number of contacts, given age and age-contact profile
 		double reference_num_contacts_p1{profile[EffectiveAge(static_cast<unsigned int>(p1->GetAge()))]};
         double reference_num_contacts_p2{profile[EffectiveAge(static_cast<unsigned int>(p2->GetAge()))]};
         const double potential_num_contacts{static_cast<double>(pool_size - 1)};
+
+        // adjust contact for distancing
+        reference_num_contacts_p1 *= cnt_adjustment_factor;
+        reference_num_contacts_p2 *= cnt_adjustment_factor;
+
 
         // special case: reduce the number of community contacts if part of a HouseholdCluster
         if(cnt_intensity_householdCluster > 0 && (pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity)){
@@ -149,42 +185,20 @@ inline double GetContactProbability(const AgeContactProfile& profile, const Pers
 			contact_probability = individual_contact_probability_p2;
 		}
 
-		// assume fully connected households
-	    if(pType == Id::Household){
-	    	contact_probability = 0.999;
-	    }
-
-	    // assume fully connected household clusters, but exclude contacts with household members
-	    if(pType == Id::HouseholdCluster){
-	    	contact_probability = (p1->GetPoolId(Id::Household) == p2->GetPoolId(Id::Household)) ? 0.0 : cnt_intensity_householdCluster;
-	    }
-
-
-        // limit probability to 0.999
+	    // limit probability to 0.999
         if (contact_probability >= 1) {
         	contact_probability = 0.999;
         }
 
-        // account for social distancing at work and in the community
-        if(pType == Id::Workplace){
-        	contact_probability = contact_probability * (1-cnt_reduction_work);
-        }
-
-        if((pType == Id::PrimaryCommunity || pType == Id::SecondaryCommunity)){
-
-			// apply inter-generation distancing factor if age cutoff is > 0 and at least one age is > cutoff
-			if((cnt_reduction_intergeneration > 0) &&
-				((p1->GetAge() > cnt_reduction_intergeneration_cutoff) || (p2->GetAge() > cnt_reduction_intergeneration_cutoff))){
-				contact_probability = contact_probability * (1-cnt_reduction_intergeneration);
-			} else {
-				// apply uniform community distancing
-				contact_probability = contact_probability * (1-cnt_reduction_other);
-			}
+    	// assume fully connected households
+		if(pType == Id::Household){
+			contact_probability = 0.999;
 		}
-        // account for social distancing at work and in the community
-		if(pType == Id::K12School){
-			contact_probability = contact_probability * (1-cnt_reduction_school);
-        }
+
+		// exclude contacts with household members within household cluster
+		if(pType == Id::HouseholdCluster){
+			contact_probability = (p1->GetPoolId(Id::Household) == p2->GetPoolId(Id::Household)) ? 0.0 : cnt_intensity_householdCluster;
+		}
 
 
         return contact_probability;
