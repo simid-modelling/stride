@@ -35,6 +35,7 @@ INSTALL( FILES
             rStride_explore.R
             rStride_gtester_covid19.R
             rStride_r0.R 	
+            rStride_intervention_baseline.R
             rStride_intervention.R
             rStride_pop.R				 
 	DESTINATION ${BIN_INSTALL_LOCATION}  

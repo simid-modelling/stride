@@ -113,7 +113,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   hosp_adm_data <- hosp_adm_data[flag_compare,]
   
   # create columns for hospital cases and least square score
-  data_incidence_all$cummulative_hospital_cases <- NA
+  data_incidence_all$cumulative_hospital_cases <- NA
   data_incidence_all$ls_score_hosp              <- NA
   
   # create matrix to reformat hospital data
@@ -127,17 +127,17 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     # select one run
     flag_exp       <- data_incidence_all$exp_id == i_exp
     
-    # calculate cummulative cases
-    data_incidence_all$cummulative_infections[flag_exp]        <- .rstride$cumsum_na(data_incidence_all$new_infections[flag_exp])
-    data_incidence_all$cummulative_infectious_cases[flag_exp]  <- .rstride$cumsum_na(data_incidence_all$new_infectious_cases[flag_exp])
-    data_incidence_all$cummulative_symptomatic_cases[flag_exp] <- .rstride$cumsum_na(data_incidence_all$new_symptomatic_cases[flag_exp])
-    data_incidence_all$cummulative_hospital_cases[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions[flag_exp])
+    # calculate cumulative cases
+    data_incidence_all$cumulative_infections[flag_exp]        <- .rstride$cumsum_na(data_incidence_all$new_infections[flag_exp])
+    data_incidence_all$cumulative_infectious_cases[flag_exp]  <- .rstride$cumsum_na(data_incidence_all$new_infectious_cases[flag_exp])
+    data_incidence_all$cumulative_symptomatic_cases[flag_exp] <- .rstride$cumsum_na(data_incidence_all$new_symptomatic_cases[flag_exp])
+    data_incidence_all$cumulative_hospital_cases[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions[flag_exp])
     
     # age specific hospital admissions
-    data_incidence_all$cummulative_hospital_cases_age1[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age1[flag_exp])
-    data_incidence_all$cummulative_hospital_cases_age2[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age2[flag_exp])
-    data_incidence_all$cummulative_hospital_cases_age3[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age3[flag_exp])
-    data_incidence_all$cummulative_hospital_cases_age4[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age4[flag_exp])
+    data_incidence_all$cumulative_hospital_cases_age1[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age1[flag_exp])
+    data_incidence_all$cumulative_hospital_cases_age2[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age2[flag_exp])
+    data_incidence_all$cumulative_hospital_cases_age3[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age3[flag_exp])
+    data_incidence_all$cumulative_hospital_cases_age4[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age4[flag_exp])
     
     # Sum of Squares: score
     flag_hosp_data       <- flag_exp & data_incidence_all$sim_date %in% hosp_adm_data$date
@@ -421,10 +421,10 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   
   if(bool_only_hospital_adm){ return() } # stop
   
-  ## CUMMULATIVE: HOSPITAL ####
+  ## CUMULATIVE: HOSPITAL ####
   y_lim <- range(0,max(hosp_adm_data$cum_adm)*3.5,na.rm=T)
   plot(data_incidence_sel$sim_date,
-       data_incidence_sel$cummulative_hospital_cases,
+       data_incidence_sel$cumulative_hospital_cases,
        type='l',
        col=alpha(pcolor$H,pcolor$alpha),
        ylab='Total admissions',
@@ -440,16 +440,16 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   add_legend_hosp(pcolor)
   
   lines(data_incidence_sel$sim_date,
-       data_incidence_sel$cummulative_hospital_cases_age1,
+       data_incidence_sel$cumulative_hospital_cases_age1,
        col=5)
   lines(data_incidence_sel$sim_date,
-        data_incidence_sel$cummulative_hospital_cases_age2,
+        data_incidence_sel$cumulative_hospital_cases_age2,
         col=6)
   lines(data_incidence_sel$sim_date,
-        data_incidence_sel$cummulative_hospital_cases_age3,
+        data_incidence_sel$cumulative_hospital_cases_age3,
         col=7)
   lines(data_incidence_sel$sim_date,
-        data_incidence_sel$cummulative_hospital_cases_age4,
+        data_incidence_sel$cumulative_hospital_cases_age4,
         col=8)
   
   legend('left',
@@ -491,10 +491,10 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   add_breakpoints()
   add_legend_all(pcolor)
   
-  ## CUMMULATIVE: ALL STATES ####
-  y_lim <- pretty(data_incidence_sel$cummulative_infections)
+  ## CUMULATIVE: ALL STATES ####
+  y_lim <- pretty(data_incidence_sel$cumulative_infections)
   plot(data_incidence_sel$sim_date,
-       data_incidence_sel$cummulative_infections,
+       data_incidence_sel$cumulative_infections,
        type='l',
        col=alpha(pcolor$E,pcolor$alpha),
        ylab='Total cases',
@@ -505,13 +505,13 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   add_y_axis(y_lim)
   add_y_axis_pop(y_lim)
   lines(data_incidence_sel$sim_date,
-        data_incidence_sel$cummulative_infectious_cases,
+        data_incidence_sel$cumulative_infectious_cases,
         col=alpha(pcolor$I,pcolor$alpha))
   lines(data_incidence_sel$sim_date,
-        data_incidence_sel$cummulative_symptomatic_cases,
+        data_incidence_sel$cumulative_symptomatic_cases,
         col=alpha(pcolor$S,pcolor$alpha))
   lines(data_incidence_sel$sim_date,
-        data_incidence_sel$cummulative_hospital_cases,
+        data_incidence_sel$cumulative_hospital_cases,
         col=alpha(pcolor$H,pcolor$alpha))
   points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=pcolor$pch)
   add_breakpoints()

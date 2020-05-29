@@ -97,7 +97,7 @@ inspect_participant_data <- function(project_dir, save_pdf = TRUE)
       
       legend_position <- 'topleft'
       if(max(as.numeric(names(tbl_data)))<10) {legend_position <- 'topright'}
-      legend(legend_position,c('per day','cummulative'),col=c(1,4),lwd=2,cex=0.8)
+      legend(legend_position,c('per day','cumulative'),col=c(1,4),lwd=2,cex=0.8)
       grid()
       abline(h=0.5)
     }
