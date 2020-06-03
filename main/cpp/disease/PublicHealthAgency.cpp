@@ -36,12 +36,23 @@ using namespace stride::util;
 using namespace std;
 
 // Default constructor
-PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),m_detection_probability(0),
+PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),
+	        m_unitest_pool_allocation(),
+		m_unitest_fnr(0.0), m_unitest_n_tests_per_day(0), m_unitest_pool_size(0),
+	        m_unitest_test_compliance(0.0), m_unitest_isolation_compliance(0.0),
+		m_detection_probability(0),
 		m_case_finding_efficency(0),m_case_finding_capacity(0),m_delay_testing(0),m_delay_contact_tracing(0),
 		m_test_false_negative(0), m_identify_all_cases(false), m_school_system_adjusted(false)
 	{}
 
 void PublicHealthAgency::Initialize(const ptree& config){
+        m_unitest_pool_allocation      = config.get<std::string>("run.unitest_pool_allocation","");
+        m_unitest_fnr                  = config.get<double>("run.unitest_fnr",0.0);
+        m_unitest_n_tests_per_day      = config.get<unsigned int>("run.unitest_n_tests_per_day",0);
+        m_unitest_pool_size            = config.get<unsigned int>("run.unitest_pool_size",0);
+        m_unitest_test_compliance      = config.get<double>("run.unitest_test_compliance",0.0);
+        m_unitest_isolation_compliance = config.get<double>("run.unitest_isolation_compliance",0.0);
+  
 	m_telework_probability   = config.get<double>("run.telework_probability",0);
 	m_detection_probability  = config.get<double>("run.detection_probability",0);
 	m_case_finding_efficency = config.get<double>("run.case_finding_efficency",0);
@@ -107,7 +118,13 @@ bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff,
 
 }
 
+void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop, util::RnMan& rnMan,
+                                            unsigned short int simDay)
+{
+  if (m_unitest_fnr <= 0.0)
+    return;
 
+}
 
 void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, util::RnMan& rnMan,
                                             unsigned short int simDay)

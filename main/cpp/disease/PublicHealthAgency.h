@@ -50,11 +50,21 @@ public:
 
         /// Public Health Strategy: look for contacts of infected cases and quarantine infected cases
 		void PerformContactTracing(std::shared_ptr<Population> pop, util::RnMan& rnMan, unsigned short int simDay);
+       /// Public Health Strategy: perform universal testing
+       void PerformUniversalTesting(std::shared_ptr<Population> pop, util::RnMan& rnMan, unsigned short int simDay);
 
 		bool IsK12SchoolOff(unsigned int age, bool isPreSchoolOff, bool isPrimarySchoolOff, bool isSecondarySchoolOff, bool isCollegeOff);
 
 private:
         double m_telework_probability;    ///< Probability to perform telework (or equivalent) //TODO rename "telework"
+        //universal testing configuration
+        std::string m_unitest_pool_allocation; ///< File that lists the pool to which households belong
+        double m_unitest_fnr;             ///< False negative rate for pool testing (universal testing)
+        unsigned int m_unitest_n_tests_per_day; ///< Number of PCR tests per day (universal testing)
+        unsigned int m_unitest_pool_size; ///< Pool size (universal testing)
+        double m_unitest_test_compliance; ///< Household compliance with testing (universal testing)
+        double m_unitest_isolation_compliance; ///< Household compliance when isolated (universal testing)
+        //contact tracing configuration
         double m_detection_probability;   ///< Detection probability of symptomatic cases.
         double m_case_finding_efficency;  ///< Detection probability of infected cases during case finding
         unsigned int m_case_finding_capacity;  ///< Maximum number of symptomatic cases with contact tracing per day

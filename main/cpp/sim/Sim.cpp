@@ -73,6 +73,7 @@ void Sim::TimeStep()
         const bool isWorkplaceDistancingEnforced   = m_calendar->IsWorkplaceDistancingEnforced();
         const bool isCommunityDistancingEnforced   = m_calendar->IsCommunityDistancingEnforced();
         const bool isContactTracingActivated       = m_calendar->IsContactTracingActivated();
+        const bool isUniversalTestingActivated     = m_calendar->IsUniversalTestingActivated();
         const bool isHouseholdClusteringAllowed    = m_calendar->IsHouseholdClusteringAllowed();
 
         // skip all K12 schools?
@@ -152,6 +153,11 @@ void Sim::TimeStep()
 			// Perform contact tracing (if activated)
 			if(isContactTracingActivated){
 				m_public_health_agency.PerformContactTracing(m_population, m_rn_man, simDay);
+			}
+
+			// Perform universal testing (if activated)
+			if(isUniversalTestingActivated){
+				m_public_health_agency.PerformUniversalTesting(m_population, m_rn_man, simDay);
 			}
 
 			// Infector updates individuals for contacts & transmission within each pool.

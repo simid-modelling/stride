@@ -37,7 +37,7 @@ using boost::property_tree::ptree;
 Calendar::Calendar(const ptree& configPt) :
 		m_date(), m_public_holidays(), m_preschool_holidays(), m_primary_school_holidays(),
 		  m_secondary_school_holidays(), m_college_holidays(), m_workplace_distancing(),
-		  m_community_distancing(), m_contact_tracing(), m_household_clustering(), m_day(0U)
+		m_community_distancing(), m_contact_tracing(), m_universal_testing(), m_household_clustering(), m_day(0U)
 {
         // Set start date
         m_date = boost::gregorian::from_simple_string(configPt.get<string>("run.start_date", "2020-01-01"));
@@ -133,7 +133,14 @@ void Calendar::Initialize(const ptree& configPt)
 					}
 				}
 
-				// read in contact tracing data (if present)
+				// read in universal testing data (if present)
+				if(holidaysPt.count("universal_testing") != 0){
+					for (const auto& date : holidaysPt.get_child("universal_testing." + month)) {
+							const string d = string(lead).append(date.second.get_value<string>());
+							m_universal_testing.push_back(boost::gregorian::from_simple_string(d));
+					}
+				}
+
 				if(holidaysPt.count("household_clustering") != 0){
 					for (const auto& date : holidaysPt.get_child("household_clustering." + month)) {
 							const string d = string(lead).append(date.second.get_value<string>());
