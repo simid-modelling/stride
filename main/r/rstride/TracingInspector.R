@@ -91,10 +91,11 @@ inspect_tracing_data <- function(project_dir)
     boxplot(num_tests ~ sim_day_date, data=tracing_num_day_index,
             ylab='index cases',main=opt_config[i_config],
             ylim = y_lim,las=2,xlab='',cex=0.8,
-            xaxt='n')
-    
+            xaxt='n',yaxt='n')
+    add_y_axis(tracing_num_day_index$num_tests)
+
     x_ticks_label <- format(unique(tracing_num_day_index$sim_day_date),'%d/%m')
-    x_ticks       <- seq(1,length(x_ticks_label),7)
+    x_ticks       <- seq(1,length(x_ticks_label),14)
     x_ticks_label <- x_ticks_label[x_ticks]
     axis(1,x_ticks,x_ticks_label,las=2)
     grid(nx=NA,ny=NULL)
@@ -109,7 +110,9 @@ inspect_tracing_data <- function(project_dir)
          xlab='',
          ylab='Secondary cases identified and isolated',
          las=2,
-         main=opt_config[i_config])
+         main=opt_config[i_config],
+         xaxt='n')
+    add_x_axis(tracing_num_day_sympt_mean$sim_day_date)
     legend('topleft',
            c('asymptomatic',
              'symptomatic'),
@@ -119,34 +122,35 @@ inspect_tracing_data <- function(project_dir)
     
     boxplot(num_contacts_tested ~ sim_day_date, data=tracing_num_day_contacts,
             las=2,ylab='total number of contacts tested',main=opt_config[i_config],
-            xaxt='n')
-    
+            xaxt='n',yaxt='n')
+    add_y_axis(tracing_num_day_contacts$num_contacts_tested)
     x_ticks_label <- format(unique(tracing_num_day_contacts$sim_day_date),'%d/%m')
-    x_ticks       <- seq(1,length(x_ticks_label),7)
+    x_ticks       <- seq(1,length(x_ticks_label),14)
     x_ticks_label <- x_ticks_label[x_ticks]
+    
     axis(1,x_ticks,x_ticks_label,las=2)
     grid(nx=NA,ny=NULL)
     abline(v=x_ticks,lty=3,col='lightgray')
     
     
-    boxplot(num_contacts_tested ~ sim_day_date, data = data_tracing_index,
-            las=2,ylab='contacts tested per index case',main=opt_config[i_config],
-            xaxt='n')
-    
-    x_ticks_label <- format(unique(data_tracing_index$sim_day_date),'%d/%m')
-    x_ticks       <- seq(1,length(x_ticks_label),7)
-    x_ticks_label <- x_ticks_label[x_ticks]
-    axis(1,x_ticks,x_ticks_label,las=2)
-    grid(nx=NA,ny=NULL)
-    abline(v=x_ticks,lty=3,col='lightgray')
+    # boxplot(num_contacts_tested ~ sim_day_date, data = data_tracing_index,
+    #         las=2,ylab='contacts tested per index case',main=opt_config[i_config],
+    #         xaxt='n',yaxt='n')
+    # add_y_axis(data_tracing_index$num_contacts_tested)
+    # x_ticks_label <- format(unique(data_tracing_index$sim_day_date),'%d/%m')
+    # x_ticks       <- seq(1,length(x_ticks_label),7)
+    # x_ticks_label <- x_ticks_label[x_ticks]
+    # axis(1,x_ticks,x_ticks_label,las=2)
+    # grid(nx=NA,ny=NULL)
+    # abline(v=x_ticks,lty=3,col='lightgray')
 
-    boxplot(num_contacts_tested ~ sim_day_date, data = data_tracing_index,outline=F,
-            las=2,ylab='contacts tested per index case',main=opt_config[i_config],
-            xaxt='n')
-    
-    axis(1,x_ticks,x_ticks_label,las=2)
-    grid(nx=NA,ny=NULL)
-    abline(v=x_ticks,lty=3,col='lightgray')
+    # boxplot(num_contacts_tested ~ sim_day_date, data = data_tracing_index,outline=F,
+    #         las=2,ylab='contacts tested per index case',main=opt_config[i_config],
+    #         xaxt='n')
+    # 
+    # axis(1,x_ticks,x_ticks_label,las=2)
+    # grid(nx=NA,ny=NULL)
+    # abline(v=x_ticks,lty=3,col='lightgray')
     
     
     }

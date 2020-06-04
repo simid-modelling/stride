@@ -13,10 +13,9 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
 ############################################################################ #
 
-source('./bin/socrates/plot_social_contact_matrix.R')
 
 if(0==1) # for debugging
 {

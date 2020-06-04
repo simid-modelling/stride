@@ -10,10 +10,7 @@
 socrates_packages <- c('socialmixr','countrycode','data.table')
 smd_load_packages(socrates_packages)
 
-# loading functions from npsp package (removed from CRAN)
-source('bin/socrates/npsp/simage.R')
-source('bin/socrates/npsp/splot.R')
-
+# requires 'simage' and 'splot' functions from npsp package (removed from CRAN)
 
 # plot matrices according the Socrates app
 plot_socrates_all <- function(data_cnt,data_part,age_cat_breaks,project_dir,exp_tag,survey_start){
