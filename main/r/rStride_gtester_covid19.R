@@ -119,5 +119,83 @@ project_dir <- run_rStride(exp_design               = exp_design,
 inspect_summary(project_dir)
 
 
+##################################### #
+## CHECK INPUT-OUTPUT              ####
+##################################### #
+
+# terminal message
+smd_print('START REGRESSION TEST')
+
+## Load project summary 
+project_summary <- .rstride$load_project_summary(project_dir)
+
+# remove project_dir and timings
+project_summary$output_prefix  <- NULL
+project_summary$run_tag        <- NULL
+project_summary$run_time       <- NULL
+project_summary$total_time     <- NULL
+
+# load the incidence output
+data_incidence     <- .rstride$load_aggregated_output(project_dir,'data_incidence')
+dim(data_incidence)
+
+# get all tracing output
+data_prevalence <- .rstride$load_aggregated_output(project_dir,'data_prevalence_symptomatic')
+dim(data_prevalence)
+
+## Load reference data
+ref_project_summary  <- readRDS(file='tests/regression_rstride_summary.rds')
+ref_data_incidence   <- readRDS(file='tests/regression_rstride_incidence.rds')
+ref_data_prevalence  <- readRDS(file='tests/regression_rstride_prevalence.rds')
+
+## COMPARE SUMMARY
+diff_summary    <- setdiff(project_summary,ref_project_summary)
+if(length(diff_summary)>0){ 
+  smd_print("SUMMARY CHANGED",WARNING = T)
+  smd_print(head(diff_summary))
+} else{
+  smd_print("SUMMARY OK")
+}
+
+## COMPARE INCIDENCE
+diff_incidence  <- setdiff(data_incidence,ref_data_incidence)
+if(length(diff_incidence)>0){ 
+  print("INCIDENCE CHANGED")
+  print(head(diff_incidence))
+} else{
+  smd_print("INCIDENCE OK")
+}
+
+## COMPARE PREVALENCE
+diff_prevalence <- setdiff(data_prevalence,ref_data_prevalence)
+if(length(diff_prevalence)>0){ 
+  print("PREVALENCE CHANGED")
+  print(head(diff_prevalence))
+} else{
+  smd_print("PREVALENCE OK")
+}
+
+# terminal message
+smd_print('REGRESSION TEST COMPLETE')
+
+# short call for "reset reference values"
+rrv <- function(){
+  saveRDS(project_summary,file='tests/regression_rstride_summary.rds')
+  saveRDS(data_incidence, file='tests/regression_rstride_incidence.rds')
+  saveRDS(data_prevalence,file='tests/regression_rstride_prevalence.rds')
+  smd_print('NEW REFERENCE VALES STORED: LOCAL')
+}
+
+# update the rstride reference values in the repo (note: local function for LW)
+update_rrv_repo <- function(){
+  stride_repo_dir <- 'tests'
+  stride_repo_dir <- '~/Documents/university/research/stride/repo/stride_lw/main/resources/rstride_test'
+  saveRDS(project_summary,file=file.path(stride_repo_dir,'regression_rstride_summary.rds'))
+  saveRDS(data_incidence,file=file.path(stride_repo_dir,'regression_rstride_incidence.rds'))
+  saveRDS(data_prevalence,file=file.path(stride_repo_dir,'regression_rstride_prevalence.rds'))
+  smd_print('NEW REFERENCE VALES STORED: IN STRIDE REPOSITORY')
+}
+
+
 
 

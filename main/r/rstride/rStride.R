@@ -81,8 +81,8 @@ run_rStride <- function(exp_design               = exp_design,
                 parse_log_data           = TRUE,
                 get_csv_output           = FALSE,
                 remove_run_output        = TRUE,
-                get_transmission_rdata   = TRUE,
-                get_burden_rdata         = TRUE,
+                get_transmission_rdata   = FALSE,
+                get_burden_rdata         = FALSE,
                 use_date_prefix          = TRUE,
                 num_parallel_workers     = NA))
   }
@@ -190,6 +190,9 @@ run_rStride <- function(exp_design               = exp_design,
                        for(i_param in 1:ncol(exp_design)){
                          config_exp[names(exp_design)[i_param]] <- exp_design[i_exp,i_param]
                        }  
+                       
+                       # set process RNG seed
+                       set.seed(config_exp$rng_seed + 16022018)
                        
                        # update experiment output prefix
                        config_exp$output_prefix <- smd_file_path(project_dir,exp_tag,.verbose=FALSE)
