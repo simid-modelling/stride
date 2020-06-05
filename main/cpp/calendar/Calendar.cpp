@@ -141,6 +141,7 @@ void Calendar::Initialize(const ptree& configPt)
 					}
 				}
 
+				// read in household clustering data (if present)
 				if(holidaysPt.count("household_clustering") != 0){
 					for (const auto& date : holidaysPt.get_child("household_clustering." + month)) {
 							const string d = string(lead).append(date.second.get_value<string>());
