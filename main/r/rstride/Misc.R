@@ -422,7 +422,7 @@ if(!(exists('.rstride'))){
 .rstride$valid_seed_infected <- function(design_of_experiment = exp_design){
   
   # select unique combinations of population file and seeding rate
-  unique_exp_design <- unique(design_of_experiment[,c('population_file','num_infected_seeds')])
+  unique_exp_design <- data.frame(population_file= unique(design_of_experiment[,c('population_file')]))
   
   # add the path to the data folder
   data_dir <- './data'
@@ -436,10 +436,13 @@ if(!(exists('.rstride'))){
     close(file_connnection)
   }
   
-  # check... and print warning if needed
-  if(any(unique_exp_design$num_infected_seeds > unique_exp_design$population_size)){
-    flag_issue <- unique_exp_design$num_infected_seeds > unique_exp_design$population_size
-    smd_print('INIALLY INFECTED > POPULATION SIZE:', paste(unique_exp_design[flag_issue,1:2], collapse = ' & initially infected '),WARNING=T)
+  # merge population size with design of experiment parameters
+  design_of_experiment <- merge(design_of_experiment,unique_exp_design)
+  
+  # compare infected seeds with population size... and print warning if needed
+  if(any(design_of_experiment$num_infected_seeds > design_of_experiment$population_size)){
+    flag_issue <- unique_exp_design$num_infected_seeds > design_of_experiment$population_size
+    smd_print('INIALLY INFECTED > POPULATION SIZE:', paste(design_of_experiment[flag_issue,1:2], collapse = ' & initially infected '),WARNING=T)
     return(FALSE)
   }
   

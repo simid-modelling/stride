@@ -143,6 +143,9 @@ run_rStride <- function(exp_design               = exp_design,
   config_default$track_index_case              <- 'false'
   config_default$contact_log_level             <- 'Transmissions'
   
+  # variable for hospital probability estimation
+  config_default$hosp_probability_factor <- 1
+  
   ################################## #
   ## PARALLEL SETUP               ####
   ################################## #
@@ -227,7 +230,7 @@ run_rStride <- function(exp_design               = exp_design,
                          rstride_out$data_transmission$end_symptoms[flag]   <- NA
               
                          # add estimated hospital admission
-                         rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission)
+                         rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission,config_exp)
                          
                          # get incidence data
                          rstride_out$data_transmission$infection_date  <- as.Date(config_exp$start_date,'%Y-%m-%d') + rstride_out$data_transmission$sim_day
@@ -338,7 +341,7 @@ get_counts <- function(all_data,sim_day_max,output_col = "counts"){
 }
 
 #data_transmission <- rstride_out$data_transmission
-add_hospital_admission_time <- function(data_transmission){
+add_hospital_admission_time <- function(data_transmission,config_exp){
   
   # set hospital age groups (age groups for hospital admission)
   hosp_age <- list(age1 = 0:18,   # 0:16
@@ -354,31 +357,24 @@ add_hospital_admission_time <- function(data_transmission){
   data_transmission$hospital_admission_start_age4 <- NA
   
   # hospital probability
-  # hospital_probability <- data.frame(age1 = 0.046,
-  #                                    age2 = 0.0276,
-  #                                    age3 = 0.10925,
-  #                                    age4 = 0.5405)
   hospital_probability <- data.frame(age1 = 0.035,
                                      age2 = 0.0216,
                                      age3 = 0.0855,
                                      age4 = 0.423)
-  # 
-  # hospital_probability <- data.frame(age1 = 0.3,
-  #                                    age2 = 0.08,
-  #                                    age3 = 0.3,
-  #                                    age4 = 0.95)#/4
- 
+  
+  # adjust probability (for fitting)
+  hospital_probability <- hospital_probability * config_exp$hosp_probability_factor
+  
   # set hospital delay for 3 age groups
   hosp_delay_mean <- data.frame(age1 = 3,
                                 age2 = 7,
                                 age3 = 7,
                                 age4 = 6)
+  
   # set (uniform) delay  distribution -1, 0, 1
   hosp_delay_variance <- -1:1
   
-  
-  
-  # calculate time between symptom onset and hospital admission
+  # calculate time between symptom onset and hospital admission (future work)
   get_hospital_delay <- function(n){
     round(rtweibull(n, shape=1.112,scale=5.970, max =31))
   }
@@ -391,19 +387,10 @@ add_hospital_admission_time <- function(data_transmission){
     data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] +
       hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
     # data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] + get_hospital_delay(sum(flag_hosp))
-      
-    if(i_hosp == 1){
-      data_transmission$hospital_admission_start_age1[flag_hosp] <- data_transmission$hospital_admission_start[flag_hosp]
-    } 
-    if(i_hosp == 2){
-      data_transmission$hospital_admission_start_age2[flag_hosp] <- data_transmission$hospital_admission_start[flag_hosp]
-    }
-    if(i_hosp == 3){
-      data_transmission$hospital_admission_start_age3[flag_hosp] <- data_transmission$hospital_admission_start[flag_hosp]
-    }
-    if(i_hosp == 4){
-      data_transmission$hospital_admission_start_age4[flag_hosp] <- data_transmission$hospital_admission_start[flag_hosp]
-    }
+    
+    # save age-specific results  
+    data_transmission[flag_hosp,paste0('hospital_admission_start_age',i_hosp)] <- data_transmission$hospital_admission_start[flag_hosp]
+    
   }
  
   # info from Christel on 2048 patients, hospitalised between Feb 29 and March 30
