@@ -368,19 +368,29 @@ add_hospital_admission_time <- function(data_transmission){
   #                                    age3 = 0.3,
   #                                    age4 = 0.95)#/4
  
+  # set hospital delay for 3 age groups
+  hosp_delay_mean <- data.frame(age1 = 3,
+                                age2 = 7,
+                                age3 = 7,
+                                age4 = 6)
+  # set (uniform) delay  distribution -1, 0, 1
+  hosp_delay_variance <- -1:1
+  
+  
   
   # calculate time between symptom onset and hospital admission
   get_hospital_delay <- function(n){
     round(rtweibull(n, shape=1.112,scale=5.970, max =31))
   }
-  
 
   i_hosp <- 1
   for(i_hosp in 1:length(hospital_probability)){
     flag_part      <- !is.na(data_transmission$start_symptoms) & data_transmission$part_age %in% hosp_age[[i_hosp]]
     flag_admission <- as.logical(rbinom(n = nrow(data_transmission),size = 1,prob = hospital_probability[[i_hosp]]))
     flag_hosp      <- flag_part & flag_admission
-    data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] + get_hospital_delay(sum(flag_hosp))
+    data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] +
+      hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
+    # data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] + get_hospital_delay(sum(flag_hosp))
       
     if(i_hosp == 1){
       data_transmission$hospital_admission_start_age1[flag_hosp] <- data_transmission$hospital_admission_start[flag_hosp]
