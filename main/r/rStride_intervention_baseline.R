@@ -55,7 +55,10 @@ get_exp_param_default <- function(){
         case_finding_capacity          = 10000, # no limit at this stage
         delay_contact_tracing          = 3,
         delay_testing                  = 1,
-        test_false_negative            = 0.1
+        test_false_negative            = 0.1,
+        
+        # factor for parameter estimation and fitting
+        hosp_probability_factor        = 1
   )
 }
 

@@ -36,17 +36,16 @@ inspect_tracing_data <- function(project_dir)
   # get all tracing output
   data_tracing_all <- .rstride$load_aggregated_output(project_dir,'data_tracing')
   
-  # make sure, all values are stored as integers
-  pool_type_col <- names(data_tracing_all) %in% c('pool_type')
-  data_tracing_all[,!pool_type_col] <- data.frame(apply(data_tracing_all[,!pool_type_col], 2, as.integer))
-  dim(data_tracing_all)
-
   if(length(data_tracing_all) == 1 && is.na(data_tracing_all)){
     smd_print('NO CONTACT TRACING DATA AVAILABLE.')
     return(.rstride$no_return_value())
   }
   
- 
+  # make sure that almost all values are stored as integers
+  pool_type_col <- names(data_tracing_all) %in% c('pool_type')
+  data_tracing_all[,!pool_type_col] <- data.frame(apply(data_tracing_all[,!pool_type_col], 2, as.integer))
+  dim(data_tracing_all)
+
   # add config_id 
   # get variable names of input_opt_design (fix if only one column)
   if(ncol(input_opt_design) == 1) {

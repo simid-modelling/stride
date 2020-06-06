@@ -83,8 +83,8 @@ exp_design_daily$gtester_label            <- 'covid_daily'
 # distancing
 exp_design_dist <- exp_design
 exp_design_dist$holidays_file              <- 'calendar_belgium_2020_covid19_april.json'
-exp_design_dist$cnt_reduction_workplace    <-0.3;
-exp_design_dist$cnt_reduction_other        <-0.4;
+exp_design_dist$cnt_reduction_workplace    <- 0.3;
+exp_design_dist$cnt_reduction_other        <- 0.4;
 exp_design_dist$compliance_delay_workplace <- 3;
 exp_design_dist$compliance_delay_other     <- 4;
 exp_design_dist$gtester_label              <- 'covid_distancing'
@@ -133,6 +133,11 @@ project_dir <- run_rStride(exp_design               = exp_design,
 ## EXPLORE INPUT-OUTPUT BEHAVIOR   ####
 ##################################### #
 inspect_summary(project_dir)
+inspect_participant_data(project_dir)
+inspect_incidence_data(project_dir)
+inspect_prevalence_data(project_dir)
+inspect_transmission_dynamics(project_dir)
+inspect_tracing_data(project_dir)
 
 
 ##################################### #

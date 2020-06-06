@@ -245,7 +245,7 @@ get_transmission_statistics <- function(data_transm)
   # reference: Kenah et al (2007)
   # remove the generation intervals counted form the initial infected seed infections
   #sec_transm$gen_interval <- as.numeric(sec_transm$infection_date - sec_transm$infector_infection_date)
-  sec_transm[, gen_interval := infection_date - infector_infection_date]
+  sec_transm[, gen_interval := as.numeric(infection_date - infector_infection_date)]
 
   ## RENAME DATE COLUMN
   sec_transm[,sim_date := infection_date]
@@ -328,7 +328,7 @@ get_transmission_statistics <- function(data_transm)
   # summary_col    <- c('sim_date','sec_cases','gen_interval')
   # summary_mean   <- aggregate(. ~ sim_date, data = sec_transm[,summary_col],mean)
   # summary_median <- aggregate(. ~ sim_date, data = sec_transm[,summary_col],median)
-  summary_out     <- sec_transm[,.(sec_cases = mean(sec_cases,na.rm=T),gen_interval = mean(gen_interval)),by=sim_date]
+  summary_out     <- sec_transm[,.(sec_cases = mean(sec_cases,na.rm=T),gen_interval = mean(gen_interval,na.rm=T)),by=sim_date]
 #  summary_out    <- merge(summary_mean,summary_median,by='sim_date',suffixes = c('_mean','_median'))
   setkey(summary_out,'sim_date')
   summary_out    <- merge(summary_out,summary_infections,all = TRUE)
