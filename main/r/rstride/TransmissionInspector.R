@@ -197,13 +197,15 @@ inspect_transmission_data <- function(project_dir,save_pdf = TRUE){
 # data_transm <- data_transm_all[data_transm_all$exp_id == 1,]
 get_transmission_statistics <- function(data_transm)
 {
-  # # tmp
-  # data_transm$infection_date <- data_transm$sim_day_date
-
-  # convert to data.table
-  data_transm <- data.table(data_transm)
+  # setup data.table
   data_transm[,ID := 1:nrow(data_transm),]
   
+  # set column types
+  data_transm[,infection_date := as.Date(infection_date)]
+  data_transm[,start_infectiousness := as.numeric(start_infectiousness)]
+  data_transm[,start_symptoms := as.numeric(start_infectiousness)]
+  data_transm[,end_symptoms:= as.numeric(end_symptoms)]
+
   if(length(unique(data_transm$exp_id))>1){
     smd_print("TRANSMISSION STATISTICS ERROR: MULTIPLE EXPERIMENTS !!", WARNING = T, FORCED = T)
   }
@@ -332,13 +334,6 @@ get_transmission_statistics <- function(data_transm)
   # add exp_id
   summary_out$exp_id <- unique(data_transm$exp_id)
   
-  # check
-  head(summary_out)
-  dim(summary_out)
-
-  # temporary: convert to data.frame
-  summary_out <- as.data.frame(summary_out)
-  
   # return
   return(summary_out)
 }
@@ -346,6 +341,7 @@ get_transmission_statistics <- function(data_transm)
 # Function to generate summary tables
 # colname_date <- 'infection_date'; colname_value <- 'cnt_location'; prefix <- 'location';
 # colname_date <- 'infection_date'; colname_value <- 'age_cat'; prefix <- 'cases';
+#colname_date <- 'infection_date'; colname_value <-'age_cat';prefix <- 'new_infections'
 get_summary_table <- function(data_transm,colname_date,colname_value,prefix){
   
   # overal summary

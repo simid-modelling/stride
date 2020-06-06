@@ -33,9 +33,6 @@ source('./bin/rstride/rStride.R')
 # set directory postfix (optional)
 dir_postfix <- '_gtester'
 
-# store all transmission output
-store_transmission_rdata <- FALSE
-
 ################################## #
 ## DESIGN OF EXPERIMENTS        ####
 ################################## #

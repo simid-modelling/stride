@@ -229,14 +229,14 @@ run_rStride <- function(exp_design               = exp_design,
                        
                          # account for non-symptomatic cases
                          flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
-                         rstride_out$data_transmission$start_symptoms[flag] <- NA
-                         rstride_out$data_transmission$end_symptoms[flag]   <- NA
+                         rstride_out$data_transmission[flag,start_symptoms := NA]
+                         rstride_out$data_transmission[flag,end_symptoms := NA]
               
                          # add estimated hospital admission
                          rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission,config_exp)
                          
                          # get incidence data
-                         rstride_out$data_transmission$infection_date  <- as.Date(config_exp$start_date,'%Y-%m-%d') + rstride_out$data_transmission$sim_day
+                         rstride_out$data_transmission[,infection_date  := as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day]
                          rstride_out$data_incidence <- get_transmission_statistics(rstride_out$data_transmission)
                          
                          # store disease burden and hospital admission data (for additional analysis)
@@ -272,15 +272,7 @@ run_rStride <- function(exp_design               = exp_design,
                        
                        
                        # save list with all results
-                       # save(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.RData')))
                        saveRDS(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.rds')))
-                       
-                       # i_out <- 1
-                       # for(i_out in 1:length(rstride_out)){
-                       #   saveRDS(rstride_out[i_out],file=smd_file_path(project_dir_exp,paste0(exp_tag,'_',names(rstride_out)[i_out],'.rds')))
-                       # }
-                       
-                       
                        
                        # remove experiment output and config
                        if(remove_run_output){
@@ -352,18 +344,22 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
                    age3 = 60:79,  # 60:80
                    age4 = 80:110) # 80+
   
-  # create columsn for hospital admission start (by age)
-  data_transmission$hospital_admission_start      <- NA
-  data_transmission$hospital_admission_start_age1 <- NA
-  data_transmission$hospital_admission_start_age2 <- NA
-  data_transmission$hospital_admission_start_age3 <- NA
-  data_transmission$hospital_admission_start_age4 <- NA
+  # create columns for hospital admission start (by age)
+  data_transmission[, hospital_admission_start      := as.numeric(NA)]
+  data_transmission[, hospital_admission_start_age1 := as.numeric(NA)]
+  data_transmission[, hospital_admission_start_age2 := as.numeric(NA)]
+  data_transmission[, hospital_admission_start_age3 := as.numeric(NA)]
+  data_transmission[, hospital_admission_start_age4 := as.numeric(NA)]
   
   # hospital probability
   hospital_probability <- data.frame(age1 = 0.035,
                                      age2 = 0.0216,
                                      age3 = 0.0855,
                                      age4 = 0.423)
+  # hospital_probability <- data.frame(age1 = 0.049,
+  #                                    age2 = 0.03024,
+  #                                    age3 = 0.1197,
+  #                                    age4 = 0.5922)
   
   # adjust probability (for fitting)
   hospital_probability <- hospital_probability * config_exp$hosp_probability_factor
@@ -382,18 +378,21 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
     round(rtweibull(n, shape=1.112,scale=5.970, max =31))
   }
 
+  # sample hospital admission dates
   i_hosp <- 1
   for(i_hosp in 1:length(hospital_probability)){
     flag_part      <- !is.na(data_transmission$start_symptoms) & data_transmission$part_age %in% hosp_age[[i_hosp]]
     flag_admission <- as.logical(rbinom(n = nrow(data_transmission),size = 1,prob = hospital_probability[[i_hosp]]))
     flag_hosp      <- flag_part & flag_admission
-    data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] +
-      hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
+    hosp_start    <- as.numeric(data_transmission$start_symptoms[flag_hosp]) + hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
+    data_transmission[flag_hosp, hospital_admission_start := hosp_start]
+    # data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] +
+    #   hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
     # data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] + get_hospital_delay(sum(flag_hosp))
     
     # save age-specific results  
-    data_transmission[flag_hosp,paste0('hospital_admission_start_age',i_hosp)] <- data_transmission$hospital_admission_start[flag_hosp]
-    
+    data_transmission[flag_hosp ,paste0('hospital_admission_start_age',i_hosp) := hosp_start]
+
   }
  
   # info from Christel on 2048 patients, hospitalised between Feb 29 and March 30
