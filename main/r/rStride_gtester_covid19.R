@@ -66,9 +66,11 @@ exp_design <- expand.grid(r0                            = 2.5,
                           cnt_reduction_school_exit     = 0,
                           cnt_reduction_intergeneration = 0,
                           cnt_reduction_intergeneration_cutoff = 0,
+                          cnt_intensity_householdCluster = 0,
                           detection_probability          = 0,
                           case_finding_efficency         = 0,
                           case_finding_capacity          = 0,
+                          test_false_negative            = 0,
                           gtester_label                  = 'covid_all',
                           stringsAsFactors = F)
 
@@ -80,22 +82,39 @@ exp_design_daily$gtester_label            <- 'covid_daily'
 
 # distancing
 exp_design_dist <- exp_design
-exp_design_dist$holidays_file       <- 'calendar_belgium_2020_covid19_april.json'
-exp_design_dist$cnt_reduction_workplace  <-0.3;
-exp_design_dist$cnt_reduction_other      <-0.4;
+exp_design_dist$holidays_file              <- 'calendar_belgium_2020_covid19_april.json'
+exp_design_dist$cnt_reduction_workplace    <-0.3;
+exp_design_dist$cnt_reduction_other        <-0.4;
 exp_design_dist$compliance_delay_workplace <- 3;
 exp_design_dist$compliance_delay_other     <- 4;
-exp_design_dist$gtester_label            <- 'covid_distancing'
+exp_design_dist$gtester_label              <- 'covid_distancing'
 
 
 # age_15min
 exp_design_15min <- exp_design
-exp_design_15min$disease_config_file <- 'disease_covid19_age_15min.xml'
+exp_design_15min$disease_config_file     <- 'disease_covid19_age_15min.xml'
 exp_design_15min$age_contact_matrix_file <- 'contact_matrix_flanders_conditional_teachers_15min.xml'
-exp_design_15min$gtester_label            <- 'covid_15min'
+exp_design_15min$gtester_label           <- 'covid_15min'
+
+# householdCluster
+exp_design_hhcl <- exp_design
+exp_design_hhcl$population_file       <- 'pop_belgium600k_c500_teachers_censushh_extended3_size2.csv'
+exp_design_hhcl$cnt_intensity_householdCluster <- 4/7
+exp_design_hhcl$holidays_file         <- 'calendar_belgium_2020_covid19_exit_school_adjusted.json'
+exp_design_hhcl$start_date            <- '2020-06-01'
+
+# contact tracing
+exp_design_cts <- exp_design
+exp_design_cts$detection_probability   <- 0.5
+exp_design_cts$holidays_file           <- 'calendar_belgium_2020_covid19_exit_school_adjusted.json'
+exp_design_cts$start_date              <- '2020-06-01'
+exp_design_cts$case_finding_efficency  <- 0.7
+exp_design_cts$test_false_negative     <- 0.1
+exp_design_cts$case_finding_capacity   <- 1000
 
 # rbind all designs
-exp_design <- rbind(exp_design,exp_design_daily, exp_design_dist, exp_design_15min)
+exp_design <- rbind(exp_design,exp_design_daily, exp_design_dist,
+                    exp_design_15min, exp_design_hhcl, exp_design_cts)
 
 # add a unique seed for each run
 set.seed(125)
@@ -125,8 +144,6 @@ smd_print('START REGRESSION TEST')
 
 ## Load project summary 
 project_summary <- .rstride$load_project_summary(project_dir)
-
-# remove project_dir and timings
 project_summary$output_prefix  <- NULL
 project_summary$run_tag        <- NULL
 project_summary$run_time       <- NULL
@@ -149,7 +166,7 @@ ref_data_prevalence  <- readRDS(file='tests/regression_rstride_prevalence.rds')
 diff_summary    <- setdiff(project_summary,ref_project_summary)
 if(length(diff_summary)>0){ 
   smd_print("SUMMARY CHANGED",WARNING = T)
-  smd_print(head(diff_summary))
+  #print(head(diff_summary))
 } else{
   smd_print("SUMMARY OK")
 }
@@ -157,8 +174,8 @@ if(length(diff_summary)>0){
 ## COMPARE INCIDENCE
 diff_incidence  <- setdiff(data_incidence,ref_data_incidence)
 if(length(diff_incidence)>0){ 
-  print("INCIDENCE CHANGED")
-  print(head(diff_incidence))
+  smd_print("INCIDENCE CHANGED",WARNING = T)
+  #print(head(diff_incidence))
 } else{
   smd_print("INCIDENCE OK")
 }
@@ -166,8 +183,8 @@ if(length(diff_incidence)>0){
 ## COMPARE PREVALENCE
 diff_prevalence <- setdiff(data_prevalence,ref_data_prevalence)
 if(length(diff_prevalence)>0){ 
-  print("PREVALENCE CHANGED")
-  print(head(diff_prevalence))
+  smd_print("PREVALENCE CHANGED",WARNING = T)
+  #print(head(diff_prevalence))
 } else{
   smd_print("PREVALENCE OK")
 }
