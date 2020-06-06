@@ -45,7 +45,7 @@ get_exp_param_default <- function(){
         compliance_delay_other        = c(6),
         num_daily_imported_cases      = c(0),
         cnt_reduction_workplace_exit  = seq(0.6,0.8,0.1),
-        cnt_reduction_other_exit      = c(0.7,0.75,0.8,0.85),
+        cnt_reduction_other_exit      = c(0.7,0.8,0.85),
         cnt_reduction_school_exit     = 0.5,
         cnt_reduction_intergeneration = 0.9,
         cnt_reduction_intergeneration_cutoff = 65,
@@ -56,6 +56,7 @@ get_exp_param_default <- function(){
         delay_contact_tracing          = 3,
         delay_testing                  = 1,
         test_false_negative            = 0.1,
+        cnt_other_exit_delay           = seq(14,28,7),
         
         # factor for parameter estimation and fitting
         hosp_probability_factor        = 1
