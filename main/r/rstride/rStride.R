@@ -352,14 +352,14 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
   data_transmission[, hospital_admission_start_age4 := as.numeric(NA)]
   
   # hospital probability
-  hospital_probability <- data.frame(age1 = 0.035,
-                                     age2 = 0.0216,
-                                     age3 = 0.0855,
-                                     age4 = 0.423)
-  # hospital_probability <- data.frame(age1 = 0.049,
-  #                                    age2 = 0.03024,
-  #                                    age3 = 0.1197,
-  #                                    age4 = 0.5922)
+  # hospital_probability <- data.frame(age1 = 0.035,
+  #                                    age2 = 0.0216,
+  #                                    age3 = 0.0855,
+  #                                    age4 = 0.423)
+  hospital_probability <- data.frame(age1 = 0.049,
+                                     age2 = 0.03024,
+                                     age3 = 0.1197,
+                                     age4 = 0.5922)
   
   # adjust probability (for fitting)
   hospital_probability <- hospital_probability * config_exp$hosp_probability_factor
