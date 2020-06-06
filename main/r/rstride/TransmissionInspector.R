@@ -205,6 +205,7 @@ get_transmission_statistics <- function(data_transm)
   data_transm[,start_infectiousness := as.numeric(start_infectiousness)]
   data_transm[,start_symptoms := as.numeric(start_infectiousness)]
   data_transm[,end_symptoms:= as.numeric(end_symptoms)]
+  data_transm[,part_age := as.numeric(part_age)]
 
   if(length(unique(data_transm$exp_id))>1){
     smd_print("TRANSMISSION STATISTICS ERROR: MULTIPLE EXPERIMENTS !!", WARNING = T, FORCED = T)
@@ -312,6 +313,12 @@ get_transmission_statistics <- function(data_transm)
   if(!('location_HouseholdCluster'%in%names(summary_location))){
     summary_location$location_HouseholdCluster <- 0
   }
+  # make sure College is present 
+  #TODO: find more structured way to check/add location types
+  if(!('location_College'%in%names(summary_location))){
+    summary_location$location_College <- 0
+  }
+  
   # sort
   sorted_names <- (sort(names(summary_location)))
   summary_location <- summary_location[,..sorted_names,]

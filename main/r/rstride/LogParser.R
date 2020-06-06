@@ -225,8 +225,8 @@ if(0==1){
   {
     header_trace           <- c('local_id', 'part_age', 'is_infected', 'is_symptomatic','pool_type', 
                                 'pool_id', 'case_id','case_age','sim_day','num_contacts_tested')
-    sel_cols    <- paste0('V',seq_len(length(header_trace))+1)
-    data_cnt    <- data_log[V1 %in% "[TRACE]",..sel_cols]
+    sel_cols             <- paste0('V',seq_len(length(header_trace))+1)
+    data_tracing         <- data_log[V1 %in% "[TRACE]",..sel_cols]
     names(data_tracing)  <- header_trace
     data_tracing[1,]
     
@@ -236,7 +236,7 @@ if(0==1){
     col_boolean <- header_trace[grepl('is_',header_trace)]
     data_tracing[, (col_boolean) := replace(.SD, .SD == 'true', 1), .SDcols = col_boolean]
     data_tracing[, (col_boolean) := replace(.SD, .SD == 'false', 0), .SDcols = col_boolean]
-    # 
+     
     # # make sure, all values are stored as integers
     # pool_type_col <- names(data_tracing) %in% c('pool_type')
     # data_tracing[,!pool_type_col] <- data.frame(apply(data_tracing[,!pool_type_col], 2, as.integer))

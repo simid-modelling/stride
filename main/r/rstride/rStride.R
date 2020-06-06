@@ -285,7 +285,8 @@ run_rStride <- function(exp_design               = exp_design,
                      }
   
   # print final statement
-  smd_print_progress(nrow(exp_design),nrow(exp_design),time_stamp_loop,par_nodes_info)
+  smd_print('COMPLETE:',nrow(exp_design),'/',nrow(exp_design))
+  
   
   # save overal summary
   write.table(par_out,file=file.path(project_dir,paste0(run_tag,'_summary.csv')),sep=',',row.names=F)
