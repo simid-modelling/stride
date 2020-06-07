@@ -38,14 +38,14 @@ get_exp_param_default <- function(bool_child_param = FALSE){
                 start_date                    = c('2020-02-17'),
                 holidays_file                 = 'calendar_belgium_2020_covid19_exit_school_adjusted.json',
                 school_system_adjusted        = 1,
-                telework_probability          = c(0),
+                telework_probability          = 0,
                 cnt_reduction_workplace       = 0.8,
                 cnt_reduction_other           = 0.85,
-                compliance_delay_workplace    = c(6),
-                compliance_delay_other        = c(6),
-                num_daily_imported_cases      = c(0),
+                compliance_delay_workplace    = 6,
+                compliance_delay_other        = 6,
+                num_daily_imported_cases      = 0,
                 cnt_reduction_workplace_exit  = seq(0.6,0.8,0.1),
-                cnt_reduction_other_exit      = c(0.6,0.7,0.8,0.85),
+                cnt_reduction_other_exit      = c(0.7,0.80,0.85),
                 cnt_reduction_school_exit     = 0.5,
                 cnt_reduction_intergeneration = 0.9,
                 cnt_reduction_intergeneration_cutoff = 65,
@@ -68,6 +68,8 @@ get_exp_param_default <- function(bool_child_param = FALSE){
      out$cnt_reduction_workplace <- 0.75
      out$cnt_reduction_other     <- 0.90
      out$hosp_probability_factor <- 0.85
+     out$cnt_reduction_workplace_exit  = seq(0.55,0.75,0.1)
+     out$cnt_reduction_other_exit      = c(0.75,0.85,0.9)
    }
    
    # return parameters

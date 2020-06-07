@@ -131,8 +131,7 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 	unsigned int num_index_cases = 0;
 
 	for (auto& p_case : *pop) {
-			if (p_case.GetHealth().IsSymptomatic() &&
-					p_case.GetHealth().SymptomsStartedDaysBefore(m_delay_testing) &&
+			if (p_case.GetHealth().SymptomsStartedDaysBefore(m_delay_testing) &&
 					!p_case.GetHealth().IsInIsolation() &&
 					uniform01Gen() < m_detection_probability) {
 
