@@ -32,7 +32,7 @@ public:
         
         void AddIndividual(Person* p) { return m_individuals.push_back(p); }
 
-        const std::vector<Person*>& GetIndividuals() { return m_individuals; } 
+        const std::vector<Person*>& GetIndividuals() const { return m_individuals; } 
 
         bool operator< (const PCRPool& p) const {
             return m_individuals < p.m_individuals;
