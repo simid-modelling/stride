@@ -20,12 +20,15 @@
 
 #pragma once
 
+#include "PCRPool.h"
 #include "contact/ContactPool.h"
 #include "util/RnMan.h"
 #include "util/SegmentedVector.h"
 
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <memory>
+#include <set>
+#include <vector>
 
 namespace stride {
 
@@ -64,6 +67,8 @@ private:
         unsigned int m_unitest_pool_size; ///< Pool size (universal testing)
         double m_unitest_test_compliance; ///< Household compliance with testing (universal testing)
         double m_unitest_isolation_compliance; ///< Household compliance when isolated (universal testing)
+        //universal testing planning
+        std::vector<std::set<PCRPool>> m_unitest_planning; ///< Vector with at each element, a set of PCR pools, to be performed at one day
         //contact tracing configuration
         double m_detection_probability;   ///< Detection probability of symptomatic cases.
         double m_case_finding_efficency;  ///< Detection probability of infected cases during case finding

@@ -22,6 +22,8 @@
 
 #include "calendar/Calendar.h"
 #include "pop/Population.h"
+#include "util/Containers.h"
+#include "util/CSV.h"
 #include "util/FileSys.h"
 #include "util/LogUtils.h"
 #include "util/StringUtils.h"
@@ -124,6 +126,54 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
   if (m_unitest_fnr <= 0.0)
     return;
 
+  if (m_unitest_planning.empty()) {
+    const auto& households = pop->CRefPoolSys().CRefPools(Id::Household);
+
+    std::map<std::string, std::map<int, PCRPool>> pools_per_georegion;
+    CSV allocation(m_unitest_pool_allocation);
+    size_t georegion_idx = allocation.GetIndexForLabel("province");
+    size_t pool_id_idx = allocation.GetIndexForLabel("pool_id");
+    size_t household_id_idx = allocation.GetIndexForLabel("houshold_id");
+    for (const auto& row : allocation) {
+        std::string georegion = row.GetValue(georegion_idx);
+        int pool_id = row.GetValue<int>(pool_id_idx);
+
+        //if the georegion is not yet in the map, introduce it 
+        if (pools_per_georegion.find(georegion) != pools_per_georegion.end()) {
+            pools_per_georegion[georegion] = std::map<int,PCRPool>();
+        }
+        auto& pools = pools_per_georegion[georegion];
+
+        //if the PCR pool is not yet in the map, introduce it 
+        if (pools.find(pool_id) != pools.end()) {
+            pools[pool_id] = PCRPool();
+        }
+        auto& pool = pools[pool_id];
+
+        int household_id = row.GetValue<int>(household_id_idx);
+		for (const auto& hh_member : households[household_id].GetPool()) {
+            pool.AddIndividual(hh_member);     
+        }
+    } 
+    
+    unsigned int n_days = pop->size() / (m_unitest_n_tests_per_day * m_unitest_pool_size);
+    for (unsigned int day = 0; day < n_days; ++day) {
+        m_unitest_planning[day] = std::set<PCRPool>();
+    }
+
+    for (const auto& key_val: pools_per_georegion) {
+        const auto& region = key_val.first;
+        unsigned int pools_per_day = ceil(pools_per_georegion[region].size()/float(n_days));
+        const auto& pools = util::MapValuesToVec(pools_per_georegion[region]);
+        const auto& chunks = util::SplitVec(pools, pools_per_day);
+        for (unsigned int day = 0; day < n_days; ++day) {
+            std::vector<PCRPool> chunk = chunks[day];
+            for (const auto& pool: chunk) {
+                m_unitest_planning[day].insert(pool);
+            } 
+        }
+    }
+  }
 }
 
 void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, util::RnMan& rnMan,
