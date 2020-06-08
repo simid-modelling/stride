@@ -120,6 +120,8 @@ bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff,
 
 }
 
+
+
 void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop, util::RnMan& rnMan,
                                             unsigned short int simDay)
 {
@@ -156,7 +158,7 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
         }
     } 
     
-    unsigned int n_days = pop->size() / (m_unitest_n_tests_per_day * m_unitest_pool_size);
+    unsigned int n_days = ceil(pop->size() / (float)(m_unitest_n_tests_per_day * m_unitest_pool_size));
     for (unsigned int day = 0; day < n_days; ++day) {
         m_unitest_planning[day] = std::set<PCRPool>();
     }
