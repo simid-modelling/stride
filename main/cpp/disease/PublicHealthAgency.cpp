@@ -176,6 +176,38 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
         }
     }
   }
+
+#ifndef NDEBUG
+  unsigned int n_days = m_unitest_planning.size();
+
+  unsigned int enlisted_pop = 0;
+  //test: check that the stride population and the population allocated over pools coincide
+  for (unsigned int day = 0; day < n_days; ++day) {
+    for (const auto& pool : m_unitest_planning[day]) {
+        enlisted_pop += pool.GetIndividuals().size();
+    }
+  }
+  assert(enlisted_pop == pop->size());
+
+  //test: check that the pools' size does not exceed m_unitest_pool_size
+  //test: report the nr of pools that are not completely full 
+  //        (i.e., leftover_pools, there should not be many of them)
+  int leftover_pools = 0;
+  for (unsigned int day = 0; day < n_days; ++day) {
+    for (const auto& pool : m_unitest_planning[day]) {
+        assert(pool.GetIndividuals().size() <= m_unitest_pool_size);
+        if (pool.GetIndividuals().size() < m_unitest_pool_size) {
+            leftover_pools += 1;
+        }
+    }
+  }
+  std::cerr << "DEBUG: leftover_pools: " << leftover_pools << std::endl; 
+
+  //test: verify that the number of daily tests is not exceeded
+  for (unsigned int day = 0; day < n_days; ++day) {
+    assert(m_unitest_planning[day].size() <= m_unitest_n_tests_per_day);
+  }
+#endif 
 }
 
 void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, util::RnMan& rnMan,
