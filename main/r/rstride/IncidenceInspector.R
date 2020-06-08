@@ -396,7 +396,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   
   
   # set y-lim
-  y_lim <- range(0,max(hosp_adm_data$num_adm)*2,max(data_incidence_sel$new_hospital_admissions,na.rm=T),na.rm=T)
+  y_lim <- range(0,max(hosp_adm_data$num_adm)*1.2,max(data_incidence_sel$new_hospital_admissions,na.rm=T),na.rm=T)
 
   ## HOSPITAL ADMISSIONS ####
   plot(data_incidence_sel$sim_date,
@@ -603,7 +603,7 @@ add_legend_prevalence <- function(pcolor,legend_pos = 'topright'){
          c('Infections',
            'Infectious',
            'Symptomatic',
-           "Hospitalized"),
+           'Hospitalized'),
          col=unlist(pcolor)[1:4],
          lwd=2,
          cex=0.6,

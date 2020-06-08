@@ -56,7 +56,7 @@ get_exp_param_default <- function(bool_child_param = FALSE){
                 delay_contact_tracing          = 3,
                 delay_testing                  = 1,
                 test_false_negative            = 0.1,
-                cnt_other_exit_delay           = seq(14,21,7),
+                cnt_other_exit_delay           = 21,
                 
                 # factor for parameter estimation and fitting
                 hosp_probability_factor        = 1

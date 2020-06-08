@@ -44,18 +44,6 @@ dir_postfix <- '_int'
 exp_param_list <- get_exp_param_default()
 
 # change parameters and values to combine in a full-factorial grid
-exp_param_list$population_file <- 'pop_belgium3000k_c500_teachers_censushh.csv'
-exp_param_list$num_seeds       <- 2
-#exp_param_list$num_days <- 75
-
-#exp_param_list$start_date <- '2020-04-25'
-exp_param_list$cnt_other_exit_delay <- seq(0,21,7)
-
-exp_param_list$cnt_reduction_workplace_exit <- 0.2
-exp_param_list$cnt_reduction_other_exit <- 0.2
-
-#exp_param_list$hosp_probability_factor <- seq(0.8,1.3,0.1)
-
 
 
 ################################################ #

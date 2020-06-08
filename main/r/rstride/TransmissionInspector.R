@@ -203,7 +203,7 @@ get_transmission_statistics <- function(data_transm)
   # set column types
   data_transm[,infection_date := as.Date(infection_date)]
   data_transm[,start_infectiousness := as.numeric(start_infectiousness)]
-  data_transm[,start_symptoms := as.numeric(start_infectiousness)]
+  data_transm[,start_symptoms := as.numeric(start_symptoms)]
   data_transm[,end_symptoms:= as.numeric(end_symptoms)]
   data_transm[,part_age := as.numeric(part_age)]
 
