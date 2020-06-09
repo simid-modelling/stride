@@ -100,7 +100,7 @@ public:
         bool SymptomsStartedToday() const { return GetDiseaseCounter() == m_start_symptomatic; }
 
         /// Have the symptoms started X days before?
-        bool SymptomsStartedDaysBefore(unsigned int days_before) const { return (GetDiseaseCounter() - days_before ) == m_start_symptomatic; }
+        bool SymptomsStartedDaysBefore(unsigned int days_before) const;
 
         /// Set health state to immune.
         void SetImmune() { m_status = HealthStatus::Immune; }

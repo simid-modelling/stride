@@ -44,8 +44,7 @@ dir_postfix <- '_int'
 exp_param_list <- get_exp_param_default()
 
 # change parameters and values to combine in a full-factorial grid
-exp_param_list$population_file <- 'pop_belgium600k_c500_teachers_censushh.csv'
-exp_param_list$num_seeds       <- 2
+
 
 ################################################ #
 ## GENERATE DESIGN OF EXPERIMENT GRID         ####

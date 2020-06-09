@@ -12,7 +12,7 @@
 #  along with the software. If not, see <http://www.gnu.org/licenses/>.
 #  see http://www.gnu.org/licenses/.
 #
-#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
 #############################################################################
 
 #============================================================================
@@ -49,6 +49,14 @@ unset(DEPLOY_FILES)
 file(GLOB DEPLOY_FILES "config/*")
 INSTALL(FILES ${DEPLOY_FILES} DESTINATION ${CONFIG_INSTALL_LOCATION})
 unset(DEPLOY_FILES)
+
+#============================================================================
+# Copy all files from rstride_test/* to ${TESTS_INSTALL_LOCATION}
+#============================================================================
+file(GLOB DEPLOY_FILES "rstride_test/*")
+INSTALL(FILES ${DEPLOY_FILES} DESTINATION ${TESTS_INSTALL_LOCATION})
+unset(DEPLOY_FILES)
+
 
 #============================================================================
 # Add subdirs:

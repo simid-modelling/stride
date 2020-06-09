@@ -85,21 +85,6 @@ inspect_summary <- function(project_dir)
   mtext("incidence", side=4, line=2,cex=0.9)
   mtext("total number of cases", side=2, line=2,cex=0.9)
   
-  # exclude 'start date' from the overview, if present in the experimental design
-  if(('start_date' %in% colnames(input_opt_design) && ncol(input_opt_design)>1)){
-    par(mar = c(10, 4, 1, 4) + 0.3)  # Leave space for 3rd axis
-    param_selection <- colnames(input_opt_design)[!grepl('start_date',colnames(input_opt_design))]
-    boxplot(as.formula(paste("num_cases",paste(param_selection,collapse='+'),sep="~")),
-            data = project_summary,
-            ylab = '',
-            las=2,
-            cex.axis=0.8)
-    axis(4, at = y_ticks , labels = y_ticks_label )
-    mtext("incidence", side=4, line=2,cex=0.9)
-    mtext("total number of cases", side=2, line=2,cex=0.9)
-  }
-  
-  
   ## SECONDARY CASES ####
   # secondary cases  
   project_summary$num_sec_cases     <- project_summary$num_cases - project_summary$num_infected_seeds

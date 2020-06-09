@@ -120,6 +120,12 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   hosp_data_ls     <- matrix(NA, ncol = 1, nrow = nrow(project_summary))
   hosp_data_tag    <- hosp_data_ls
   
+  ## PREVALENCE DATA STOCHASTIC MODEL
+  prevalence_ref <- readRDS('./data/prevalence_stochastic_model_20200604.rds')
+  head(prevalence_ref)
+  pop_size_be <- 11e6  #TODO: use universal variable
+  
+  
   i_exp <- 1  
   # loop over each experiment
   for(i_exp in unique(data_incidence_all$exp_id)){
@@ -145,6 +151,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     ls_score_hosp        <- sum(sqrt((data_incidence_all$new_hospital_admissions[flag_hosp_data] - hosp_adm_data$num_adm[flag_hosp_ref])^2),na.rm = T)
     hosp_data_ls[i_exp,] <- sum(ls_score_hosp)
     hosp_data_tag[i_exp,]<- unique(data_incidence_all$config_id[flag_exp])
+    
   }
   
   # get mean ls per config id
@@ -172,8 +179,8 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   
   # plot temporal patterns (ensemble)
   plot_incidence_data(data_incidence_ensemble,project_summary,
-                      hosp_adm_data,input_opt_design,bool_add_param
-  )
+                      hosp_adm_data,input_opt_design,prevalence_ref,
+                      bool_add_param)
   
   ## ENSEMBLE (SINGLE RUNS) ####
   opt_config_id <- config_tag_sel$config_tag
@@ -185,7 +192,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     
     # plot
     plot_incidence_data(data_incidence_sel,project_summary,
-                        hosp_adm_data,input_opt_design,
+                        hosp_adm_data,input_opt_design,prevalence_ref,
                         bool_add_param)
   }
   
@@ -206,7 +213,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     
     # plot
     plot_incidence_data(data_incidence_sel,project_summary,
-                        hosp_adm_data,input_opt_design,
+                        hosp_adm_data,input_opt_design,prevalence_ref,
                         bool_add_param)
   }
   
@@ -230,7 +237,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     
     # plot
     plot_incidence_data(data_incidence_sel,project_summary,
-                        hosp_adm_data,input_opt_design,
+                        hosp_adm_data,input_opt_design,prevalence_ref,
                         bool_add_param)
   }
   
@@ -260,7 +267,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
       if(nrow(data_incidence_sel)>0){
         # plot
         plot_incidence_data(data_incidence_sel,project_summary,
-                            hosp_adm_data,input_opt_design,
+                            hosp_adm_data,input_opt_design,prevalence_ref,
                             bool_add_param)
       }
     }
@@ -290,7 +297,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
         if(nrow(data_incidence_sel)>0){
           # plot
           plot_incidence_data(data_incidence_sel,project_summary,
-                              hosp_adm_data,input_opt_design,
+                              hosp_adm_data,input_opt_design,prevalence_ref,
                               bool_add_param)
         }
       }
@@ -305,7 +312,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   
   # plot
   plot_incidence_data(data_incidence_all,project_summary,
-                      hosp_adm_data,input_opt_design,
+                      hosp_adm_data,input_opt_design,prevalence_ref,
                       bool_add_param,bool_only_hospital_adm = TRUE) 
 
   # close pdf
@@ -317,7 +324,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   
   # plot
   plot_incidence_data(data_incidence_all,project_summary,
-                      hosp_adm_data,input_opt_design,
+                      hosp_adm_data,input_opt_design,prevalence_ref,
                       bool_add_param,bool_only_hospital_adm = TRUE) 
   
   # close pdf
@@ -329,7 +336,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
 
   # plot
   plot_incidence_data(data_incidence_all,project_summary,
-                      hosp_adm_data,input_opt_design,
+                      hosp_adm_data,input_opt_design,prevalence_ref,
                       bool_add_param = FALSE,
                       bool_only_hospital_adm = FALSE) 
   
@@ -355,7 +362,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
 } # end function
 
 plot_incidence_data <- function(data_incidence_sel,project_summary,
-                                hosp_adm_data,input_opt_design,
+                                hosp_adm_data,input_opt_design,prevalence_ref,
                                 bool_add_param,
                                 bool_add_axis4 = TRUE,
                                 bool_only_hospital_adm = FALSE){
@@ -364,6 +371,9 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   if(!bool_only_hospital_adm){
     par(mar=c(3,5,1,5))
   }
+  
+  # set Belgian population
+  pop_size_be <- 11e6
   
   # set color definitions and other layout definitions
   pcolor <- data.frame(E = "black",  # exposed (or total infections)
@@ -386,7 +396,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   
   
   # set y-lim
-  y_lim <- range(0,max(hosp_adm_data$num_adm)*2,max(data_incidence_sel$new_hospital_admissions,na.rm=T),na.rm=T)
+  y_lim <- range(0,max(hosp_adm_data$num_adm)*1.2,max(data_incidence_sel$new_hospital_admissions,na.rm=T),na.rm=T)
 
   ## HOSPITAL ADMISSIONS ####
   plot(data_incidence_sel$sim_date,
@@ -434,7 +444,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        ylim= range(y_lim))
   add_x_axis(data_incidence_sel$sim_date)
   add_y_axis(y_lim)
-  add_y_axis_pop(y_lim)
+  add_y_axis_pop(y_lim,pop_size_be)
   points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=pcolor$pch)
   add_breakpoints()
   add_legend_hosp(pcolor)
@@ -487,9 +497,9 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   lines(data_incidence_sel$sim_date,
         data_incidence_sel$new_hospital_admissions,
         col=alpha(pcolor$H,pcolor$alpha))
-  points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=pcolor$pch)
+  # points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=pcolor$pch)
   add_breakpoints()
-  add_legend_all(pcolor)
+  add_legend_prevalence(pcolor)
   
   ## CUMULATIVE: ALL STATES ####
   y_lim <- pretty(data_incidence_sel$cumulative_infections)
@@ -503,7 +513,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        xaxt='n')
   add_x_axis(data_incidence_sel$sim_date)
   add_y_axis(y_lim)
-  add_y_axis_pop(y_lim)
+  add_y_axis_pop(y_lim,pop_size_be)
   lines(data_incidence_sel$sim_date,
         data_incidence_sel$cumulative_infectious_cases,
         col=alpha(pcolor$I,pcolor$alpha))
@@ -513,18 +523,29 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   lines(data_incidence_sel$sim_date,
         data_incidence_sel$cumulative_hospital_cases,
         col=alpha(pcolor$H,pcolor$alpha))
-  points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=pcolor$pch)
+  #points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=pcolor$pch)
+  
   add_breakpoints()
   if(bool_add_param) {
     add_legend_runinfo(project_summary,input_opt_design,
                        unique(data_incidence_sel$config_id))
   } else {
-    add_legend_all(pcolor,legend_pos = 'topleft')
+    add_legend_prevalence(pcolor,legend_pos = 'topleft')
   }
   
+
+  ## add reference
+  prevalence_selection <- as.Date(c('2020-03-15','2020-04-1','2020-04-15','2020-05-01'))
+  flag_prevalence <- prevalence_ref$date %in% prevalence_selection
+  #points(prevalence_selection,prevalence_ref$mean[flag_prevalence]*pop_size_be,pch=8)
+  arrows(prevalence_selection,prevalence_ref$min[flag_prevalence]*pop_size_be,
+         prevalence_selection,prevalence_ref$max[flag_prevalence]*pop_size_be,
+         angle=90,length=0.05)
+  arrows(prevalence_selection,prevalence_ref$max[flag_prevalence]*pop_size_be,
+         prevalence_selection,prevalence_ref$min[flag_prevalence]*pop_size_be,
+         angle=90,length=0.05)
   
-  
-  
+
 } # end function to plot figure
 
 # define the vertical breaks on the plots
@@ -576,20 +597,17 @@ add_legend_hosp <- function(pcolor){
 }
 
 # define the legend with all categories
-add_legend_all <- function(pcolor,legend_pos = 'topright'){
+add_legend_prevalence <- function(pcolor,legend_pos = 'topright'){
   
   legend(legend_pos,
          c('Infections',
            'Infectious',
            'Symptomatic',
-           'Hospitalized',
-           'Reported hosp. adm.'),
-         col=unlist(pcolor),
-         pch=c(NA,NA,NA,NA,16),
-         lwd=c(2,2,2,2,NA),
+           'Hospitalized'),
+         col=unlist(pcolor)[1:4],
+         lwd=2,
          cex=0.6,
-         bg='white',
-         ncol=3)
+         bg='white')
 }
 
 add_legend_runinfo <- function(project_summary,input_opt_design,
@@ -691,12 +709,48 @@ add_y_axis <- function(y_lim){
   abline(h=pretty(y_lim,5),lty=3,col='lightgray')
 }
 
-add_y_axis_pop <- function(y_lim){
-  
-  # set Belgian population
-  pop_size_be <- 11e6
+add_y_axis_pop <- function(y_lim,pop_size){
   
   # add axis
-  axis(4,pretty(y_lim),paste0(round(pretty(y_lim)/pop_size_be*100,digits=1),'%'),las=2,cex.axis=0.9)
+  axis(4,pretty(y_lim),paste0(round(pretty(y_lim)/pop_size*100,digits=1),'%'),las=2,cex.axis=0.9)
   mtext('Belgian population (%)',side = 4,line=3,cex=0.7)
 }
+
+
+
+## HELP FUNCTION TO REFORMAT THE PREVALENCE DATA FROM THE STOCHASTIC MODEL
+reformat_prevalence_stochastic_model <- function(){
+  
+  ref_prevalence <- read.table('./data/prevalence_stochastic_model_20200604.csv',sep=';')
+  dim(ref_prevalence)  
+
+  date_steps <- seq(as.Date('2020-03-01'),as.Date('2020-06-01'),1/24)
+  num_steps  <- length(date_steps)
+  plot(date_steps[-1],colMeans(ref_prevalence[,2:num_steps]),col=2,
+       ylim=range(ref_prevalence[,-1]),type='l',xaxt='n',
+       xlab='',
+       ylab='prevalence stochastic model')
+  lines(date_steps[-1],apply(ref_prevalence[,2:num_steps],2,min),col=3)
+  lines(date_steps[-1],apply(ref_prevalence[,2:num_steps],2,max),col=3)
+  add_breakpoints()
+  add_x_axis(date_steps)
+  grid(nx=NA,ny=NULL)
+  
+  date_out <- seq(as.Date('2020-03-01'),as.Date('2020-06-01'),1)
+  prevalence_out <- data.frame(mean = approx(date_steps[-num_steps],colMeans(ref_prevalence[,2:num_steps]),date_out)$y,
+                               min = approx(date_steps[-num_steps],apply(ref_prevalence[,2:num_steps],2,min),date_out)$y,
+                               max = approx(date_steps[-num_steps],apply(ref_prevalence[,2:num_steps],2,max),date_out)$y,
+                              date = date_out)
+  
+  approx(date_steps[-num_steps],colMeans(ref_prevalence[,2:num_steps]),seq(as.Date('2020-04-01'),as.Date('2020-06-01'),15))
+
+  head(prevalence_out)
+  saveRDS(prevalence_out,file='./sim_output/prevalence_stochastic_model_20200604.rds')
+  
+  
+
+}
+
+
+
+

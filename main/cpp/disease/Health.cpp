@@ -49,10 +49,17 @@ void Health::StartInfection(unsigned int id_index_case, unsigned int id_infector
         m_id_infector   = id_infector;
 }
 
+bool Health::SymptomsStartedDaysBefore(unsigned int days_before) const
+{
+	return ((GetDiseaseCounter() - days_before ) == m_start_symptomatic) &&
+			m_start_symptomatic != m_end_symptomatic;
+}
+
 void Health::StopInfection()
 {
         AssertThrow(IsInfected(), "Person not infected", nullptr);
         m_status = HealthStatus::Recovered;
+        ResetDiseaseCounter();
 
         if(IsInIsolation()){ EndIsolation(); }
 }

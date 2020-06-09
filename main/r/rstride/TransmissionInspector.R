@@ -197,13 +197,16 @@ inspect_transmission_data <- function(project_dir,save_pdf = TRUE){
 # data_transm <- data_transm_all[data_transm_all$exp_id == 1,]
 get_transmission_statistics <- function(data_transm)
 {
-  # # tmp
-  # data_transm$infection_date <- data_transm$sim_day_date
-
-  # convert to data.table
-  data_transm <- data.table(data_transm)
+  # setup data.table
   data_transm[,ID := 1:nrow(data_transm),]
   
+  # set column types
+  data_transm[,infection_date := as.Date(infection_date)]
+  data_transm[,start_infectiousness := as.numeric(start_infectiousness)]
+  data_transm[,start_symptoms := as.numeric(start_symptoms)]
+  data_transm[,end_symptoms:= as.numeric(end_symptoms)]
+  data_transm[,part_age := as.numeric(part_age)]
+
   if(length(unique(data_transm$exp_id))>1){
     smd_print("TRANSMISSION STATISTICS ERROR: MULTIPLE EXPERIMENTS !!", WARNING = T, FORCED = T)
   }
@@ -242,7 +245,7 @@ get_transmission_statistics <- function(data_transm)
   # reference: Kenah et al (2007)
   # remove the generation intervals counted form the initial infected seed infections
   #sec_transm$gen_interval <- as.numeric(sec_transm$infection_date - sec_transm$infector_infection_date)
-  sec_transm[, gen_interval := infection_date - infector_infection_date]
+  sec_transm[, gen_interval := as.numeric(infection_date - infector_infection_date)]
 
   ## RENAME DATE COLUMN
   sec_transm[,sim_date := infection_date]
@@ -310,6 +313,12 @@ get_transmission_statistics <- function(data_transm)
   if(!('location_HouseholdCluster'%in%names(summary_location))){
     summary_location$location_HouseholdCluster <- 0
   }
+  # make sure College is present 
+  #TODO: find more structured way to check/add location types
+  if(!('location_College'%in%names(summary_location))){
+    summary_location$location_College <- 0
+  }
+  
   # sort
   sorted_names <- (sort(names(summary_location)))
   summary_location <- summary_location[,..sorted_names,]
@@ -319,7 +328,7 @@ get_transmission_statistics <- function(data_transm)
   # summary_col    <- c('sim_date','sec_cases','gen_interval')
   # summary_mean   <- aggregate(. ~ sim_date, data = sec_transm[,summary_col],mean)
   # summary_median <- aggregate(. ~ sim_date, data = sec_transm[,summary_col],median)
-  summary_out     <- sec_transm[,.(sec_cases = mean(sec_cases,na.rm=T),gen_interval = mean(gen_interval)),by=sim_date]
+  summary_out     <- sec_transm[,.(sec_cases = mean(sec_cases,na.rm=T),gen_interval = mean(gen_interval,na.rm=T)),by=sim_date]
 #  summary_out    <- merge(summary_mean,summary_median,by='sim_date',suffixes = c('_mean','_median'))
   setkey(summary_out,'sim_date')
   summary_out    <- merge(summary_out,summary_infections,all = TRUE)
@@ -332,13 +341,6 @@ get_transmission_statistics <- function(data_transm)
   # add exp_id
   summary_out$exp_id <- unique(data_transm$exp_id)
   
-  # check
-  head(summary_out)
-  dim(summary_out)
-
-  # temporary: convert to data.frame
-  summary_out <- as.data.frame(summary_out)
-  
   # return
   return(summary_out)
 }
@@ -346,6 +348,7 @@ get_transmission_statistics <- function(data_transm)
 # Function to generate summary tables
 # colname_date <- 'infection_date'; colname_value <- 'cnt_location'; prefix <- 'location';
 # colname_date <- 'infection_date'; colname_value <- 'age_cat'; prefix <- 'cases';
+#colname_date <- 'infection_date'; colname_value <-'age_cat';prefix <- 'new_infections'
 get_summary_table <- function(data_transm,colname_date,colname_value,prefix){
   
   # overal summary

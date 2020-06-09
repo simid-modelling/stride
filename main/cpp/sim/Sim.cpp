@@ -42,8 +42,8 @@ Sim::Sim()
       m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_workplace(0), m_cnt_reduction_other(0),
 	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
-	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),
-	  m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_cnt_intensity_householdCluster(0),
+	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),m_cnt_other_exit_delay(0),
+	  m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_day_of_community_distancing_exit(0),m_cnt_intensity_householdCluster(0),
 	  m_public_health_agency(),m_num_daily_imported_cases(0)
 
 {
@@ -65,7 +65,7 @@ void Sim::TimeStep()
 {
         // Logic where you compute (on the basis of input/config for initial day or on the basis of
         // number of sick persons, duration of epidemic etc) what kind of DaysOff scheme you apply.
-        const bool isRegularWeekday = m_calendar->IsRegularWeekday();
+        const bool isRegularWeekday     = m_calendar->IsRegularWeekday();
         const bool isPreSchoolOff       = m_calendar->IsPreSchoolOff();
         const bool isPrimarySchoolOff   = m_calendar->IsPrimarySchoolOff();
         const bool isSecondarySchoolOff = m_calendar->IsSecondarySchoolOff();
@@ -106,7 +106,14 @@ void Sim::TimeStep()
 				community_distancing_factor *= 1.0 * m_day_of_community_distancing / m_compliance_delay_other;
 			}
 		} else if (m_day_of_community_distancing > 0){
-			community_distancing_factor       = m_cnt_reduction_other_exit;
+
+			m_day_of_community_distancing_exit += 1;
+
+			if(m_day_of_community_distancing_exit < m_cnt_other_exit_delay){
+				community_distancing_factor       = m_cnt_reduction_other;
+			} else{
+				community_distancing_factor       = m_cnt_reduction_other_exit;
+			}
 			intergeneration_distancing_factor = m_cnt_reduction_intergeneration;
 		}
 

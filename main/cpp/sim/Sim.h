@@ -106,8 +106,10 @@ private:
         unsigned int                m_cnt_reduction_intergeneration_cutoff;
         unsigned int                m_compliance_delay_workplace;
         unsigned int                m_compliance_delay_other;
+        unsigned int                m_cnt_other_exit_delay;
         unsigned int                m_day_of_community_distancing;
         unsigned int     	        m_day_of_workplace_distancing;
+        unsigned int     			m_day_of_community_distancing_exit;
         double                      m_cnt_intensity_householdCluster;
 
         PublicHealthAgency          m_public_health_agency;

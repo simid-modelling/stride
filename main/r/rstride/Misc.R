@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
 ############################################################################# #
 #
 # HELP FUNCTIONS FOR rSTRIDE PRE- AND POST-PROCESSING                       
@@ -249,6 +249,9 @@ if(!(exists('.rstride'))){
     # continue if data_all is not NULL
     if(any(!is.null(data_all))){
       
+      # make data.frame #TODO: contine with data.table 
+      data_all <- as.data.frame(data_all)
+
       # make id's unique => by adding a exp_id tag with leading zero's
       names_id_columns  <- names(data_all)[grepl('id',names(data_all)) & names(data_all) != 'exp_id']
       num_exp_id_digits <- nchar(max(data_all$exp_id))+1
@@ -260,7 +263,7 @@ if(!(exists('.rstride'))){
             row_is_id <- row_is_id & data_all[,i_id_column] != 0
           } 
           data_all[row_is_id,i_id_column] <- as.numeric(sprintf(paste0('%d%0',num_exp_id_digits,'d'),
-                                                                data_all[row_is_id,i_id_column],
+                                                                as.numeric(data_all[row_is_id,i_id_column]),
                                                                 data_all$exp_id[row_is_id]))
         }
       }
@@ -422,7 +425,7 @@ if(!(exists('.rstride'))){
 .rstride$valid_seed_infected <- function(design_of_experiment = exp_design){
   
   # select unique combinations of population file and seeding rate
-  unique_exp_design <- unique(design_of_experiment[,c('population_file','num_infected_seeds')])
+  unique_exp_design <- data.frame(population_file= unique(design_of_experiment[,c('population_file')]))
   
   # add the path to the data folder
   data_dir <- './data'
@@ -436,10 +439,13 @@ if(!(exists('.rstride'))){
     close(file_connnection)
   }
   
-  # check... and print warning if needed
-  if(any(unique_exp_design$num_infected_seeds > unique_exp_design$population_size)){
-    flag_issue <- unique_exp_design$num_infected_seeds > unique_exp_design$population_size
-    smd_print('INIALLY INFECTED > POPULATION SIZE:', paste(unique_exp_design[flag_issue,1:2], collapse = ' & initially infected '),WARNING=T)
+  # merge population size with design of experiment parameters
+  design_of_experiment <- merge(design_of_experiment,unique_exp_design)
+  
+  # compare infected seeds with population size... and print warning if needed
+  if(any(design_of_experiment$num_infected_seeds > design_of_experiment$population_size)){
+    flag_issue <- unique_exp_design$num_infected_seeds > design_of_experiment$population_size
+    smd_print('INIALLY INFECTED > POPULATION SIZE:', paste(design_of_experiment[flag_issue,1:2], collapse = ' & initially infected '),WARNING=T)
     return(FALSE)
   }
   

@@ -13,10 +13,9 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
 ############################################################################ #
 
-source('./bin/socrates/plot_social_contact_matrix.R')
 
 if(0==1) # for debugging
 {
@@ -79,6 +78,25 @@ inspect_contact_data <- function(project_dir){
   data_cnt      <- .rstride$load_aggregated_output(project_dir,'data_contacts',exp_summary$exp_id)
   data_part     <- .rstride$load_aggregated_output(project_dir,'data_participants',exp_summary$exp_id)
 
+  ## reformat
+  data_cnt$cnt_school    <- as.numeric(data_cnt$cnt_school)
+  data_cnt$cnt_prim_comm <- as.numeric(data_cnt$cnt_prim_comm)
+  data_cnt$cnt_sec_comm  <- as.numeric(data_cnt$cnt_sec_comm)
+  data_cnt$sim_day       <- as.numeric(data_cnt$sim_day)
+  data_cnt$cnt_prob      <- as.numeric(data_cnt$cnt_prob)
+  data_cnt$part_sympt    <- as.numeric(data_cnt$part_sympt)
+  data_cnt$cnt_sympt     <- as.numeric(data_cnt$cnt_sympt)
+  
+  summary(data_part)
+  data_part$college_id          <- as.numeric(data_part$college_id)
+  data_part$is_susceptible      <- as.numeric(data_part$is_susceptible)
+  data_part$is_infected         <- as.numeric(data_part$is_infected)
+  data_part$is_infectious       <- as.numeric(data_part$is_infectious)
+  data_part$is_recovered        <- as.numeric(data_part$is_recovered)
+  data_part$is_immune           <- as.numeric(data_part$is_immune)
+  data_part$start_symptomatic   <- as.numeric(data_part$start_symptomatic)
+  data_part$end_infectiousness  <- as.numeric(data_part$end_infectiousness)
+  
   # if at least one data source is missing... stop
   if(nrow(data_cnt)==0 || nrow(data_part)==0) 
   {
@@ -396,5 +414,106 @@ inspect_contact_data <- function(project_dir){
   
 }
 
+
+## SOCIAL CONTACT RATES OVER TIME ----
+.rstride$contact_timeline <- function(project_dir)
+{
+
+  # load summary
+  project_summary <- .rstride$load_project_summary(project_dir)
+  
+  # retrieve all variable model parameters
+  input_opt_design     <- .rstride$get_variable_model_param(project_summary)
+  input_opt_design
+  
+  # load data
+  data_cnt      <- .rstride$load_aggregated_output(project_dir,'data_contacts')
+  data_part     <- .rstride$load_aggregated_output(project_dir,'data_participants')
+
+  ## reformat
+  data_cnt$cnt_school    <- as.numeric(data_cnt$cnt_school)
+  data_cnt$cnt_prim_comm <- as.numeric(data_cnt$cnt_prim_comm)
+  data_cnt$cnt_sec_comm  <- as.numeric(data_cnt$cnt_sec_comm)
+  data_cnt$sim_day       <- as.numeric(data_cnt$sim_day)
+  data_cnt$cnt_prob      <- as.numeric(data_cnt$cnt_prob)
+  data_cnt$part_sympt    <- as.numeric(data_cnt$part_sympt)
+  data_cnt$cnt_sympt     <- as.numeric(data_cnt$cnt_sympt)
+  
+  summary(data_part)
+  data_part$college_id          <- as.numeric(data_part$college_id)
+  data_part$is_susceptible      <- as.numeric(data_part$is_susceptible)
+  data_part$is_infected         <- as.numeric(data_part$is_infected)
+  data_part$is_infectious       <- as.numeric(data_part$is_infectious)
+  data_part$is_recovered        <- as.numeric(data_part$is_recovered)
+  data_part$is_immune           <- as.numeric(data_part$is_immune)
+  data_part$start_symptomatic   <- as.numeric(data_part$start_symptomatic)
+  data_part$end_infectiousness  <- as.numeric(data_part$end_infectiousness)
+  
+  
+  
+  
+  data_cnt$sim_date <- data_cnt$sim_day + as.Date(unique(project_summary$start_date))
+  
+  # # specific summary
+  # # summary_table                <- as.data.frame.matrix(table(data_transm[,colname_date],data_transm[,colname_value]))
+  # summary_table                  <- dcast(data_cnt, formula('sim_date ~ exp_id'), value.var='ID', length)
+  # names(summary_table)           <- c('sim_date',paste(prefix,names(summary_table)[-1],sep='_'))
+  
+  table(data_part$exp_id)
+  
+  
+  ## COMMUNITY
+  flag_cnt <- data_cnt$cnt_prim_comm == 1 | data_cnt$cnt_sec_comm == 1
+  xx <- table(data_cnt$exp_id[flag_cnt],data_cnt$sim_date[flag_cnt])
+  xx  / 8010
+  
+  cnt_dates <- as.Date(colnames(xx))
+  com_cnt_pp <- xx / 8010
+  
+  flag_pre_lockdown <- cnt_dates < as.Date("2020-03-13")
+  flag_lockdown     <- cnt_dates %in% as.Date("2020-03-14"):as.Date("2020-05-03")
+  flag_exit_p1      <- cnt_dates %in% as.Date("2020-05-04"):as.Date("2020-05-09")
+  flag_exit_p2      <- cnt_dates %in% as.Date("2020-05-10"):as.Date("2020-05-20")
+  flag_exit_p3      <- cnt_dates %in% as.Date("2020-05-25"):as.Date("2020-05-27")
+  
+  
+  
+  mean(com_cnt_pp[,flag_pre_lockdown])
+  mean(com_cnt_pp[,flag_lockdown])
+  cnt_base <- mean(com_cnt_pp[,flag_lockdown])*(1/0.15)
+  
+  apply(com_cnt_pp[,flag_exit_p1],1,mean) / cnt_base
+  apply(com_cnt_pp[,flag_exit_p2],1,mean) / cnt_base
+  apply(com_cnt_pp[,flag_exit_p3],1,mean) / cnt_base
+  
+  
+  plot(as.Date(colnames(xx)),
+       xx[1,]/ 8010 ,ylim=range(xx/ 8010))
+  points(as.Date(colnames(xx)),
+       xx[2,]/ 8010 )
+  points(as.Date(colnames(xx)),
+         xx[3,]/ 8010)
+  points(as.Date(colnames(xx)),
+         xx[4,]/ 8010)
+  
+  ## COMBINED
+  flag_cnt <- data_cnt$cnt_prim_comm == 1 | data_cnt$cnt_sec_comm == 1 | data_cnt$cnt_hh_cluster == 1
+  yy <- table(data_cnt$exp_id[flag_cnt],data_cnt$sim_date[flag_cnt])
+  plot(as.Date(colnames(yy)),
+         yy[3,]/ 8010,
+         col=3) 
+  points(as.Date(colnames(yy)),
+         yy[2,]/ 8010,
+         col=2) 
+  
+  points(as.Date(colnames(yy)),
+         yy[1,]/ 8010,
+         col=1) 
+  
+ ## HH BUBBLE
+  flag_cnt <- data_cnt$cnt_hh_cluster == 1
+  zz <- table(data_cnt$exp_id[flag_cnt],data_cnt$sim_date[flag_cnt])
+    
+}
 
 
