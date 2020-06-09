@@ -177,6 +177,8 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
     }
   }
 
+  auto& logger       = pop->RefContactLogger();
+
 #ifndef NDEBUG
   unsigned int n_days = m_unitest_planning.size();
 
@@ -187,6 +189,8 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
         enlisted_pop += pool.GetIndividuals().size();
     }
   }
+  logger->info("[UNIVERSAL] Enlisted vs total pop: {} vs {}",
+               enlisted_pop, pop->size());
   assert(enlisted_pop == pop->size());
 
   //test: check that the pools' size does not exceed m_unitest_pool_size
@@ -195,16 +199,19 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
   int leftover_pools = 0;
   for (unsigned int day = 0; day < n_days; ++day) {
     for (const auto& pool : m_unitest_planning[day]) {
+        logger->info("[UNIVERSAL] Pool size: {}", pool.GetIndividuals().size());
         assert(pool.GetIndividuals().size() <= m_unitest_pool_size);
         if (pool.GetIndividuals().size() < m_unitest_pool_size) {
             leftover_pools += 1;
         }
     }
   }
-  std::cerr << "DEBUG: leftover_pools: " << leftover_pools << std::endl; 
+  logger->info("[UNIVERSAL] Leftover pools: {}", leftover_pools);
 
   //test: verify that the number of daily tests is not exceeded
   for (unsigned int day = 0; day < n_days; ++day) {
+    logger->info("[UNIVERSAL] Daily tests {} on day {} vs budget {}",
+            m_unitest_planning[day].size(), day, m_unitest_n_tests_per_day);
     assert(m_unitest_planning[day].size() <= m_unitest_n_tests_per_day);
   }
 #endif 
