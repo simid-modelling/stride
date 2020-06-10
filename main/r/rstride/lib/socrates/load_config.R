@@ -16,7 +16,6 @@
 
 # Explicit loading of the packages (fix for www.shinyapps.io)
 library('socialmixr')
-library('npsp')
 library('countrycode')
 library('data.table')
 library(shiny)
