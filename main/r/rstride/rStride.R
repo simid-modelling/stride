@@ -65,7 +65,8 @@ rStride_functions <- ls()
 #' @param num_parallel_workers      number of parallel workers (NA = use default settings)
 run_rStride <- function(exp_design               = exp_design, 
                         dir_postfix              = '',
-                        ignore_stdout            = TRUE, 
+                        stdout_fn                = "", 
+                        stderr_fn                = "", 
                         parse_log_data           = TRUE,
                         get_csv_output           = FALSE,
                         remove_run_output        = TRUE,
@@ -77,7 +78,8 @@ run_rStride <- function(exp_design               = exp_design,
   
   # debug
   if(0==1){
-    attach(list(ignore_stdout            = FALSE, 
+    attach(list(stdout_fn                = "stdout", 
+                stderr_fn                = "stderr", 
                 parse_log_data           = TRUE,
                 get_csv_output           = FALSE,
                 remove_run_output        = TRUE,
@@ -201,7 +203,16 @@ run_rStride <- function(exp_design               = exp_design,
                        config_exp_filename <- .rstride$save_config_xml(config_exp,'run',config_exp$output_prefix)
 
                        # run stride (using the C++ Controller)
-                       system(paste(stride_bin,config_opt,paste0('../',config_exp_filename)),ignore.stdout=ignore_stdout)
+                       cmd = paste(stride_bin,config_opt, paste0("../", config_exp_filename))
+                       out_dir = paste0(config_exp$output_prefix)
+                       if(stderr_fn != "") {
+                        cmd = paste(cmd, paste0(" 2> ",out_dir,"/",stderr_fn)) 
+                       }
+                       if(stdout_fn != "") {
+                        cmd = paste(cmd, paste0(" > ",out_dir,"/",stdout_fn)) 
+                       }
+                       smd_print("cmd:",cmd)
+                       system(cmd)
 
                        # load output summary
                        summary_filename <- file.path(config_exp$output_prefix,'summary.csv')
