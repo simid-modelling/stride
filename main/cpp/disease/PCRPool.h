@@ -28,7 +28,7 @@ class Person;
 class PCRPool 
 {
 public:
-        PCRPool() {}
+        PCRPool():m_individuals() {}
         
         void AddIndividual(Person* p) { return m_individuals.push_back(p); }
 
