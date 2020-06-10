@@ -42,6 +42,7 @@ PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),
 	        m_unitest_pool_allocation(),
 		m_unitest_fnr(0.0), m_unitest_n_tests_per_day(0), m_unitest_pool_size(0),
 	        m_unitest_test_compliance(0.0), m_unitest_isolation_compliance(0.0),
+	        m_unitest_planning(),
 		m_detection_probability(0),
 		m_case_finding_efficency(0),m_case_finding_capacity(0),m_delay_testing(0),m_delay_contact_tracing(0),
 		m_test_false_negative(0), m_identify_all_cases(false), m_school_system_adjusted(false)
