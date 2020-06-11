@@ -67,7 +67,7 @@ inspect_prevalence_data <- function(project_dir)
   
   sim_dates_opt <- list(sim_dates_all,
                         c(as.Date("2020-03-01"),as.Date("2020-03-15")),
-                        c(as.Date("2020-04-20"),as.Date("2020-06-05")))
+                        c(as.Date("2020-05-18"),as.Date("2020-06-15")))
   
   for(sim_dates in sim_dates_opt){
     

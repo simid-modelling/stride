@@ -65,11 +65,9 @@ get_exp_param_default <- function(bool_child_param = FALSE){
    # change parameters if childrens infectiousness is 1/2 compared to adults
    if(bool_child_param){ #best fit on 2020-06-07
      out$disease_config_file <- "disease_covid19_child.xml"
-     out$cnt_reduction_workplace <- 0.75
-     out$cnt_reduction_other     <- 0.90
-     out$hosp_probability_factor <- 0.85
-     out$cnt_reduction_workplace_exit  = seq(0.55,0.75,0.1)
-     out$cnt_reduction_other_exit      = c(0.75,0.85,0.9)
+     out$cnt_reduction_workplace <- 0.85
+     out$cnt_reduction_other     <- 0.87
+     out$hosp_probability_factor <- 0.80
    }
    
    # return parameters

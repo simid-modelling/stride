@@ -226,6 +226,16 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   .rstride$create_pdf(project_dir,'incidence_inspection_zoom',width = 6, height = 7)
   par(mfrow=c(4,1))
   
+  # select subset
+  flag_dates <- data_incidence_sel$sim_date %in% (as.Date("2020-05-20"):as.Date("2020-06-20"))
+  data_incidence_sel <- data_incidence_all[flag_dates,]
+  # data_incidence_sel <- data_incidence_all[data_incidence_sel$sim_date > median(data_incidence_sel$sim_date,na.rm=TRUE),]
+  
+  # plot
+  plot_incidence_data(data_incidence_sel,project_summary,
+                      hosp_adm_data,input_opt_design,prevalence_ref,
+                      bool_add_param)
+  
   head(data_incidence_all)
   opt_config_id <- unique(data_incidence_all$config_id)
   i_config <- opt_config_id[1]
@@ -499,7 +509,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
         col=alpha(pcolor$H,pcolor$alpha))
   # points(hosp_adm_data$date,hosp_adm_data$num_adm,col=pcolor$D,pch=pcolor$pch)
   add_breakpoints()
-  add_legend_prevalence(pcolor)
+  add_legend_incidence(pcolor)
   
   ## CUMULATIVE: ALL STATES ####
   y_lim <- pretty(data_incidence_sel$cumulative_infections)
@@ -530,7 +540,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
     add_legend_runinfo(project_summary,input_opt_design,
                        unique(data_incidence_sel$config_id))
   } else {
-    add_legend_prevalence(pcolor,legend_pos = 'topleft')
+    add_legend_incidence(pcolor,legend_pos = 'topleft')
   }
   
 
@@ -587,27 +597,27 @@ add_vertical_line <- function(date_string){
 add_legend_hosp <- function(pcolor){
   legend('topleft',
          c('Reported',
-           'Predictions'),
+           'Simulation'),
          col=c(pcolor$D,pcolor$H),
          pch=c(16,NA),
          lwd=c(NA,2),
          bg='white',
          cex = 0.6,
-         ncol=2)
+         ncol=1)
 }
 
 # define the legend with all categories
-add_legend_prevalence <- function(pcolor,legend_pos = 'topright'){
+add_legend_incidence <- function(pcolor,legend_pos = 'topright'){
   
   legend(legend_pos,
-         c('Infections',
-           'Infectious',
-           'Symptomatic',
-           'Hospitalized'),
-         col=unlist(pcolor)[1:4],
-         lwd=2,
-         cex=0.6,
-         bg='white')
+           c('Exposed (latent)',
+             'Infectious',
+             'Symptomatic',
+             'Hospitalized'),
+           col=unlist(pcolor),
+           lwd=2,
+           cex=0.6,
+           bg='white')
 }
 
 add_legend_runinfo <- function(project_summary,input_opt_design,
@@ -619,34 +629,12 @@ add_legend_runinfo <- function(project_summary,input_opt_design,
   # subset project summary
   project_summary_sel <- project_summary[project_summary$config_id %in% i_config,]
   
-  # get lockdown info
-  calendar_file <- unique(project_summary_sel$holidays_file)
-  opt_calendar <- 'none'
-  opt_calendar <- ifelse(grepl('march',calendar_file),'untill April 5th',opt_calendar)
-  opt_calendar <- ifelse(grepl('april',calendar_file),'untill April 19th',opt_calendar)
-  opt_calendar <- ifelse(grepl('may',calendar_file),'untill May 3th',opt_calendar)
-  opt_calendar <- ifelse(grepl('july',calendar_file),'untill June 30th',opt_calendar)
-  
-  # get other run info: population, calendar, distancing measures
-  run_info <- c(paste0('pop_size = ',unique(project_summary_sel$population_size)/1e3,'k'),
-                paste0('distancing = ',opt_calendar)
-  )
-  
-  if(any(opt_calendar != 'none')){
-    run_info <- c(run_info,
-                  paste0('telework_prob = ',paste(unique(project_summary_sel$telework_probability),collapse=', ')),
-                  paste0('cnt_reduction_workplace = ',paste(unique(project_summary_sel$cnt_reduction_workplace),collapse=", ")),
-                  paste0('compliance_delay_workplace = ',paste(unique(project_summary_sel$compliance_delay_workplace),collapse=", ")),
-                  paste0('cnt_reduction_other = ',paste(unique(project_summary_sel$cnt_reduction_other),collapse=", ")),
-                  paste0('compliance_delay_other = ',paste(unique(project_summary_sel$compliance_delay_other),collapse=", "))
-    )
-  }
-  
-  # add other exp_design parameters (excl. holiday file)
+  # get run info: population
+  run_info <- c(paste0('pop_size = ',unique(project_summary_sel$population_size)/1e3,'k'))
+
+  # add other exp_design parameters (excl. ids)
   names_exp_param <- colnames(input_opt_design)
-  flag_col        <- names_exp_param %in% c('telework_prob','cnt_reduction_work',
-                                            'cnt_reduction_other','compliance_delay',
-                                            'holidays_file','config_id')
+  flag_col        <- names_exp_param %in% c('config_id','contact_id','tracing_id')
   names_exp_param <- names_exp_param[!flag_col]
   if(length(names_exp_param)>0){
     for(i_name in names_exp_param){
