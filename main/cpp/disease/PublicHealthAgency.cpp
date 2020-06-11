@@ -136,7 +136,7 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
     CSV allocation(m_unitest_pool_allocation);
     size_t georegion_idx = allocation.GetIndexForLabel("province");
     size_t pool_id_idx = allocation.GetIndexForLabel("pool_id");
-    size_t household_id_idx = allocation.GetIndexForLabel("houshold_id");
+    size_t household_id_idx = allocation.GetIndexForLabel("household_id");
     for (const auto& row : allocation) {
         std::string georegion = row.GetValue(georegion_idx);
         int pool_id = row.GetValue<int>(pool_id_idx);
