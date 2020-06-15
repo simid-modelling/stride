@@ -180,6 +180,7 @@ if(length(diff_summary)>0){
 diff_incidence  <- setdiff(data_incidence,ref_data_incidence)
 if(length(diff_incidence)>0){ 
   smd_print("INCIDENCE CHANGED",WARNING = T)
+  smd_print(names(diff_incidence),WARNING = T)
   #print(head(diff_incidence))
 } else{
   smd_print("INCIDENCE OK")
@@ -206,7 +207,7 @@ rrv <- function(){
 }
 
 # update the rstride reference values in the repo (note: local function for LW)
-update_rrv_repo <- function(){
+rrv_repo <- function(){
   stride_repo_dir <- 'tests'
   stride_repo_dir <- '~/Documents/university/research/stride/repo/stride_lw/main/resources/rstride_test'
   saveRDS(project_summary,file=file.path(stride_repo_dir,'regression_rstride_summary.rds'))

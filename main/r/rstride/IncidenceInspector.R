@@ -125,7 +125,6 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   head(prevalence_ref)
   pop_size_be <- 11e6  #TODO: use universal variable
   
-  
   i_exp <- 1  
   # loop over each experiment
   for(i_exp in unique(data_incidence_all$exp_id)){
@@ -375,7 +374,8 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
                                 hosp_adm_data,input_opt_design,prevalence_ref,
                                 bool_add_param,
                                 bool_add_axis4 = TRUE,
-                                bool_only_hospital_adm = FALSE){
+                                bool_only_hospital_adm = FALSE,
+                                bool_seroprev_limited = FALSE){
 
   # change figure margins
   if(!bool_only_hospital_adm){
@@ -540,12 +540,15 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
     add_legend_runinfo(project_summary,input_opt_design,
                        unique(data_incidence_sel$config_id))
   } else {
-    add_legend_incidence(pcolor,legend_pos = 'topleft')
+    add_legend_incidence(pcolor,legend_pos = 'topleft',bool_seroprevalence=TRUE)
   }
   
 
   ## add reference
   prevalence_selection <- as.Date(c('2020-03-15','2020-04-1','2020-04-15','2020-05-01'))
+  if(bool_seroprev_limited){
+    prevalence_selection <- as.Date(c('2020-03-30','2020-04-20'))
+  }
   flag_prevalence <- prevalence_ref$date %in% prevalence_selection
   #points(prevalence_selection,prevalence_ref$mean[flag_prevalence]*pop_size_be,pch=8)
   arrows(prevalence_selection,prevalence_ref$min[flag_prevalence]*pop_size_be,
@@ -559,26 +562,26 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
 } # end function to plot figure
 
 # define the vertical breaks on the plots
-add_breakpoints <- function(){
+add_breakpoints <- function(bool_text=TRUE){
   
   # add start intervention
-  add_vertical_line("2020-03-14")
+  add_vertical_line("2020-03-14",bool_text)
   
   # # add today
   # add_vertical_line(Sys.Date())
   
   # add scenario date (exit wave 1)
-  add_vertical_line("2020-05-04")
+  add_vertical_line("2020-05-04",bool_text)
   
   # add scenario date (exit wave 2)
-  add_vertical_line("2020-05-18")
+  add_vertical_line("2020-05-18",bool_text)
   
   # add scenario date (summer holiday)
-  add_vertical_line("2020-07-01")
+  add_vertical_line("2020-07-01",bool_text)
 }
 
 # add vertical line on given date + label on x-axis
-add_vertical_line <- function(date_string){
+add_vertical_line <- function(date_string,bool_text){
   
   plot_limits <- par("usr")
   
@@ -586,10 +589,13 @@ add_vertical_line <- function(date_string){
   abline(v=v_date,lty=2)
   #axis(1,v_date,format(v_date,'%d/%m'),
        #cex.axis=0.5,padj=-3,tck=-0.005)
-  text(x = v_date,
+  if(bool_text)
+  {
+    text(x = v_date,
        y = mean(plot_limits[3:4]),
        format(v_date,'%d/%m'),
        srt=90, pos=3, offset = +1.5,cex=0.6)
+  }
 }
   
 
@@ -607,17 +613,30 @@ add_legend_hosp <- function(pcolor){
 }
 
 # define the legend with all categories
-add_legend_incidence <- function(pcolor,legend_pos = 'topright'){
+add_legend_incidence <- function(pcolor,legend_pos = 'topright',bool_seroprevalence=FALSE){
+  
+  legend_text <- c('Exposed (latent)',
+                   'Infectious',
+                   'Symptomatic',
+                   'Hospitalized')
+  legend_col <- unlist(pcolor)
+  legend_pch <- rep(NA,length(legend_text))
+  legend_lwd <- rep(2,length(legend_text))
+  
+  if(bool_seroprevalence){
+    legend_text <- c(legend_text,'Seroprevalence')
+    legend_col  <- c(legend_col,1)
+    legend_pch  <- c(legend_pch,124)
+    legend_lwd  <- c(legend_lwd,NA)
+  }
   
   legend(legend_pos,
-           c('Exposed (latent)',
-             'Infectious',
-             'Symptomatic',
-             'Hospitalized'),
-           col=unlist(pcolor),
-           lwd=2,
-           cex=0.6,
-           bg='white')
+         legend_text,
+         col=legend_col,
+         pch=legend_pch,
+         lwd=legend_lwd,
+         cex=0.6,
+         bg='white')
 }
 
 add_legend_runinfo <- function(project_summary,input_opt_design,
