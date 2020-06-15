@@ -161,7 +161,7 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
     
     unsigned int n_days = ceil(pop->size() / (float)(m_unitest_n_tests_per_day * m_unitest_pool_size));
     for (unsigned int day = 0; day < n_days; ++day) {
-        m_unitest_planning[day] = std::set<PCRPool>();
+        m_unitest_planning.push_back(std::set<PCRPool>());
     }
 
     for (const auto& key_val: pools_per_georegion) {
