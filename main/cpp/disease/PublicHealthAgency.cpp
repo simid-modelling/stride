@@ -142,13 +142,13 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
         int pool_id = row.GetValue<int>(pool_id_idx);
 
         //if the georegion is not yet in the map, introduce it 
-        if (pools_per_georegion.find(georegion) != pools_per_georegion.end()) {
+        if (pools_per_georegion.find(georegion) == pools_per_georegion.end()) {
             pools_per_georegion[georegion] = std::map<int,PCRPool>();
         }
         auto& pools = pools_per_georegion[georegion];
 
         //if the PCR pool is not yet in the map, introduce it 
-        if (pools.find(pool_id) != pools.end()) {
+        if (pools.find(pool_id) == pools.end()) {
             pools[pool_id] = PCRPool();
         }
         auto& pool = pools[pool_id];
