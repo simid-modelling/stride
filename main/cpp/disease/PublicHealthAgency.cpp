@@ -178,8 +178,6 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
     }
   }
 
-  auto& logger       = pop->RefContactLogger();
-
 #ifndef NDEBUG
   unsigned int n_days = m_unitest_planning.size();
 
@@ -190,29 +188,34 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
         enlisted_pop += pool.GetIndividuals().size();
     }
   }
-  logger->info("[UNIVERSAL] Enlisted vs total pop: {} vs {}",
-               enlisted_pop, pop->size());
+  std::cerr << "[UNIVERSAL] Enlisted vs total pop:"
+      << enlisted_pop << " vs " << pop->size() << std::endl;
   assert(enlisted_pop == pop->size());
 
   //test: check that the pools' size does not exceed m_unitest_pool_size
   //test: report the nr of pools that are not completely full 
   //        (i.e., leftover_pools, there should not be many of them)
   int leftover_pools = 0;
+  int filled_pools = 0;
   for (unsigned int day = 0; day < n_days; ++day) {
     for (const auto& pool : m_unitest_planning[day]) {
-        logger->info("[UNIVERSAL] Pool size: {}", pool.GetIndividuals().size());
         assert(pool.GetIndividuals().size() <= m_unitest_pool_size);
         if (pool.GetIndividuals().size() < m_unitest_pool_size) {
             leftover_pools += 1;
+        } else {
+            filled_pools += 1;
         }
     }
   }
-  logger->info("[UNIVERSAL] Leftover pools: {}", leftover_pools);
+  std::cerr << "[UNIVERSAL] Leftover pools: " << leftover_pools << std::endl;
+  std::cerr << "[UNIVERSAL] Filled pools: " << filled_pools << std::endl;
 
   //test: verify that the number of daily tests is not exceeded
   for (unsigned int day = 0; day < n_days; ++day) {
-    logger->info("[UNIVERSAL] Daily tests {} on day {} vs budget {}",
-            m_unitest_planning[day].size(), day, m_unitest_n_tests_per_day);
+    std::cerr << "[UNIVERSAL]"
+        << " Daily tests " << m_unitest_planning[day].size()
+        << " on day " << day
+        << " vs budget " <<  m_unitest_n_tests_per_day << std::endl;
     assert(m_unitest_planning[day].size() <= m_unitest_n_tests_per_day);
   }
 #endif 
