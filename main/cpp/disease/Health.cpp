@@ -49,10 +49,15 @@ void Health::StartInfection(unsigned int id_index_case, unsigned int id_infector
         m_id_infector   = id_infector;
 }
 
-bool Health::SymptomsStartedDaysBefore(unsigned int days_before) const
+bool Health::NumberDaysSymptomatic(unsigned int days_before) const
 {
 	return ((GetDiseaseCounter() - days_before ) == m_start_symptomatic) &&
 			m_start_symptomatic != m_end_symptomatic;
+}
+
+bool Health::NumberDaysInfected(unsigned int days_before) const
+{
+	return GetDiseaseCounter() == days_before;
 }
 
 void Health::StopInfection()

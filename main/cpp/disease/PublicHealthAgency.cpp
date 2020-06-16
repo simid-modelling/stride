@@ -27,6 +27,7 @@
 #include "util/StringUtils.h"
 
 #include <boost/property_tree/ptree.hpp>
+#include <algorithm>
 
 namespace stride {
 
@@ -37,25 +38,29 @@ using namespace std;
 
 // Default constructor
 PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),m_detection_probability(0),
-		m_case_finding_efficency(0),m_case_finding_capacity(0),m_delay_testing(0),m_delay_contact_tracing(0),
-		m_test_false_negative(0), m_identify_all_cases(false), m_school_system_adjusted(false)
+		m_tracing_efficency_household(0),m_tracing_efficency_other(0),m_case_finding_capacity(0),m_delay_isolation_index(0),m_delay_contact_tracing(0),
+		m_test_false_negative(0),  m_school_system_adjusted(false)
 	{}
 
 void PublicHealthAgency::Initialize(const ptree& config){
-	m_telework_probability   = config.get<double>("run.telework_probability",0);
-	m_detection_probability  = config.get<double>("run.detection_probability",0);
-	m_case_finding_efficency = config.get<double>("run.case_finding_efficency",0);
+	m_telework_probability        = config.get<double>("run.telework_probability",0);
+	m_detection_probability       = config.get<double>("run.detection_probability",0);
+	m_tracing_efficency_household = config.get<double>("run.tracing_efficency_household",0);
+	m_tracing_efficency_other     = config.get<double>("run.tracing_efficency_other",0);
+
 	m_case_finding_capacity  = config.get<unsigned int>("run.case_finding_capacity",0);
 
-	m_delay_testing          = config.get<unsigned int>("run.delay_testing",3);
+	m_delay_isolation_index          = config.get<unsigned int>("run.delay_isolation_index",3);
 	m_delay_contact_tracing  = config.get<unsigned int>("run.delay_contact_tracing",1);
 	m_test_false_negative    = config.get<double>("run.test_false_negative",0.3);
-	m_identify_all_cases     = config.get<unsigned int>("run.identify_all_cases",1) == 1;
 
 	m_school_system_adjusted = config.get<unsigned int>("run.school_system_adjusted",0) == 1;
 
 	// account for false negative tests
-	m_detection_probability  *= (1-m_test_false_negative);
+	m_detection_probability        *= (1.0 - m_test_false_negative);
+	m_tracing_efficency_household  *= (1.0 - m_test_false_negative);
+	m_tracing_efficency_other      *= (1.0 - m_test_false_negative);
+
 }
 
 void PublicHealthAgency::SetTelework(std::shared_ptr<Population> pop, util::RnMan& rnMan)
@@ -113,84 +118,112 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
                                             unsigned short int simDay)
 {
 
-//	cout << m_detection_probability << " -- "<< m_case_finding_efficency << " ** " << m_case_finding_capacity << endl;
-
 	// perform case finding, only if the probability is > 0.0
 	if (m_detection_probability <= 0.0) {
 			return;
 	}
 
-	using namespace ContactType;
+	//cout << m_detection_probability << " -- "<< m_tracing_efficency_household << " -- "<< m_tracing_efficency_other << " ** " << m_case_finding_capacity << endl;
+
 	auto  uniform01Gen = rnMan.GetUniform01Generator(0U);
 	auto& logger       = pop->RefContactLogger();
 
-	/// To allow iteration over pool types for the PublicHealthAgency.
-	std::initializer_list<Id> AgencyPoolIdList{Id::Household, Id::Workplace, Id::K12School, Id::College, Id::HouseholdCluster};
+	/// Mark index cases for track&trace
+	for (auto& p_case : *pop) {
 
-	/// Start counting tested cases
+		if(p_case.GetHealth().NumberDaysInfected(1) &&
+				uniform01Gen() < m_detection_probability) {
+			p_case.SetTracingIndexCase();
+		}
+
+	}
+
+	/// Set counter for index cases
 	unsigned int num_index_cases = 0;
 
+	/// Loop over the population to find index cases on day X after symptom onset
 	for (auto& p_case : *pop) {
-			if (p_case.GetHealth().SymptomsStartedDaysBefore(m_delay_testing) &&
-					!p_case.GetHealth().IsInIsolation() &&
-					uniform01Gen() < m_detection_probability) {
 
-				// set case in quarantine
-				p_case.GetHealth().StartIsolation(0);
+		if (p_case.IsTracingIndexCase() && p_case.GetHealth().NumberDaysSymptomatic(m_delay_isolation_index)	) {
 
-				unsigned int num_potential_contacts = 0;
+			// set index case in quarantine
+			p_case.GetHealth().StartIsolation(0);
 
-				// loop over his/her contacts
-				for (Id typ : AgencyPoolIdList) {
+			// counter for number of contacts tested
+			unsigned int num_contacts_tested = 0;
+
+			// get contact register and iterator
+			vector<Person*> cnt_register = p_case.GetContactRegister();
+			vector<Person*>::iterator ip;
+
+			// cout << p_case.GetId() << ": size (orig) " <<  cnt_register.size() << endl;
+
+			// Sorting the vector, get the unique elements, and remove the others
+			std::sort(cnt_register.begin(), cnt_register.end());
+			ip = std::unique(cnt_register.begin(), cnt_register.end());
+			cnt_register.resize(std::distance(cnt_register.begin(), ip));
+
+			// cout << p_case.GetId() << ": size (unique) " <<  cnt_register.size() << endl;
+
+			// loop over contact register
+			for (ip = cnt_register.begin(); ip != cnt_register.end(); ++ip) {
 
 
-					const auto& pools  = pop->CRefPoolSys().CRefPools(typ);
-					const auto  poolId = p_case.GetPoolId(typ);
-					if (poolId == 0) {
-							continue;
+				Person* p_contact = *ip;
+
+				// combine contact tracing efficiency and false negative rate
+				double tracing_efficency = m_tracing_efficency_other;
+
+				// set default poolType as "other
+				std::string poolTypeString = "School";
+
+				// if contact is part of same household, change tracing efficiency and poolType
+				if(p_contact->GetPoolId(Id::Household) == p_case.GetPoolId(Id::Household)){
+					poolTypeString    = ToString(Id::Household);
+					tracing_efficency = m_tracing_efficency_household;
+				}
+
+				// if contact is part of same community, change poolType
+				if(p_contact->GetPoolId(Id::PrimaryCommunity) == p_case.GetPoolId(Id::PrimaryCommunity)||
+						p_contact->GetPoolId(Id::SecondaryCommunity) == p_case.GetPoolId(Id::SecondaryCommunity)){
+					poolTypeString    = "Community";
+				}
+
+				// if contact is part of same workplace, change poolType
+				if(p_case.GetPoolId(Id::Workplace) != 0 &&
+						p_contact->GetPoolId(Id::Workplace) == p_case.GetPoolId(Id::Workplace)){
+					poolTypeString    = "Workplace";
+				}
+
+				if(uniform01Gen() < tracing_efficency){
+
+					if(p_contact->GetHealth().IsInfected()){
+						// start isolation over X days
+						p_contact->GetHealth().StartIsolation(m_delay_contact_tracing);
+
+						// add to log (TODO: check log_level)
+						logger->info("[TRACE] {} {} {} {} {} {} {} {} {} {}",
+								p_contact->GetId(), p_contact->GetAge(),
+								p_contact->GetHealth().IsInfected(),
+								p_contact->GetHealth().IsSymptomatic(),
+								poolTypeString, p_case.GetId(),
+								p_case.GetAge(), simDay, -1, -1);
 					}
+					// increment contact counter
+					num_contacts_tested++;
+				}
+			}
 
-					//TODO: skip contact tracing if more than 50p present in this pool
-					if (pools[poolId].GetPool().size() > 50) {
-							continue;
-					}
-
-					for (const auto& p_member : pools[poolId].GetPool()) {
-						if (p_case != *p_member &&
-								(typ == Id::Household || typ == Id::HouseholdCluster ||
-										uniform01Gen() < m_case_finding_efficency)) {
-
-								// start quarantine measure if infected, no false negative and linked with index cases (optional)
-								if(p_member->GetHealth().IsInfected() &&
-										(m_identify_all_cases || p_member->GetHealth().GetIdInfector() == p_case.GetId()) &&
-										uniform01Gen() < (1-m_test_false_negative)){
-
-//									std::cout << "case found!!" << std::endl;
-									p_member->GetHealth().StartIsolation(m_delay_contact_tracing);
-
-									// TODO: check log_level
-									logger->info("[TRACE] {} {} {} {} {} {} {} {} {} {}",
-												 p_member->GetId(), p_member->GetAge(),
-												 p_member->GetHealth().IsInfected(),
-												 p_member->GetHealth().IsSymptomatic(),
-												 ToString(typ), poolId, p_case.GetId(),
-												 p_case.GetAge(), simDay, -1);
-								}
-
-								num_potential_contacts++;
-						} // end if clause
-				} // end for-loop: pool members
-			} // end for-loop: pool types
-
+			// Log index case
 			// TODO: check log_level
 			logger->info("[TRACE] {} {} {} {} {} {} {} {} {} {}",
 						 p_case.GetId(), p_case.GetAge(),
 						 p_case.GetHealth().IsInfected(),
 						 p_case.GetHealth().IsSymptomatic(),
-						 -1, -1, p_case.GetId(),
-						 p_case.GetAge(), simDay, num_potential_contacts);
+						 "Index", p_case.GetId(),
+						 p_case.GetAge(), simDay, cnt_register.size(), num_contacts_tested);
 
-			// update counter and end if limit is reached
+			// update index case counter, and terminate if quota is reached
 			num_index_cases++;
 			if(num_index_cases >= m_case_finding_capacity){
 				return;

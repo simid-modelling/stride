@@ -56,12 +56,12 @@ public:
 private:
         double m_telework_probability;    ///< Probability to perform telework (or equivalent) //TODO rename "telework"
         double m_detection_probability;   ///< Detection probability of symptomatic cases.
-        double m_case_finding_efficency;  ///< Detection probability of infected cases during case finding
+        double m_tracing_efficency_household;  ///< Tracing probability for household members
+        double m_tracing_efficency_other;      ///< Tracing probability for non-household members
         unsigned int m_case_finding_capacity;  ///< Maximum number of symptomatic cases with contact tracing per day
-        unsigned int m_delay_testing;         ///< Number of days after symptom onset to perform a clinical test
+        unsigned int m_delay_isolation_index;         ///< Number of days after symptom onset to perform a clinical test
         unsigned int m_delay_contact_tracing; ///< Number of days after clinical test to start contact tracing
 		double m_test_false_negative;         ///< False negative rate of PCR tests
-		bool m_identify_all_cases;            ///< Boolean to identify all cases in the network of the index, or only his/her secondary cases
 
 		bool m_school_system_adjusted;         ///< Apply adjusted school system for pre-, primary and secondary schools?
 };

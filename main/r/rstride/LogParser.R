@@ -224,7 +224,7 @@ if(0==1){
   if(data_log[V1 %in% c("[TRACE]"),.N]>0)
   {
     header_trace           <- c('local_id', 'part_age', 'is_infected', 'is_symptomatic','pool_type', 
-                                'pool_id', 'case_id','case_age','sim_day','num_contacts_tested')
+                                'case_id','case_age','sim_day','num_unique_contacts','num_contacts_tested')
     sel_cols             <- paste0('V',seq_len(length(header_trace))+1)
     data_tracing         <- data_log[V1 %in% "[TRACE]",..sel_cols]
     names(data_tracing)  <- header_trace

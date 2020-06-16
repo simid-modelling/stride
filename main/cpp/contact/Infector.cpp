@@ -256,6 +256,9 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                                 // log contact if person 2 is participating in survey
                                 LP::Contact(cLogger, p2, p1, pType, simDay, cProb, tProb * p2->GetHealth().GetRelativeTransmission(p1->GetAge()));
 
+                                // if track&trace is in place, option to register the contact
+                                p1->RegisterContact(p2);
+
                                 // transmission & infection.
                                 if (cHandler.HasTransmission(tProb * p1->GetHealth().GetRelativeTransmission(p2->GetAge()))) {
                                         auto& h1 = p1->GetHealth();

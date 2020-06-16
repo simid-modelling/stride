@@ -51,12 +51,16 @@ get_exp_param_default <- function(bool_child_param = FALSE){
                 cnt_reduction_intergeneration_cutoff = 65,
                 cnt_intensity_householdCluster = 0,
                 detection_probability          = 0,
-                case_finding_efficency         = 0.7,
+                tracing_efficency_household    = 1, 
+                tracing_efficency_other        = 0.7,
                 case_finding_capacity          = 10000, # no limit at this stage
-                delay_contact_tracing          = 3,
-                delay_testing                  = 1,
+                delay_isolation_index          = 3,
+                delay_contact_tracing          = 1,
                 test_false_negative            = 0.1,
                 cnt_other_exit_delay           = 21,
+               
+               # log level
+               contact_log_level         = "Transmission",
                 
                 # factor for parameter estimation and fitting
                 hosp_probability_factor        = 1

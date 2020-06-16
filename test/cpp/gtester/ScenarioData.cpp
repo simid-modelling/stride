@@ -56,7 +56,7 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
 		{"measles_26", 600000U},  {"r0_0", 1200U},     {"r0_4", 3400U},     {"r0_8", 9500U},
 		{"r0_12", 24000U},        {"r0_16", 47000U},   {"covid19_all", 84000U}, //{"covid19_15min", 158000U},
 		{"covid19_daily", 88000U},{"covid19_distancing", 19000U}, {"covid19_age_15min",92000U},
-		{"covid19_householdclusters", 49000U}, {"covid19_tracing",44000U}};
+		{"covid19_householdclusters", 49000U}, {"covid19_tracing",36000U}};
 
 	// Set margins per scenario
 	const map<string, double> margins_default = {
@@ -132,10 +132,12 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
 				pt.put("run.cnt_intensity_householdCluster", 4/7);
 	}
 	if (tag == "covid19_tracing") {
+		        pt.put("run.contact_log_level", "All");
 				pt.put("run.holidays_file", "calendar_belgium_2020_covid19_exit_school_adjusted.json");
 				pt.put("run.start_date", "2020-06-01");
 				pt.put("run.detection_probability", 0.5);
-				pt.put("run.case_finding_efficency", 0.7);
+				pt.put("run.tracing_efficency_household", 1.0);
+				pt.put("run.tracing_efficency_other", 0.7);
 				pt.put("run.test_false_negative", 0.1);
 				pt.put("run.case_finding_capacity", 1000U);
 

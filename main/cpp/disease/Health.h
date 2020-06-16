@@ -100,7 +100,10 @@ public:
         bool SymptomsStartedToday() const { return GetDiseaseCounter() == m_start_symptomatic; }
 
         /// Have the symptoms started X days before?
-        bool SymptomsStartedDaysBefore(unsigned int days_before) const;
+        bool NumberDaysSymptomatic(unsigned int days_before) const;
+
+        /// Is infected X days before?
+        bool NumberDaysInfected(unsigned int days_before) const;
 
         /// Set health state to immune.
         void SetImmune() { m_status = HealthStatus::Immune; }
@@ -175,7 +178,7 @@ private:
         double             m_rel_susceptibility_children;	   ///< Relative reduction in susceptibility for children vs. adults
 
         bool               m_is_isolated;             ///< Boolean to indicate whether this person is in self-isolation
-        unsigned short int m_start_isolation;         /// Days after infection to start self-isolation
+        unsigned short int m_start_isolation;         ///< Days after infection to start self-isolation
 };
 
 } // namespace stride

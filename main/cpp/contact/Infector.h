@@ -65,7 +65,7 @@ class ContactPool;
 /// Actual contacts and transmission in contactpool (primary template).
 /// \tparam LL          LogLevel
 /// \tparam TIC         TrackIndexCase
-/// \tparam LIP         LocalInformationPolicy
+/// \tparam TO          TransmissionOptimization
 template <ContactLogMode::Id LL, bool TIC, bool TO = UseOptimizedInfector<LL>::value>
 class Infector
 {

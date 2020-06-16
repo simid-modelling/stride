@@ -24,6 +24,9 @@ rm(list=ls())
 
 source('./bin/rstride/rStride.R')
 
+# set work dir
+.rstride$set_wd()
+
 # set directory name with results and get output files
 #dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200601_results'
 #dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200606_results'
@@ -291,10 +294,10 @@ polygon_legend_cex <- 0.8
 #colname_burden <- 'sec_cases'
 add_polygon <- function(scen_tag,colname_burden, scen_color,data_incidence){
   data_incidence <- data_incidence[grepl(scen_tag,data_incidence$scenario),]
-  #hosp_min       <- aggregate(formula(paste(colname_burden,'~ sim_date')), data=  data_incidence, min)
-  #hosp_max       <- aggregate(formula(paste(colname_burden,'~ sim_date')), data=  data_incidence, max)
-  hosp_min       <- aggregate(formula(paste(colname_burden,'~ sim_date')), data=  data_incidence, quantile,0.025)
-  hosp_max       <- aggregate(formula(paste(colname_burden,'~ sim_date')), data=  data_incidence, quantile,0.975)
+  hosp_min       <- aggregate(formula(paste(colname_burden,'~ sim_date')), data=  data_incidence, min)
+  hosp_max       <- aggregate(formula(paste(colname_burden,'~ sim_date')), data=  data_incidence, max)
+  # hosp_min       <- aggregate(formula(paste(colname_burden,'~ sim_date')), data=  data_incidence, quantile,0.025)
+  # hosp_max       <- aggregate(formula(paste(colname_burden,'~ sim_date')), data=  data_incidence, quantile,0.975)
   hosp_median    <- aggregate(formula(paste(colname_burden,'~ sim_date')), data=  data_incidence, median,na.rm=T)
   hosp_mean      <- aggregate(formula(paste(colname_burden,'~ sim_date')), data=  data_incidence, mean,na.rm=T)
   newx           <- c(hosp_min$sim_date,rev(hosp_max$sim_date))
@@ -318,7 +321,7 @@ get_incidence_reproduction_plot <- function(hosp_adm_data,plot_main,scen_tag,sce
   y_lim  <- c(0,700)
   x_lim  <- range(data_incidence_scenario$sim_date)
   
-  par(fig=c(0,1,0.3,1),mar=c(0,5,2,1))
+  par(fig=c(0,1,0.35,1),mar=c(0,5,2,1))
   plot(hosp_adm_data$date,hosp_adm_data$num_adm,pch=20,
        xaxt='n', yaxt='n',
        xlab = '',ylab='Hospital admissions',
@@ -329,11 +332,11 @@ get_incidence_reproduction_plot <- function(hosp_adm_data,plot_main,scen_tag,sce
   add_y_axis(y_lim)
   add_breakpoints()
   
-  par(fig=c(0,1,0,0.29),mar=c(3,5,0,1), new=TRUE)
+  par(fig=c(0,1,0,0.34),mar=c(3,5,0,1), new=TRUE)
   plot(0,0,pch=20,
        xaxt='n',yaxt='n',
        xlab = '',ylab='Re',
-       ylim = c(0,2.1),
+       ylim = c(0,4.1),
        xlim = x_lim,
        main='')
   add_polygon(scen_tag,'sec_cases',scen_color,data_incidence)
@@ -347,8 +350,8 @@ get_incidence_reproduction_plot <- function(hosp_adm_data,plot_main,scen_tag,sce
 ## POLYGONS FULL ----
 
 # reproduction number => remove burn-in and last 2 weeks
-data_incidence_scenario$sec_cases[data_incidence_scenario$sim_date > max(data_incidence_scenario$sim_date)-14] <- NA
-data_incidence_scenario$sec_cases[data_incidence_scenario$sim_date < min(data_incidence_scenario$sim_date)+14] <- NA
+#data_incidence_scenario$sec_cases[data_incidence_scenario$sim_date > max(data_incidence_scenario$sim_date)-14] <- NA
+#data_incidence_scenario$sec_cases[data_incidence_scenario$sim_date < min(data_incidence_scenario$sim_date)+14] <- NA
 
 pdf(smd_file_path(dir_results,paste0(output_tag,'_manuscript_polygon_full.pdf')),4,4)
 
@@ -493,7 +496,7 @@ dev.off()
 
 
 ## BASELINE ADULT ----
-project_dir_base     <- 'sim_output/20200608_232804_int1_baseline'
+project_dir_base     <- 'sim_output/20200615_175553_int1_baseline'
 project_summary_base <- .rstride$load_project_summary(project_dir_base)
 input_opt_base       <- .rstride$get_variable_model_param(project_summary_base)
 data_incidence_base  <- data_incidence_scenario[grepl('scen01',data_incidence_scenario$scenario),]
@@ -545,7 +548,7 @@ dev.off()
 
 
 ## BASELINE CHILD ----
-project_dir_base     <- 'sim_output/20200609_145437_int21_child_base'
+project_dir_base     <- 'sim_output/20200615_175609_int21_child_base'
 project_summary_base <- .rstride$load_project_summary(project_dir_base)
 input_opt_base       <- .rstride$get_variable_model_param(project_summary_base)
 data_incidence_base  <- data_incidence_scenario[grepl('scen21',data_incidence_scenario$scenario),]
