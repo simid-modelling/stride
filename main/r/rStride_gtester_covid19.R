@@ -112,7 +112,7 @@ exp_design_cts$contact_log_level            <- 'All'
 exp_design_cts$detection_probability        <- 0.5
 exp_design_cts$holidays_file                <- 'calendar_belgium_2020_covid19_exit_school_adjusted.json'
 exp_design_cts$start_date                   <- '2020-06-01'
-exp_design_cts$tracing_efficency_household  <- 0.7
+exp_design_cts$tracing_efficency_household  <- 1.0
 exp_design_cts$tracing_efficency_other      <- 0.7
 exp_design_cts$test_false_negative          <- 0.1
 exp_design_cts$case_finding_capacity        <- 1000
