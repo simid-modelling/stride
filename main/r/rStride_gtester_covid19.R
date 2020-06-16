@@ -108,7 +108,6 @@ exp_design_hhcl$gtester_label         <- 'covid_hhcl'
 
 # contact tracing
 exp_design_cts <- exp_design
-exp_design_cts$event_log_level              <- 'All'
 exp_design_cts$detection_probability        <- 0.5
 exp_design_cts$holidays_file                <- 'calendar_belgium_2020_covid19_exit_school_adjusted.json'
 exp_design_cts$start_date                   <- '2020-06-01'
@@ -119,8 +118,8 @@ exp_design_cts$case_finding_capacity        <- 1000
 exp_design_cts$gtester_label                <- 'covid_tracing'
 
 # rbind all designs
-exp_design <- rbind(exp_design,exp_design_daily, exp_design_dist,
-                    exp_design_15min, exp_design_hhcl, exp_design_cts)
+exp_design <- rbind(exp_design, exp_design_cts, exp_design_daily, exp_design_dist,
+                    exp_design_15min, exp_design_hhcl)
 
 # add a unique seed for each run
 set.seed(125)
@@ -182,13 +181,19 @@ if(length(diff_summary)>0){
   if(all(dim(project_summary) == dim(ref_project_summary))){
     flag <- rowSums(project_summary[,names(diff_summary)] != ref_project_summary[,names(diff_summary)])>0
     smd_print('EXP_ID with changes:', paste(unique(project_summary$gtester_label[flag]),collapse = ','))
-    # project_summary[flag,names(diff_summary)]
-    # ref_project_summary[flag,names(diff_summary)]
+    project_summary[flag,names(diff_summary)]
+    ref_project_summary[flag,names(diff_summary)]
+    
+    par(mfrow=c(1,2))
+    boxplot(num_cases ~ gtester_label,data=ref_project_summary)
+    boxplot(num_cases ~ gtester_label,data=project_summary,add=F,col=alpha(2,0.4))   
+
   }
   #print(head(diff_summary))
 } else{
   smd_print("SUMMARY OK")
 }
+
 
 ## COMPARE INCIDENCE
 diff_incidence  <- setdiff(data_incidence,ref_data_incidence)

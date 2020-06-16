@@ -39,7 +39,7 @@ using namespace EventLogMode;
 
 Sim::Sim()
     : m_config(), m_event_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
-      m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
+      m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector_transmission(),m_infector_contacts(),
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_workplace(0), m_cnt_reduction_other(0),
 	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
 	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),m_cnt_other_exit_delay(0),
@@ -72,7 +72,6 @@ void Sim::TimeStep()
         const bool isCollegeOff         = m_calendar->IsCollegeOff();
         const bool isWorkplaceDistancingEnforced   = m_calendar->IsWorkplaceDistancingEnforced();
         const bool isCommunityDistancingEnforced   = m_calendar->IsCommunityDistancingEnforced();
-        const bool isContactTracingActivated       = m_calendar->IsContactTracingActivated();
         const bool isHouseholdClusteringAllowed    = m_calendar->IsHouseholdClusteringAllowed();
 
         // skip all K12 schools?
@@ -122,9 +121,12 @@ void Sim::TimeStep()
 		// To be used in update of population & contact pools.
         Population& population    = *m_population;
         auto&       poolSys       = population.RefPoolSys();
-        auto        eventLogger = population.RefEventLogger();
+        auto        eventLogger   = population.RefEventLogger();
         const auto  simDay        = m_calendar->GetSimulationDay();
-        const auto& infector      = *m_infector;
+
+        // Select infector, based on tracing
+        const auto& infector      = m_public_health_agency.IsContactTracingActive(m_calendar) ? *m_infector_contacts : *m_infector_transmission;
+
 
         // set HouseholdCluster intensity
         double cnt_intensity_householdCluster = 0.0;
@@ -157,9 +159,7 @@ void Sim::TimeStep()
 			}
 
 			// Perform contact tracing (if activated)
-			if(isContactTracingActivated){
-				m_public_health_agency.PerformContactTracing(m_population, m_rn_man, simDay);
-			}
+			m_public_health_agency.PerformContactTracing(m_population, m_rn_man, m_calendar);
 
 			// Infector updates individuals for contacts & transmission within each pool.
 			// Skip pools with id = 0, because it means Not Applicable.

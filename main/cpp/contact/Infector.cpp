@@ -106,7 +106,7 @@ namespace {
 using namespace stride;
 using namespace stride::ContactType;
 
-inline double GetContactProbability(const AgeContactProfile& profile, const Person* p1,const Person* p2,
+inline double GetContactProbability(const AgeContactProfile& profile, const Person* p1, const Person* p2,
 		size_t pool_size, const ContactType::Id pType, double cnt_reduction_work, double cnt_reduction_other,
 		double cnt_reduction_school, double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff,
 		std::shared_ptr<Population> population, double cnt_intensity_householdCluster)
@@ -256,26 +256,32 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                                 // log contact if person 2 is participating in survey
                                 LP::Contact(eventLogger, p2, p1, pType, simDay, cProb, tProb * p2->GetHealth().GetRelativeTransmission(p1->GetAge()));
 
-                                // if track&trace is in place, option to register the contact
+                                // if track&trace is in place, option to register (both) contact(s)
                                 p1->RegisterContact(p2);
+                                p2->RegisterContact(p1);
 
                                 // transmission & infection.
-                                if (cHandler.HasTransmission(tProb * p1->GetHealth().GetRelativeTransmission(p2->GetAge()))) {
-                                        auto& h1 = p1->GetHealth();
-                                        auto& h2 = p2->GetHealth();
-                                        // No secondary infections with TIC; just mark p2 'recovered'
-                                        if (h1.IsInfectious() && h2.IsSusceptible()) {
-                                                h2.StartInfection(h1.GetIdIndexCase(),p1->GetId());
-                                                if (TIC)
-                                                        h2.StopInfection();
-                                                LP::Trans(eventLogger, p1, p2, pType, simDay, h1.GetIdIndexCase());
-                                        } else if (h2.IsInfectious() && h1.IsSusceptible()) {
-                                                h1.StartInfection(h2.GetIdIndexCase(),p2->GetId());
-                                                if (TIC)
-                                                        h1.StopInfection();
-                                                LP::Trans(eventLogger, p2, p1, pType, simDay, h2.GetIdIndexCase());
-                                        }
-                                }
+                                // note: no tertiary infections with TIC; so mark new case as 'recovered'
+                                auto& h1 = p1->GetHealth();
+								auto& h2 = p2->GetHealth();
+
+								// if h1 infectious, account for susceptibility of p2
+								if (h1.IsInfectious() && h2.IsSusceptible() &&
+									cHandler.HasTransmission(tProb * p1->GetHealth().GetRelativeTransmission(p2->GetAge()))) {
+										h2.StartInfection(h1.GetIdIndexCase(),p1->GetId());
+										if (TIC)
+												h2.StopInfection();
+										LP::Trans(eventLogger, p1, p2, pType, simDay, h1.GetIdIndexCase());
+								}
+
+								// if h2 infectious, account for susceptibility of p1
+								if (h2.IsInfectious() && h1.IsSusceptible() &&
+									cHandler.HasTransmission(tProb * p2->GetHealth().GetRelativeTransmission(p1->GetAge()))) {
+										h1.StartInfection(h2.GetIdIndexCase(),p2->GetId());
+										if (TIC)
+												h1.StopInfection();
+										LP::Trans(eventLogger, p2, p1, pType, simDay, h2.GetIdIndexCase());
+								}
                         }
                 }
         }

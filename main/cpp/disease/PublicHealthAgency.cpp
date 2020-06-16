@@ -112,14 +112,19 @@ bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff,
 
 }
 
+bool PublicHealthAgency::IsContactTracingActive(const std::shared_ptr<Calendar> calendar) const {
+
+	return (m_detection_probability > 0) && calendar->IsContactTracingActivated();
+
+}
 
 
 void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, util::RnMan& rnMan,
-                                            unsigned short int simDay)
+												const std::shared_ptr<Calendar> calendar)
 {
 
-	// perform case finding, only if the probability is > 0.0
-	if (m_detection_probability <= 0.0) {
+	// if contact tracing not active, stop
+	if (!IsContactTracingActive(calendar)) {
 			return;
 	}
 
@@ -127,6 +132,7 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 
 	auto  uniform01Gen = rnMan.GetUniform01Generator(0U);
 	auto& logger       = pop->RefEventLogger();
+	const auto  simDay = calendar->GetSimulationDay();
 
 	/// Mark index cases for track&trace
 	for (auto& p_case : *pop) {

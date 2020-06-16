@@ -90,7 +90,8 @@ private:
         std::shared_ptr<Calendar>   m_calendar;         ///< Management of calendar.
         AgeContactProfiles          m_contact_profiles; ///< Contact profiles w.r.t age.
         std::vector<ContactHandler> m_handlers;         ///< Contact handlers (random numbers & probabilities).
-        InfectorExec*               m_infector;         ///< Executes contacts/transmission loops in contact pool.
+        InfectorExec*               m_infector_transmission;  ///< Executes optimized transmission loops in contact pools.
+        InfectorExec*               m_infector_contacts;///< Executes all contacts and transmissions in contact pools.
         std::shared_ptr<Population> m_population;       ///< Pointer to the Population.
         util::RnMan                 m_rn_man;           ///< Random number generation management.
 
