@@ -172,16 +172,17 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
         m_unitest_planning.push_back(std::set<PCRPool>());
     }
 
+    unsigned int day = 0;
     for (const auto& key_val: pools_per_georegion) {
         const auto& region = key_val.first;
-        unsigned int pools_per_day = ceil(pools_per_georegion[region].size()/float(n_days));
         const auto& pools = util::MapValuesToVec(pools_per_georegion[region]);
-        const auto& chunks = util::SplitVec(pools, pools_per_day);
-        for (unsigned int day = 0; day < n_days; ++day) {
-            std::vector<PCRPool> chunk = chunks[day];
-            for (const auto& pool: chunk) {
-                m_unitest_planning[day].insert(pool);
-            } 
+        //TODO: pools can be shuffled randomly
+        for (const auto& pool: pools) {
+            m_unitest_planning[day].insert(pool);
+            ++day;
+            //when at the end of the planning, reset day
+            if (day == m_unitest_planning.size())
+               day = 0; 
         }
     }
 
