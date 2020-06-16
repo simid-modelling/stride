@@ -19,6 +19,7 @@
  */
 
 #include <vector>
+#include <string>
 
 namespace stride {
 
@@ -28,8 +29,15 @@ class Person;
 class PCRPool 
 {
 public:
-        PCRPool():m_individuals() {}
-        
+        PCRPool():m_individuals(),
+                  m_georegion(), 
+                  m_id() {}
+       
+        void SetGeoRegion(const std::string &georegion) { m_georegion = georegion; }
+        std::string GetGeoRegion() const { return m_georegion; }
+        void SetId(unsigned int id) { m_id = id; }
+        unsigned int GetId() const { return m_id; }
+
         void AddIndividual(Person* p) { return m_individuals.push_back(p); }
 
         const std::vector<Person*>& GetIndividuals() const { return m_individuals; } 
@@ -39,6 +47,8 @@ public:
         }
 private:
         std::vector<Person*> m_individuals;
+        std::string m_georegion;
+        unsigned int m_id;
 };
 
 } // namespace stride

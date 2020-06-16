@@ -39,6 +39,7 @@ using namespace std;
 
 // Default constructor
 PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),
+            m_unitest_planning_output_fn(),
 	        m_unitest_pool_allocation(),
 		m_unitest_fnr(0.0), m_unitest_n_tests_per_day(0), m_unitest_pool_size(0),
 	        m_unitest_test_compliance(0.0), m_unitest_isolation_compliance(0.0),
@@ -55,7 +56,9 @@ void PublicHealthAgency::Initialize(const ptree& config){
         m_unitest_pool_size            = config.get<unsigned int>("run.unitest_pool_size",0);
         m_unitest_test_compliance      = config.get<double>("run.unitest_test_compliance",0.0);
         m_unitest_isolation_compliance = config.get<double>("run.unitest_isolation_compliance",0.0);
-  
+        const auto prefix = config.get<string>("run.output_prefix");
+        m_unitest_planning_output_fn   = FileSys::BuildPath(prefix, "unitest_planning.csv");
+
 	m_telework_probability   = config.get<double>("run.telework_probability",0);
 	m_detection_probability  = config.get<double>("run.detection_probability",0);
 	m_case_finding_efficency = config.get<double>("run.case_finding_efficency",0);
@@ -150,6 +153,8 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
         //if the PCR pool is not yet in the map, introduce it 
         if (pools.find(pool_id) == pools.end()) {
             pools[pool_id] = PCRPool();
+            pools[pool_id].SetId(pool_id);
+            pools[pool_id].SetGeoRegion(georegion);
         }
         auto& pool = pools[pool_id];
 
@@ -176,49 +181,62 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
             } 
         }
     }
-  }
 
-#ifndef NDEBUG
-  unsigned int n_days = m_unitest_planning.size();
-
-  unsigned int enlisted_pop = 0;
-  //test: check that the stride population and the population allocated over pools coincide
-  for (unsigned int day = 0; day < n_days; ++day) {
-    for (const auto& pool : m_unitest_planning[day]) {
-        enlisted_pop += pool.GetIndividuals().size();
-    }
-  }
-  std::cerr << "[UNIVERSAL] Enlisted vs total pop:"
-      << enlisted_pop << " vs " << pop->size() << std::endl;
-  assert(enlisted_pop == pop->size());
-
-  //test: check that the pools' size does not exceed m_unitest_pool_size
-  //test: report the nr of pools that are not completely full 
-  //        (i.e., leftover_pools, there should not be many of them)
-  int leftover_pools = 0;
-  int filled_pools = 0;
-  for (unsigned int day = 0; day < n_days; ++day) {
-    for (const auto& pool : m_unitest_planning[day]) {
-        assert(pool.GetIndividuals().size() <= m_unitest_pool_size);
-        if (pool.GetIndividuals().size() < m_unitest_pool_size) {
-            leftover_pools += 1;
-        } else {
-            filled_pools += 1;
+    //write the planning to file
+    ofstream of;
+    of.open(m_unitest_planning_output_fn);
+    of << "day,georegion,id,size" << std::endl;
+    for (unsigned int day = 0; day < n_days; ++day) {
+        for (const auto& pool: m_unitest_planning[day]) {
+            of << day << "," 
+               << pool.GetGeoRegion() << "," 
+               << pool.GetId() << ","
+               << pool.GetIndividuals().size()
+               << std::endl;
         }
     }
-  }
-  std::cerr << "[UNIVERSAL] Leftover pools: " << leftover_pools << std::endl;
-  std::cerr << "[UNIVERSAL] Filled pools: " << filled_pools << std::endl;
+    of.close();
 
-  //test: verify that the number of daily tests is not exceeded
-  for (unsigned int day = 0; day < n_days; ++day) {
-    std::cerr << "[UNIVERSAL]"
-        << " Daily tests " << m_unitest_planning[day].size()
-        << " on day " << day
-        << " vs budget " <<  m_unitest_n_tests_per_day << std::endl;
-    assert(m_unitest_planning[day].size() <= m_unitest_n_tests_per_day);
-  }
+#ifndef NDEBUG
+    unsigned int enlisted_pop = 0;
+    //test: check that the stride population and the population allocated over pools coincide
+    for (unsigned int day = 0; day < n_days; ++day) {
+        for (const auto& pool : m_unitest_planning[day]) {
+            enlisted_pop += pool.GetIndividuals().size();
+        }
+    }
+    std::cerr << "[UNIVERSAL] Enlisted vs total pop:"
+        << enlisted_pop << " vs " << pop->size() << std::endl;
+    assert(enlisted_pop == pop->size());
+
+    //test: check that the pools' size does not exceed m_unitest_pool_size
+    //test: report the nr of pools that are not completely full 
+    //        (i.e., leftover_pools, there should not be many of them)
+    int leftover_pools = 0;
+    int filled_pools = 0;
+    for (unsigned int day = 0; day < n_days; ++day) {
+        for (const auto& pool : m_unitest_planning[day]) {
+            assert(pool.GetIndividuals().size() <= m_unitest_pool_size);
+            if (pool.GetIndividuals().size() < m_unitest_pool_size) {
+                leftover_pools += 1;
+            } else {
+                filled_pools += 1;
+            }
+        }
+    }
+    std::cerr << "[UNIVERSAL] Leftover pools: " << leftover_pools << std::endl;
+    std::cerr << "[UNIVERSAL] Filled pools: " << filled_pools << std::endl;
+
+    //test: verify that the number of daily tests is not exceeded
+    for (unsigned int day = 0; day < n_days; ++day) {
+        std::cerr << "[UNIVERSAL]"
+            << " Daily tests " << m_unitest_planning[day].size()
+            << " on day " << day
+            << " vs budget " <<  m_unitest_n_tests_per_day << std::endl;
+        assert(m_unitest_planning[day].size() <= m_unitest_n_tests_per_day);
+    }
 #endif 
+  }
 }
 
 void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, util::RnMan& rnMan,

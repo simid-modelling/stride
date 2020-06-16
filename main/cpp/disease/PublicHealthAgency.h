@@ -23,6 +23,7 @@
 #include "PCRPool.h"
 #include "contact/ContactPool.h"
 #include "util/RnMan.h"
+#include "util/FileSys.h"
 #include "util/SegmentedVector.h"
 
 #include <boost/property_tree/ptree_fwd.hpp>
@@ -60,6 +61,7 @@ public:
 
 private:
         double m_telework_probability;    ///< Probability to perform telework (or equivalent) //TODO rename "telework"
+        filesys::path m_unitest_planning_output_fn; ///> Filename to output the planning to
         //universal testing configuration
         std::string m_unitest_pool_allocation; ///< File that lists the pool to which households belong
         double m_unitest_fnr;             ///< False negative rate for pool testing (universal testing)
