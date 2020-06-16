@@ -136,6 +136,7 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
     const auto& households = pop->CRefPoolSys().CRefPools(Id::Household);
 
     std::map<std::string, std::map<int, PCRPool>> pools_per_georegion;
+    unsigned int total_pools = 0;
     CSV allocation(m_unitest_pool_allocation);
     size_t georegion_idx = allocation.GetIndexForLabel("province");
     size_t pool_id_idx = allocation.GetIndexForLabel("pool_id");
@@ -155,6 +156,8 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
             pools[pool_id] = PCRPool();
             pools[pool_id].SetId(pool_id);
             pools[pool_id].SetGeoRegion(georegion);
+
+            ++total_pools;
         }
         auto& pool = pools[pool_id];
 
@@ -164,7 +167,7 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
         }
     } 
     
-    unsigned int n_days = ceil(pop->size() / (float)(m_unitest_n_tests_per_day * m_unitest_pool_size));
+    unsigned int n_days = ceil(total_pools / (float)m_unitest_n_tests_per_day);
     for (unsigned int day = 0; day < n_days; ++day) {
         m_unitest_planning.push_back(std::set<PCRPool>());
     }
