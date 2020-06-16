@@ -126,7 +126,7 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 	//cout << m_detection_probability << " -- "<< m_tracing_efficency_household << " -- "<< m_tracing_efficency_other << " ** " << m_case_finding_capacity << endl;
 
 	auto  uniform01Gen = rnMan.GetUniform01Generator(0U);
-	auto& logger       = pop->RefContactLogger();
+	auto& logger       = pop->RefEventLogger();
 
 	/// Mark index cases for track&trace
 	for (auto& p_case : *pop) {

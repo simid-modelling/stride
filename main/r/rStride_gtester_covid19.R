@@ -73,7 +73,7 @@ exp_design <- expand.grid(r0                            = 2.5,
                           case_finding_capacity          = 0,
                           test_false_negative            = 0,
                           gtester_label                  = 'covid_all',
-                          contact_log_level              = 'Transmissions',
+                          event_log_level                = 'Transmissions',
                           stringsAsFactors = F)
 
  
@@ -108,7 +108,7 @@ exp_design_hhcl$gtester_label         <- 'covid_hhcl'
 
 # contact tracing
 exp_design_cts <- exp_design
-exp_design_cts$contact_log_level            <- 'All'
+exp_design_cts$event_log_level              <- 'All'
 exp_design_cts$detection_probability        <- 0.5
 exp_design_cts$holidays_file                <- 'calendar_belgium_2020_covid19_exit_school_adjusted.json'
 exp_design_cts$start_date                   <- '2020-06-01'
@@ -178,11 +178,13 @@ diff_summary    <- setdiff(project_summary,ref_project_summary)
 if(length(diff_summary)>0){ 
   smd_print("SUMMARY CHANGED",WARNING = T)
   smd_print(names(diff_summary),WARNING = T)
-
-  flag <- rowSums(project_summary[,names(diff_summary)] != ref_project_summary[,names(diff_summary)])>0
-  smd_print('EXP_ID with changes:', paste(unique(project_summary$gtester_label[flag]),collapse = ','))
-  # project_summary[flag,names(diff_summary)]
-  # ref_project_summary[flag,names(diff_summary)]
+  
+  if(all(dim(project_summary) == dim(ref_project_summary))){
+    flag <- rowSums(project_summary[,names(diff_summary)] != ref_project_summary[,names(diff_summary)])>0
+    smd_print('EXP_ID with changes:', paste(unique(project_summary$gtester_label[flag]),collapse = ','))
+    # project_summary[flag,names(diff_summary)]
+    # ref_project_summary[flag,names(diff_summary)]
+  }
   #print(head(diff_summary))
 } else{
   smd_print("SUMMARY OK")
@@ -194,10 +196,12 @@ if(length(diff_incidence)>0){
   smd_print("INCIDENCE CHANGED",WARNING = T)
   smd_print(names(diff_incidence),WARNING = T)
   
-  flag <- rowSums(data_incidence[,names(diff_incidence)] != ref_data_incidence[,names(diff_incidence)],na.rm=T)>0
-  smd_print('EXP_ID with changes:', paste(unique(data_incidence$exp_id[flag]),collapse = ','))
-  # data_incidence[flag,names(diff_incidence)]
-  # ref_data_incidence[flag,names(diff_incidence)]
+  if(all(dim(data_incidence) == dim(ref_data_incidence))){
+    flag <- rowSums(data_incidence[,names(diff_incidence)] != ref_data_incidence[,names(diff_incidence)],na.rm=T)>0
+    smd_print('EXP_ID with changes:', paste(unique(data_incidence$exp_id[flag]),collapse = ','))
+    # data_incidence[flag,names(diff_incidence)]
+    # ref_data_incidence[flag,names(diff_incidence)]    
+  }
   #print(head(diff_incidence))
 } else{
   smd_print("INCIDENCE OK")

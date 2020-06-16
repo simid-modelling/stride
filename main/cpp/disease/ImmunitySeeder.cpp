@@ -126,7 +126,7 @@ void ImmunitySeeder::Random(const SegmentedVector<ContactPool>& pools, vector<do
         const auto poolsSize          = static_cast<int>(pools.size());
         auto       intGenerator       = m_rn_man.GetUniformIntGenerator(0, poolsSize, 0U);
         auto       uniform01Generator = m_rn_man.GetUniform01Generator(0U);
-        auto&      logger             = pop->RefContactLogger();
+        auto&      logger             = pop->RefEventLogger();
 
         // Count susceptible individuals per age class
         for (auto& c : pools) {

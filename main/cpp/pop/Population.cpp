@@ -40,7 +40,7 @@ using namespace stride::ContactType;
 
 namespace stride {
 
-Population::Population() : m_pool_sys(), m_contact_logger() {}
+Population::Population() : m_pool_sys(), m_event_logger() {}
 
 std::shared_ptr<Population> Population::Create(const boost::property_tree::ptree& config,
                                                std::shared_ptr<spdlog::logger> strideLogger)
@@ -50,18 +50,18 @@ std::shared_ptr<Population> Population::Create(const boost::property_tree::ptree
         }
 
         // --------------------------------------------------------------
-        // Create empty population & and give it a ContactLogger.
+        // Create empty population & and give it a InfectorLogger.
         // --------------------------------------------------------------
         const auto pop = Create();
-        if (config.get<bool>("run.contact_output_file", true)) {
+        if (config.get<bool>("run.event_output_file", true)) {
                 const auto prefix       = config.get<string>("run.output_prefix");
-                const auto logPath      = FileSys::BuildPath(prefix, "contact_log.txt");
-                pop->RefContactLogger() = LogUtils::CreateRotatingLogger("contact_logger", logPath.string());
-                pop->RefContactLogger()->set_pattern("%v");
-                strideLogger->info("Contact logging requested; logger set up.");
+                const auto logPath      = FileSys::BuildPath(prefix, "event_log.txt");
+                pop->RefEventLogger()   = LogUtils::CreateRotatingLogger("event_logger", logPath.string());
+                pop->RefEventLogger()->set_pattern("%v");
+                strideLogger->info("Event logging requested; logger set up.");
         } else {
-                pop->RefContactLogger() = LogUtils::CreateNullLogger("contact_logger");
-                strideLogger->info("No contact logging requested.");
+                pop->RefEventLogger() = LogUtils::CreateNullLogger("event_logger");
+                strideLogger->info("No Event logging requested.");
         }
 
         // -----------------------------------------------------------------------------------------

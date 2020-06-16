@@ -361,10 +361,10 @@ if(!(exists('.rstride'))){
 # check file presence
 .rstride$log_levels_exist <- function(design_of_experiment = exp_design){
   
-  valid_levels <- design_of_experiment$contact_log_level %in% c('None','Transmissions','All')
+  valid_levels <- design_of_experiment$event_log_level %in% c('None','Transmissions','All')
   
   if(any(!valid_levels)){
-    smd_print('INVALID LOG LEVEL(S):', paste(design_of_experiment$contact_log_level[!valid_levels],collapse = ' '),WARNING=T)
+    smd_print('INVALID LOG LEVEL(S):', paste(design_of_experiment$event_log_level[!valid_levels],collapse = ' '),WARNING=T)
     return(FALSE)
   }  
   

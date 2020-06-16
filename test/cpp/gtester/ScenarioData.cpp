@@ -132,7 +132,7 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
 				pt.put("run.cnt_intensity_householdCluster", 4/7);
 	}
 	if (tag == "covid19_tracing") {
-		        pt.put("run.contact_log_level", "All");
+		        pt.put("run.event_log_level", "All");
 				pt.put("run.holidays_file", "calendar_belgium_2020_covid19_exit_school_adjusted.json");
 				pt.put("run.start_date", "2020-06-01");
 				pt.put("run.detection_probability", 0.5);

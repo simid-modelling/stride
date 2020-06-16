@@ -60,7 +60,7 @@ get_exp_param_default <- function(bool_child_param = FALSE){
                 cnt_other_exit_delay           = 21,
                
                # log level
-               contact_log_level         = "Transmission",
+               event_log_level                 = "Transmissions",
                 
                 # factor for parameter estimation and fitting
                 hosp_probability_factor        = 1

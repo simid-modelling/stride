@@ -22,7 +22,6 @@
 
 #include "contact/AgeContactProfiles.h"
 #include "contact/ContactHandler.h"
-#include "contact/ContactLogMode.h"
 #include "contact/InfectorExec.h"
 #include "contact/TransmissionProfile.h"
 #include "disease/PublicHealthAgency.h"
@@ -32,6 +31,7 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <string>
+#include "../contact/EventLogMode.h"
 
 namespace stride {
 
@@ -83,7 +83,7 @@ private:
 
 private:
         boost::property_tree::ptree m_config;                        ///< Configuration property tree
-        ContactLogMode::Id          m_contact_log_mode;              ///< Specifies contact/transmission logging mode.
+        EventLogMode::Id            m_event_log_mode;                ///< Specifies contact/transmission logging mode.
         unsigned int                m_num_threads;                   ///< The number of (OpenMP) threads.
         bool                        m_track_index_case;              ///< General simulation or tracking index case.
 

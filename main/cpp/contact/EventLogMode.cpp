@@ -10,7 +10,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2019, Willem L, Kuylen E, Broeckhove J
+ *  Copyright 2020, Willem L, Kuylen E, Broeckhove J
+ *
  */
 
 /**
@@ -18,13 +19,12 @@
  * Implementation of ContactLogMode.
  */
 
-#include "ContactLogMode.h"
-
 #include <boost/algorithm/string.hpp>
 #include <map>
+#include "EventLogMode.h"
 
 namespace stride {
-namespace ContactLogMode {
+namespace EventLogMode {
 
 using namespace std;
 using boost::to_upper;
@@ -45,5 +45,5 @@ Id ToMode(const string& s)
         return modes.at(t);
 }
 
-} // namespace ContactLogMode
+} // namespace InfectorLogMode
 } // namespace stride

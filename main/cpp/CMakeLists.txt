@@ -24,10 +24,10 @@ set(STRIDE_SRC
     calendar/Calendar.cpp
     #---
     contact/AgeContactProfile.cpp
-    contact/ContactLogMode.cpp
     contact/ContactPool.cpp
     contact/ContactPoolSys.cpp
     contact/ContactType.cpp
+    contact/EventLogMode.cpp
     contact/Infector.cpp
     contact/TransmissionProfile.cpp
     #---

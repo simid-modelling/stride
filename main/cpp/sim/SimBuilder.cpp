@@ -50,7 +50,7 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
         sim->m_track_index_case              = m_config.get<bool>("run.track_index_case");
         sim->m_num_threads                   = m_config.get<unsigned int>("run.num_threads");
         sim->m_calendar                      = make_shared<Calendar>(m_config);
-        sim->m_contact_log_mode = ContactLogMode::ToMode(m_config.get<string>("run.contact_log_level", "None"));
+        sim->m_event_log_mode   = EventLogMode::ToMode(m_config.get<string>("run.event_log_level", "None"));
         sim->m_rn_man           = std::move(rnMan);
 
         // --------------------------------------------------------------
@@ -61,7 +61,7 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
                 auto gen = sim->m_rn_man.GetUniform01Generator(i);
                 sim->m_handlers.emplace_back(ContactHandler(gen));
         }
-        const auto& select = make_tuple(sim->m_contact_log_mode, sim->m_track_index_case);
+        const auto& select = make_tuple(sim->m_event_log_mode, sim->m_track_index_case);
         sim->m_infector    = InfectorMap().at(select);
 
         // --------------------------------------------------------------

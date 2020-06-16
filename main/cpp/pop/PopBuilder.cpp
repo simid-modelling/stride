@@ -19,7 +19,6 @@
  * Initialize populations: implementation.
  */
 
-#include "contact/ContactLogMode.h"
 #include "contact/ContactType.h"
 #include "contact/IdSubscriptArray.h"
 #include "pop/Population.h"
@@ -32,6 +31,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <fstream>
 #include "PopBuilder.h"
+#include "../contact/EventLogMode.h"
 
 namespace stride {
 

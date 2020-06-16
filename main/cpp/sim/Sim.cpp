@@ -35,10 +35,10 @@ namespace stride {
 
 using namespace std;
 using namespace util;
-using namespace ContactLogMode;
+using namespace EventLogMode;
 
 Sim::Sim()
-    : m_config(), m_contact_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
+    : m_config(), m_event_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
       m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_workplace(0), m_cnt_reduction_other(0),
 	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
@@ -122,7 +122,7 @@ void Sim::TimeStep()
 		// To be used in update of population & contact pools.
         Population& population    = *m_population;
         auto&       poolSys       = population.RefPoolSys();
-        auto        contactLogger = population.RefContactLogger();
+        auto        eventLogger = population.RefEventLogger();
         const auto  simDay        = m_calendar->GetSimulationDay();
         const auto& infector      = *m_infector;
 
@@ -173,7 +173,7 @@ void Sim::TimeStep()
 #pragma omp for schedule(static)
 					for (size_t i = 1; i < poolSys.RefPools(typ).size(); i++) { // NOLINT
 							infector(poolSys.RefPools(typ)[i], m_contact_profiles[typ], m_transmission_profile,
-									 m_handlers[thread_num], simDay, contactLogger,
+									 m_handlers[thread_num], simDay, eventLogger,
 									 workplace_distancing_factor,
 									 community_distancing_factor,
 									 school_distancing_factor,
@@ -183,7 +183,7 @@ void Sim::TimeStep()
 			}
         }
 
-        m_population->RefContactLogger()->flush();
+        m_population->RefEventLogger()->flush();
         m_calendar->AdvanceDay();
 }
 

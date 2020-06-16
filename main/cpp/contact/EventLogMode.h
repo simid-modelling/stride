@@ -11,11 +11,12 @@
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
  *  Copyright 2017, Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2020, Willem L
  */
 
 /**
  * @file
- * Header for the ContactLogMode class.
+ * Header for the EventLogMode class.
  */
 
 #pragma once
@@ -29,7 +30,7 @@ namespace stride {
  * \li only contacts where transmission occurs
  * \li all contacts.
  */
-namespace ContactLogMode {
+namespace EventLogMode {
 
 enum class Id
 {
@@ -39,13 +40,13 @@ enum class Id
 };
 
 /// Converts a LogMode value to corresponding name.
-std::string ToString(ContactLogMode::Id w);
+std::string ToString(EventLogMode::Id w);
 
 /// Check whether string is name of LogMode value.
 bool IsMode(const std::string& s);
 
 /// Converts a string with name to LogMode value.
-ContactLogMode::Id ToMode(const std::string& s);
+EventLogMode::Id ToMode(const std::string& s);
 
-} // namespace ContactLogMode
+} // namespace EventLogMode
 } // namespace stride

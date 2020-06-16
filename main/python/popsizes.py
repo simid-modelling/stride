@@ -44,7 +44,7 @@ def getAttackRatesByR0(outputDir, popSize, numExperiments):
     attackRates = {}
     for experimentID in range(1, numExperiments + 1):
         experimentDir = os.path.join(outputDir, "popsizes_" + popSize, "exp" + "{:04}".format(experimentID))
-        transmissionsFile = os.path.join(experimentDir, "contact_log.txt")
+        transmissionsFile = os.path.join(experimentDir, "event_log.txt")
         params = getParams(outputDir, popSize, experimentID)
         newCasesPerDay = getNewCasesPerDay(transmissionsFile, params["num_days"])
         attackRate = sum([newCasesPerDay[day] for day in newCasesPerDay.keys()]) / params['population_size']
@@ -58,7 +58,7 @@ def getPeakIncidenceRatiosByR0(outputDir, popSize, numExperiments):
     peakIncidenceRatios = {}
     for experimentID in range(1, numExperiments + 1):
         experimentDir = os.path.join(outputDir, "popsizes_" + popSize, "exp" + "{:04}".format(experimentID))
-        transmissionsFile = os.path.join(experimentDir, "contact_log.txt")
+        transmissionsFile = os.path.join(experimentDir, "event_log.txt")
         params = getParams(outputDir, popSize, experimentID)
         newCasesPerDay = getNewCasesPerDay(transmissionsFile, params["num_days"])
         peakIncidenceRatio = max([newCasesPerDay[day] for day in newCasesPerDay.keys()]) / params['population_size']
@@ -72,7 +72,7 @@ def getDayOfPeakByR0(outputDir, popSize, numExperiments):
     daysOfPeak = {}
     for experimentID in range(1, numExperiments + 1):
         experimentDir = os.path.join(outputDir, "popsizes_" + popSize, "exp" + "{:04}".format(experimentID))
-        transmissionsFile = os.path.join(experimentDir, "contact_log.txt")
+        transmissionsFile = os.path.join(experimentDir, "event_log.txt")
         params = getParams(outputDir, popSize, experimentID)
         newCasesPerDay = getNewCasesPerDay(transmissionsFile, params["num_days"])
         peakIncidence = max([newCasesPerDay[day] for day in newCasesPerDay.keys()])

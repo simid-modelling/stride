@@ -96,8 +96,8 @@ string RunConfigManager::CreateTestsInfluenza()
 <?xml version="1.0" encoding="utf-8"?>
 <run>
         <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
-        <contact_log_level>None</contact_log_level>
-        <contact_output_file>false</contact_output_file>
+        <event_log_level>None</event_log_level>
+        <event_output_file>false</event_output_file>
         <disease_config_file>disease_influenza.xml</disease_config_file>
         <holidays_file>holidays_none.json</holidays_file>
         <immunity_link_probability>0</immunity_link_probability>
@@ -129,8 +129,8 @@ string RunConfigManager::CreateTestsMeasles()
 <?xml version="1.0" encoding="utf-8"?>
 <run>
         <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
-        <contact_log_level>Transmissions</contact_log_level>
-        <contact_output_file>false</contact_output_file>
+        <event_log_level>Transmissions</event_log_level>
+        <event_output_file>false</event_output_file>
         <disease_config_file>disease_measles_adaptive_behavior.xml</disease_config_file>
         <holidays_file>holidays_flanders_2020.json</holidays_file>
         <immunity_rate>0.80000000000000004</immunity_rate>
@@ -162,8 +162,8 @@ string RunConfigManager::CreateTestsCovid19()
 <?xml version="1.0" encoding="utf-8"?>
 <run>
         <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
-        <contact_log_level>None</contact_log_level>
-        <contact_output_file>false</contact_output_file>
+        <event_log_level>None</event_log_level>
+        <event_output_file>false</event_output_file>
         <disease_config_file>disease_covid19_age.xml</disease_config_file>
         <holidays_file>holidays_flanders_2020.json</holidays_file>
         <immunity_link_probability>0</immunity_link_probability>

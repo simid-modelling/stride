@@ -17,6 +17,7 @@ For license info, see LICENSE.txt.
 Current contributors are (in alphabetical order):
 
 * Philippe Beutels
+* Pieter Libin
 * Jan Broeckhove
 * Niel Hens
 * Elise Kuylen

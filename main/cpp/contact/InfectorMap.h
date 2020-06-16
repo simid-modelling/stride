@@ -20,13 +20,14 @@
 
 #pragma once
 
-#include "contact/ContactLogMode.h"
 #include "contact/Infector.h"
 #include "contact/InfectorExec.h"
 
 #include <map>
 #include <tuple>
 #include <utility>
+
+#include "EventLogMode.h"
 
 namespace stride {
 
@@ -36,7 +37,7 @@ class Population;
 /**
  * Mechanism to select the appropriate Infector template to execute.
  */
-class InfectorMap : public std::map<std::tuple<stride::ContactLogMode::Id, bool>, InfectorExec*>
+class InfectorMap : public std::map<std::tuple<stride::EventLogMode::Id, bool>, InfectorExec*>
 {
 public:
         /// Fully initialized.
@@ -51,10 +52,9 @@ private:
         template <bool B>
         void Add()
         {
-                using namespace ContactLogMode;
+                using namespace EventLogMode;
 
-                this->emplace(
-                    std::make_pair(std::make_tuple(Id::Transmissions, B), &Infector<Id::Transmissions, B>::Exec));
+                this->emplace(std::make_pair(std::make_tuple(Id::Transmissions, B), &Infector<Id::Transmissions, B>::Exec));
                 this->emplace(std::make_pair(std::make_tuple(Id::All, B), &Infector<Id::All, B>::Exec));
                 this->emplace(std::make_pair(std::make_tuple(Id::None, B), &Infector<Id::None, B>::Exec));
         }

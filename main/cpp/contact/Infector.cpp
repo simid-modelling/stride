@@ -30,7 +30,7 @@ namespace {
 
 /// Primary LOG_POLICY policy, implements LogMode::None.
 /// \tparam LL
-template <ContactLogMode::Id LL>
+template <EventLogMode::Id LL>
 class LOG_POLICY
 {
 public:
@@ -47,7 +47,7 @@ public:
 
 /// Specialized LOG_POLICY policy LogMode::Transmissions.
 template <>
-class LOG_POLICY<ContactLogMode::Id::Transmissions>
+class LOG_POLICY<EventLogMode::Id::Transmissions>
 {
 public:
         static void Contact(const std::shared_ptr<spdlog::logger>&, const Person*, const Person*, ContactType::Id,
@@ -68,7 +68,7 @@ public:
 
 /// Specialized LOG_POLICY policy LogMode::All.
 template <>
-class LOG_POLICY<ContactLogMode::Id::All>
+class LOG_POLICY<EventLogMode::Id::All>
 {
 public:
         static void Contact(const std::shared_ptr<spdlog::logger>& logger, const Person* p1, const Person* p2,
@@ -212,10 +212,10 @@ namespace stride {
 // Definition for ContactLogMode::Contacts,
 // both with track_index_case false and true.
 //-------------------------------------------------------------------------------------------------
-template <ContactLogMode::Id LL, bool TIC, bool TO>
+template <EventLogMode::Id LL, bool TIC, bool TO>
 void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& profile,
                                  const TransmissionProfile& transProfile, ContactHandler& cHandler,
-                                 unsigned short int simDay, shared_ptr<spdlog::logger> cLogger,
+                                 unsigned short int simDay, shared_ptr<spdlog::logger> eventLogger,
 								 double cnt_reduction_work, double cnt_reduction_other, double cnt_reduction_school,
 								 double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff,
 								 std::shared_ptr<Population> population, double m_cnt_intensity_householdCluster)
@@ -252,9 +252,9 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
 								cnt_reduction_intergeneration_cutoff,population,m_cnt_intensity_householdCluster);
                         if (cHandler.HasContact(cProb)) {
                                 // log contact if person 1 is participating in survey
-                                LP::Contact(cLogger, p1, p2, pType, simDay, cProb, tProb * p1->GetHealth().GetRelativeTransmission(p2->GetAge()));
+                                LP::Contact(eventLogger, p1, p2, pType, simDay, cProb, tProb * p1->GetHealth().GetRelativeTransmission(p2->GetAge()));
                                 // log contact if person 2 is participating in survey
-                                LP::Contact(cLogger, p2, p1, pType, simDay, cProb, tProb * p2->GetHealth().GetRelativeTransmission(p1->GetAge()));
+                                LP::Contact(eventLogger, p2, p1, pType, simDay, cProb, tProb * p2->GetHealth().GetRelativeTransmission(p1->GetAge()));
 
                                 // if track&trace is in place, option to register the contact
                                 p1->RegisterContact(p2);
@@ -268,12 +268,12 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                                                 h2.StartInfection(h1.GetIdIndexCase(),p1->GetId());
                                                 if (TIC)
                                                         h2.StopInfection();
-                                                LP::Trans(cLogger, p1, p2, pType, simDay, h1.GetIdIndexCase());
+                                                LP::Trans(eventLogger, p1, p2, pType, simDay, h1.GetIdIndexCase());
                                         } else if (h2.IsInfectious() && h1.IsSusceptible()) {
                                                 h1.StartInfection(h2.GetIdIndexCase(),p2->GetId());
                                                 if (TIC)
                                                         h1.StopInfection();
-                                                LP::Trans(cLogger, p2, p1, pType, simDay, h2.GetIdIndexCase());
+                                                LP::Trans(eventLogger, p2, p1, pType, simDay, h2.GetIdIndexCase());
                                         }
                                 }
                         }
@@ -285,10 +285,10 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
 // Definition for ContactLogMode::None and ContactLogMode::Transmission
 // both with track_index_case false and true.
 //-------------------------------------------------------------------------------------------
-template <ContactLogMode::Id LL, bool TIC>
+template <EventLogMode::Id LL, bool TIC>
 void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& profile,
                                    const TransmissionProfile& transProfile, ContactHandler& cHandler,
-                                   unsigned short int simDay, shared_ptr<spdlog::logger> cLogger,
+                                   unsigned short int simDay, shared_ptr<spdlog::logger> eventLogger,
 								   double cnt_reduction_work, double cnt_reduction_other, double cnt_reduction_school,
 								   double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff,
 								   std::shared_ptr<Population> population, double m_cnt_intensity_householdCluster)
@@ -337,7 +337,7 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                                                 // No secondary infections with TIC; just mark p2 'recovered'
                                                 if (TIC)
                                                         h2.StopInfection();
-                                                LP::Trans(cLogger, p1, p2, pType, simDay, h1.GetIdIndexCase());
+                                                LP::Trans(eventLogger, p1, p2, pType, simDay, h1.GetIdIndexCase());
                                         }
                                 }
                         }
@@ -348,12 +348,12 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
 //--------------------------------------------------------------------------
 // All explicit instantiations.
 //--------------------------------------------------------------------------
-template class Infector<ContactLogMode::Id::None, false>;
-template class Infector<ContactLogMode::Id::None, true>;
-template class Infector<ContactLogMode::Id::Transmissions, false>;
-template class Infector<ContactLogMode::Id::Transmissions, true>;
-template class Infector<ContactLogMode::Id::All, false>;
-template class Infector<ContactLogMode::Id::All, true>;
+template class Infector<EventLogMode::Id::None, false>;
+template class Infector<EventLogMode::Id::None, true>;
+template class Infector<EventLogMode::Id::Transmissions, false>;
+template class Infector<EventLogMode::Id::Transmissions, true>;
+template class Infector<EventLogMode::Id::All, false>;
+template class Infector<EventLogMode::Id::All, true>;
 
 
 } // namespace stride
