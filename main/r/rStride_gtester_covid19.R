@@ -120,7 +120,7 @@ exp_design_cts$gtester_label                <- 'covid_tracing'
 
 # contact tracing all
 exp_design_cts_all <- exp_design_cts
-exp_design_cts_all$event_log_level              <- 'Transmissions'
+exp_design_cts_all$event_log_level              <- 'ContactTracing'
 exp_design_cts_all$gtester_label                <- 'covid_tracing_optim'
 
 # rbind all designs
@@ -180,9 +180,8 @@ ref_project_summary  <- readRDS(file='tests/regression_rstride_summary.rds')
 ref_data_incidence   <- readRDS(file='tests/regression_rstride_incidence.rds')
 ref_data_prevalence  <- readRDS(file='tests/regression_rstride_prevalence.rds')
 
-project_summary <- project_summary[project_summary$event_log_level != 'ContactTracing',]
+# plot number of cases
 boxplot(num_cases ~ gtester_label,data=project_summary,las=2)   
-
 
 ## COMPARE SUMMARY
 diff_summary    <- setdiff(project_summary,ref_project_summary)
