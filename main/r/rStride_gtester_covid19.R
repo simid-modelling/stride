@@ -115,10 +115,17 @@ exp_design_cts$tracing_efficency_household  <- 1.0
 exp_design_cts$tracing_efficency_other      <- 0.7
 exp_design_cts$test_false_negative          <- 0.1
 exp_design_cts$case_finding_capacity        <- 1000
+exp_design_cts$event_log_level              <- 'Transmissions'
 exp_design_cts$gtester_label                <- 'covid_tracing'
 
+# contact tracing all
+exp_design_cts_all <- exp_design_cts
+exp_design_cts_all$event_log_level              <- 'Transmissions'
+exp_design_cts_all$gtester_label                <- 'covid_tracing_optim'
+
 # rbind all designs
-exp_design <- rbind(exp_design, exp_design_cts, exp_design_daily, exp_design_dist,
+exp_design <- rbind(exp_design, exp_design_cts, exp_design_cts_all,
+                    exp_design_daily, exp_design_dist,
                     exp_design_15min, exp_design_hhcl)
 
 # add a unique seed for each run
@@ -143,6 +150,7 @@ inspect_incidence_data(project_dir)
 inspect_prevalence_data(project_dir)
 inspect_transmission_dynamics(project_dir)
 inspect_tracing_data(project_dir)
+#inspect_contact_data(project_dir)
 
 
 ##################################### #
@@ -172,13 +180,17 @@ ref_project_summary  <- readRDS(file='tests/regression_rstride_summary.rds')
 ref_data_incidence   <- readRDS(file='tests/regression_rstride_incidence.rds')
 ref_data_prevalence  <- readRDS(file='tests/regression_rstride_prevalence.rds')
 
+project_summary <- project_summary[project_summary$event_log_level != 'ContactTracing',]
+boxplot(num_cases ~ gtester_label,data=project_summary,las=2)   
+
+
 ## COMPARE SUMMARY
 diff_summary    <- setdiff(project_summary,ref_project_summary)
 if(length(diff_summary)>0){ 
   smd_print("SUMMARY CHANGED",WARNING = T)
   smd_print(names(diff_summary),WARNING = T)
   
-  if(all(dim(project_summary) == dim(ref_project_summary))){
+  if(length(diff_summary)>1 && all(dim(project_summary) == dim(ref_project_summary))){
     flag <- rowSums(project_summary[,names(diff_summary)] != ref_project_summary[,names(diff_summary)])>0
     smd_print('EXP_ID with changes:', paste(unique(project_summary$gtester_label[flag]),collapse = ','))
     project_summary[flag,names(diff_summary)]

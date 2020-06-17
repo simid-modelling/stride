@@ -62,11 +62,17 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
                 sim->m_handlers.emplace_back(ContactHandler(gen));
         }
         const auto& select = make_tuple(sim->m_event_log_mode, sim->m_track_index_case);
-        sim->m_infector_transmission    = InfectorMap().at(select);
+        sim->m_infector_default    = InfectorMap().at(select);
 
         // additional infector if logmode is Tracing
-        const auto& select_tracing  = make_tuple(EventLogMode::Id::All, sim->m_track_index_case);
-        sim->m_infector_contacts    = InfectorMap().at(select_tracing);
+        if(m_config.get<string>("run.event_log_level", "None") == "ContactTracing"){
+        	const auto& select_tracing  = make_tuple(EventLogMode::Id::All, sim->m_track_index_case);
+        	sim->m_infector_tracing    = InfectorMap().at(select_tracing);
+        } else{
+        	sim->m_infector_tracing    = InfectorMap().at(select);
+        }
+
+
 
 
         // --------------------------------------------------------------

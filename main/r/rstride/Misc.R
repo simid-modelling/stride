@@ -361,10 +361,13 @@ if(!(exists('.rstride'))){
 # check file presence
 .rstride$log_levels_exist <- function(design_of_experiment = exp_design){
   
-  valid_levels <- design_of_experiment$event_log_level %in% c('None','Transmissions','All')
+  valid_levels <- design_of_experiment$event_log_level %in% 
+    c('None','Transmissions','All','ContactTracing')
   
   if(any(!valid_levels)){
-    smd_print('INVALID LOG LEVEL(S):', paste(design_of_experiment$event_log_level[!valid_levels],collapse = ' '),WARNING=T)
+    smd_print('INVALID LOG LEVEL(S):', 
+              paste(design_of_experiment$event_log_level[!valid_levels],collapse = ' '),
+              WARNING=T)
     return(FALSE)
   }  
   
@@ -472,6 +475,9 @@ if(!(exists('.rstride'))){
   # load directory content (non recursive)
   sim_dirs <- dir(output_dir) 
   
+  # exclude .csv files
+  sim_dirs <- sim_dirs[!grepl('.csv',sim_dirs)]
+  
   # create project_dir (global)
   project_dir <<- file.path(output_dir,sim_dirs[length(sim_dirs)])
   
@@ -520,6 +526,10 @@ if(!(exists('.rstride'))){
   }
   
   
+}
+
+.rstride$is_ua_cluster <- function(){
+  return(grepl('leibniz',system('hostname',intern = T)))
 }
 
 

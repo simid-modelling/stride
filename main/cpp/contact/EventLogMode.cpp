@@ -39,6 +39,7 @@ string ToString(Id l)
 Id ToMode(const string& s)
 {
         static map<string, Id> modes{make_pair("NONE", Id::None), make_pair("TRANSMISSIONS", Id::Transmissions),
+									 make_pair("CONTACTTRACING", Id::Transmissions), // use Transmission logging by default
                                      make_pair("ALL", Id::All)};
         std::string            t{s};
         to_upper(t);

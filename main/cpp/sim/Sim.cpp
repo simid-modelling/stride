@@ -39,7 +39,7 @@ using namespace EventLogMode;
 
 Sim::Sim()
     : m_config(), m_event_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
-      m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector_transmission(),m_infector_contacts(),
+      m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector_default(),m_infector_tracing(),
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_workplace(0), m_cnt_reduction_other(0),
 	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
 	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),m_cnt_other_exit_delay(0),
@@ -125,8 +125,7 @@ void Sim::TimeStep()
         const auto  simDay        = m_calendar->GetSimulationDay();
 
         // Select infector, based on tracing
-        const auto& infector      = m_public_health_agency.IsContactTracingActive(m_calendar) ? *m_infector_contacts : *m_infector_transmission;
-
+        const auto& infector      = m_public_health_agency.IsContactTracingActive(m_calendar) ? *m_infector_tracing : *m_infector_default;
 
         // set HouseholdCluster intensity
         double cnt_intensity_householdCluster = 0.0;

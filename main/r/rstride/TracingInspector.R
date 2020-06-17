@@ -90,7 +90,7 @@ inspect_tracing_data <- function(project_dir)
     
     
     # contacts in quarentine
-    data_tracing_contacts      <- data_tracing_sel[data_tracing_sel$pool_type != '-1',]
+    data_tracing_contacts      <- data_tracing_sel[data_tracing_sel$pool_type != 'Index',]
     tracing_num_day_identified <- aggregate(num_tests ~ sim_day_date + exp_id + config_id, data = data_tracing_contacts, sum)
     tracing_num_day_sympt      <- aggregate(num_tests ~ sim_day_date + sim_day + exp_id + config_id + is_symptomatic, data = data_tracing_contacts, sum)
     tracing_num_day_sympt_mean <- aggregate(num_tests ~ sim_day_date + config_id + is_symptomatic, data = tracing_num_day_sympt, mean)
@@ -164,15 +164,34 @@ inspect_tracing_data <- function(project_dir)
     grid(nx=NA,ny=NULL)
     abline(v=x_ticks,lty=3,col='lightgray')
 
-    # boxplot(num_contacts_tested ~ sim_day_date, data = data_tracing_index,outline=F,
-    #         las=2,ylab='contacts tested per index case',main=opt_config[i_config],
-    #         xaxt='n')
-    # 
-    # axis(1,x_ticks,x_ticks_label,las=2)
-    # grid(nx=NA,ny=NULL)
-    # abline(v=x_ticks,lty=3,col='lightgray')
     
+    ## LOCATION
+    data_tracing_contacts$cases <- 1
+    dt_location <- aggregate(cases ~ pool_type + exp_id + sim_day_date, data = data_tracing_contacts, sum )
+    dt_location_mean <- aggregate(cases ~ pool_type + sim_day_date, data = dt_location, mean )
+   
+    table(data_tracing_contacts$pool_type) / nrow(data_tracing_contacts)
     
+    plot(cases ~ sim_day_date, 
+         data = dt_location_mean[dt_location_mean$pool_type == 'Household',],
+         ylim = range(dt_location_mean$cases),xaxt='n',yaxt='n',
+         xlab='',ylab='Secondary cases identified and isolated')
+    add_x_axis(dt_location_mean$sim_day_date)
+    add_y_axis(dt_location_mean$cases)
+    
+    points(cases ~ sim_day_date, 
+         data = dt_location_mean[dt_location_mean$pool_type == 'Workplace',],
+         col = 2)
+    points(cases ~ sim_day_date, 
+         data = dt_location_mean[dt_location_mean$pool_type == 'Community',],
+         col = 3)
+    points(cases ~ sim_day_date, 
+           data = dt_location_mean[dt_location_mean$pool_type == 'School',],
+           col = 4)
+    legend('topleft',
+           c('Household','Workplace','Community','School'),
+           fill = 1:4,
+           cex=0.5)
     }
   
   # close pdf stream

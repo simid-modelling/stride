@@ -149,7 +149,12 @@ run_rStride <- function(exp_design               = exp_design,
   ################################## #
   ## PARALLEL SETUP               ####
   ################################## #
-  smd_start_cluster(timeout = 2400, num_proc = num_parallel_workers)
+  
+  # choose timeout based on platform
+  cluster_timeout <- ifelse(.rstride$is_ua_cluster(),36000,1000)
+  
+  # start parallel workers
+  smd_start_cluster(timeout = cluster_timeout, num_proc = num_parallel_workers)
   
   ################################## #
   ## RUN                          ####

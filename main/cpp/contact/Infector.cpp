@@ -340,6 +340,10 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                                         auto& h2 = p2->GetHealth();
                                         if (h1.IsInfectious() && h2.IsSusceptible()) {
                                                 h2.StartInfection(h1.GetIdIndexCase(),p1->GetId());
+
+                                                // if track&trace is in place, option to register (both) contact(s)
+                                                p1->RegisterContact(p2); //TODO: make use of "log policy" template
+
                                                 // No secondary infections with TIC; just mark p2 'recovered'
                                                 if (TIC)
                                                         h2.StopInfection();
