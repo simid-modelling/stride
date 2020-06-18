@@ -125,6 +125,10 @@ bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff,
 }
 
 
+bool PublicHealthAgency::Bernoulli(std::function<double()> uniform_01_rng, double prob_of_success)
+{
+  return uniform_01_rng() < prob_of_success; 
+}
 
 void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop, util::RnMan& rnMan,
                                             unsigned short int simDay)

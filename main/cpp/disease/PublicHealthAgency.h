@@ -60,6 +60,9 @@ public:
 		bool IsK12SchoolOff(unsigned int age, bool isPreSchoolOff, bool isPrimarySchoolOff, bool isSecondarySchoolOff, bool isCollegeOff);
 
 private:
+        bool Bernoulli(std::function<double()> uniform_01_rng, double prob_of_success);
+
+private:
         double m_telework_probability;    ///< Probability to perform telework (or equivalent) //TODO rename "telework"
         filesys::path m_unitest_planning_output_fn; ///> Filename to output the planning to
         //universal testing configuration
