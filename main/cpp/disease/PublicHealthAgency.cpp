@@ -43,7 +43,9 @@ PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),
 	        m_unitest_pool_allocation(),
 		m_unitest_fnr(0.0), m_unitest_n_tests_per_day(0), m_unitest_pool_size(0),
 	        m_unitest_test_compliance(0.0), m_unitest_isolation_compliance(0.0),
+            m_unitest_isolation_delay(0),
 	        m_unitest_planning(),
+	        m_unitest_day_in_sweep(0),
 		m_detection_probability(0),
 		m_case_finding_efficency(0),m_case_finding_capacity(0),m_delay_testing(0),m_delay_contact_tracing(0),
 		m_test_false_negative(0), m_identify_all_cases(false), m_school_system_adjusted(false)
@@ -56,6 +58,7 @@ void PublicHealthAgency::Initialize(const ptree& config){
         m_unitest_pool_size            = config.get<unsigned int>("run.unitest_pool_size",0);
         m_unitest_test_compliance      = config.get<double>("run.unitest_test_compliance",0.0);
         m_unitest_isolation_compliance = config.get<double>("run.unitest_isolation_compliance",0.0);
+        m_unitest_isolation_delay      = config.get<int>("run.unitest_isolation_delay",1);
         const auto prefix = config.get<string>("run.output_prefix");
         m_unitest_planning_output_fn   = FileSys::BuildPath(prefix, "unitest_planning.csv");
 
@@ -246,6 +249,38 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
         assert(m_unitest_planning[day].size() <= m_unitest_n_tests_per_day);
     }
 #endif 
+  }
+
+  auto uniform01Gen = rnMan.GetUniform01Generator(0U);
+
+  //perform the testing, according to the planning
+  for (const auto& pool : m_unitest_planning[m_unitest_day_in_sweep]) {
+    bool pool_positive = false;
+    std::vector<std::vector<Person*>> tested_households;
+    for (const auto& household : pool.GetHouseholds()) {
+      bool compliant = Bernoulli(uniform01Gen, m_unitest_test_compliance);
+     
+      if (compliant) {
+        tested_households.push_back(household);
+      
+        for (const Person* indiv : household) {
+          if (indiv->GetHealth().IsInfected())
+            pool_positive = true;
+        }
+      }
+    }
+
+    bool pcr_test_positive = pool_positive && Bernoulli(uniform01Gen, 1-m_unitest_fnr);
+    if (pcr_test_positive) {
+      for (auto& household : tested_households) {
+        bool isolation_compliance = Bernoulli(uniform01Gen, m_unitest_isolation_compliance);
+        if (isolation_compliance) {
+          for (const auto& indiv : household) {
+              indiv->GetHealth().StartIsolation(m_unitest_isolation_delay);
+          }
+        }
+      }
+    }
   }
 }
 

@@ -72,8 +72,10 @@ private:
         unsigned int m_unitest_pool_size; ///< Pool size (universal testing)
         double m_unitest_test_compliance; ///< Household compliance with testing (universal testing)
         double m_unitest_isolation_compliance; ///< Household compliance when isolated (universal testing)
+        unsigned int m_unitest_isolation_delay; ///< Delay (in days) after which positive individuals are isolated (universal testing)
         //universal testing planning
         std::vector<std::set<PCRPool>> m_unitest_planning; ///< Vector with at each element, a set of PCR pools, to be performed at one day
+        unsigned int m_unitest_day_in_sweep; ///< The n-th day of the current universal testing sweep
         //contact tracing configuration
         double m_detection_probability;   ///< Detection probability of symptomatic cases.
         double m_case_finding_efficency;  ///< Detection probability of infected cases during case finding
