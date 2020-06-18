@@ -182,6 +182,7 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
     }
 
     unsigned int day = 0;
+    //TODO: shuffle regions keys randomly
     for (const auto& key_val: pools_per_georegion) {
         const auto& region = key_val.first;
         const auto& pools = util::MapValuesToVec(pools_per_georegion[region]);
