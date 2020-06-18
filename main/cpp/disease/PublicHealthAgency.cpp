@@ -283,6 +283,13 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
       }
     }
   }
+
+  //move to the next day in the sweep,
+  //if at the end of the sweep: reset
+  ++m_unitest_day_in_sweep;
+  if (m_unitest_day_in_sweep == m_unitest_planning.size()) {
+    m_unitest_day_in_sweep = 0; 
+  }
 }
 
 void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, util::RnMan& rnMan,
