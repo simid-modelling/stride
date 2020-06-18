@@ -30,6 +30,7 @@ class PCRPool
 {
 public:
         PCRPool():m_individuals(),
+                  m_households(), 
                   m_georegion(), 
                   m_id() {}
        
@@ -39,14 +40,17 @@ public:
         unsigned int GetId() const { return m_id; }
 
         void AddIndividual(Person* p) { return m_individuals.push_back(p); }
+        void AddHousehold(const std::vector<Person*> household) { return m_households.push_back(household); }
 
         const std::vector<Person*>& GetIndividuals() const { return m_individuals; } 
+        const std::vector<std::vector<Person*>>& GetHouseholds() const { return m_households; } 
 
         bool operator< (const PCRPool& p) const {
             return m_individuals < p.m_individuals;
         }
 private:
         std::vector<Person*> m_individuals;
+        std::vector<std::vector<Person*>> m_households;
         std::string m_georegion;
         unsigned int m_id;
 };

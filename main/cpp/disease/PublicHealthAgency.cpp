@@ -162,9 +162,11 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
         auto& pool = pools[pool_id];
 
         int household_id = row.GetValue<int>(household_id_idx);
-		for (const auto& hh_member : households[household_id].GetPool()) {
+		const auto& household = households[household_id].GetPool();
+        for (const auto& hh_member : household) {
             pool.AddIndividual(hh_member);     
         }
+        pool.AddHousehold(household);
     } 
     
     unsigned int n_days = ceil(total_pools / (float)m_unitest_n_tests_per_day);
