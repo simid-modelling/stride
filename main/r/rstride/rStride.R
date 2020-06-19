@@ -163,6 +163,9 @@ run_rStride <- function(exp_design               = exp_design,
   # add an "experiment id" to the design of experiment matrix
   exp_design$exp_id <- 1:nrow(exp_design) 
   
+  # export the exp design to a CSV file
+  write.csv(exp_design, smd_file_path(project_dir, "exp_design.csv"))
+
   # create temporary directory to store experiment results
   project_dir_exp <- smd_file_path(project_dir,'exp_all')
   
