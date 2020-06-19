@@ -128,6 +128,10 @@ foreach(i_file = 1:length(file_name_summary),
           } else{
                   project_summary$contact_id <- NA
           }
+          
+          # fix for typo "efficency"
+          names(project_summary) <- gsub('efficency','efficiency',names(project_summary))
+         
           # return
           project_summary
         } -> project_summary_scenario
@@ -136,11 +140,6 @@ dim(project_summary_scenario)
 dim(data_incidence)
 unique(project_summary_scenario$tracing_id)
 table(project_summary_scenario$contact_id)
-
-# fix for typo "efficency"
-names(project_summary_scenario) <- gsub('efficency','efficiency',names(project_summary_scenario))
-
-
 
 
 ##### MONTLY AVERAGE ####

@@ -72,10 +72,14 @@ exp_design <- expand.grid(r0                            = 2.5,
                           tracing_efficiency_other       = 0,
                           case_finding_capacity          = 0,
                           test_false_negative            = 0,
-                          gtester_label                  = 'covid_all',
+                          gtester_label                  = 'covid_base',
                           event_log_level                = 'Transmissions',
                           stringsAsFactors = F)
 
+# all contacts
+exp_design_all <- exp_design
+exp_design_all$event_log_level            <- 'All'
+exp_design_all$gtester_label              <- 'covid_all'
  
 # daily seeding
 exp_design_daily <- exp_design
@@ -116,15 +120,16 @@ exp_design_cts$tracing_efficiency_other     <- 0.7
 exp_design_cts$test_false_negative          <- 0.1
 exp_design_cts$case_finding_capacity        <- 1000
 exp_design_cts$event_log_level              <- 'Transmissions'
-exp_design_cts$gtester_label                <- 'covid_tracing'
+exp_design_cts$gtester_label                <- 'covid_tracing_all'
 
 # contact tracing all
 exp_design_cts_all <- exp_design_cts
-exp_design_cts_all$event_log_level              <- 'ContactTracing'
-exp_design_cts_all$gtester_label                <- 'covid_tracing_optim'
+exp_design_cts_all$event_log_level          <- 'ContactTracing'
+exp_design_cts_all$gtester_label            <- 'covid_tracing'
 
 # rbind all designs
-exp_design <- rbind(exp_design, exp_design_cts, exp_design_cts_all,
+exp_design <- rbind(exp_design, exp_design_all,
+                    exp_design_cts_all, exp_design_cts,
                     exp_design_daily, exp_design_dist,
                     exp_design_15min, exp_design_hhcl)
 

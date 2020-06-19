@@ -72,9 +72,6 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
         	sim->m_infector_tracing    = InfectorMap().at(select);
         }
 
-
-
-
         // --------------------------------------------------------------
         // Initialize the age-related contact profiles.
         // --------------------------------------------------------------
