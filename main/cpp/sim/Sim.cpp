@@ -151,15 +151,19 @@ void Sim::TimeStep()
 				bool isK12SchoolOff = m_public_health_agency.IsK12SchoolOff(population[i].GetAge(),isPreSchoolOff,isPrimarySchoolOff,
 						isSecondarySchoolOff, isCollegeOff);
 
-				// update presence
+				// update health and presence at diffent contact pools
 				population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
 						isWorkplaceDistancingEnforced, isHouseholdClusteringAllowed,
 						m_handlers[thread_num]);
 			}
+        }// end pragma openMP
 
-			// Perform contact tracing (if activated)
-			m_public_health_agency.PerformContactTracing(m_population, m_handlers[thread_num], m_calendar);
+		 // Perform contact tracing (if activated)
+		 m_public_health_agency.PerformContactTracing(m_population, m_handlers[0], m_calendar);
 
+#pragma omp parallel num_threads(m_num_threads)
+        {
+		    const auto thread_num = static_cast<unsigned int>(omp_get_thread_num());
 			// Infector updates individuals for contacts & transmission within each pool.
 			// Skip pools with id = 0, because it means Not Applicable.
 			for (auto typ : ContactType::IdList) {
@@ -180,7 +184,7 @@ void Sim::TimeStep()
 									 m_population,cnt_intensity_householdCluster);
 					}
 			}
-        }
+        } // end pragma openMP
 
         m_population->RefEventLogger()->flush();
         m_calendar->AdvanceDay();
