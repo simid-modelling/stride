@@ -41,7 +41,7 @@ using namespace std;
 PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),
             m_unitest_planning_output_fn(),
 	        m_unitest_pool_allocation(),
-		m_unitest_fnr(0.0), m_unitest_n_tests_per_day(0), m_unitest_pool_size(0),
+		m_unitest_fnr(-1.0), m_unitest_n_tests_per_day(0), m_unitest_pool_size(0),
 	        m_unitest_test_compliance(0.0), m_unitest_isolation_compliance(0.0),
             m_unitest_isolation_delay(0),
 	        m_unitest_planning(),
@@ -53,7 +53,7 @@ PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),
 
 void PublicHealthAgency::Initialize(const ptree& config){
         m_unitest_pool_allocation      = config.get<std::string>("run.unitest_pool_allocation","");
-        m_unitest_fnr                  = config.get<double>("run.unitest_fnr",0.0);
+        m_unitest_fnr                  = config.get<double>("run.unitest_fnr",-1.0);
         m_unitest_n_tests_per_day      = config.get<unsigned int>("run.unitest_n_tests_per_day",0);
         m_unitest_pool_size            = config.get<unsigned int>("run.unitest_pool_size",0);
         m_unitest_test_compliance      = config.get<double>("run.unitest_test_compliance",0.0);
@@ -136,7 +136,7 @@ bool PublicHealthAgency::Bernoulli(std::function<double()> uniform_01_rng, doubl
 void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop, util::RnMan& rnMan,
                                             unsigned short int simDay)
 {
-  if (m_unitest_fnr <= 0.0)
+  if (m_unitest_fnr < 0.0)
     return;
 
   if (m_unitest_planning.empty()) {
