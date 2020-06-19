@@ -62,6 +62,8 @@ void PublicHealthAgency::Initialize(const ptree& config){
         const auto prefix = config.get<string>("run.output_prefix");
         m_unitest_planning_output_fn   = FileSys::BuildPath(prefix, "unitest_planning.csv");
 
+        Replace(m_unitest_pool_allocation, "$unitest_pool_size", std::to_string(m_unitest_pool_size));
+
 	m_telework_probability   = config.get<double>("run.telework_probability",0);
 	m_detection_probability  = config.get<double>("run.detection_probability",0);
 	m_case_finding_efficency = config.get<double>("run.case_finding_efficency",0);
