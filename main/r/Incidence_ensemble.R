@@ -110,7 +110,7 @@ data_incidence$scenario_label[grepl('scen01',data_incidence$scenario)] <- 'Basel
 data_incidence$scenario_label[grepl('scen02',data_incidence$scenario)] <- 'Baseline w/o B2B'
 data_incidence$scenario_label[grepl('scen03',data_incidence$scenario)] <- 'Baseline w/o community'
 data_incidence$scenario_label[grepl('scen04',data_incidence$scenario)] <- 'Baseline w/o school*'
-data_incidence$scenario_label[grepl('scen05',data_incidence$scenario)] <- 'Baseline w/o PD @school*'
+data_incidence$scenario_label[grepl('scen05',data_incidence$scenario)] <- 'Baseline w/o PM @school*'
 
 data_incidence$scenario_label[grepl('scen06',data_incidence$scenario)] <- 'School 0-5y'
 data_incidence$scenario_label[grepl('scen07',data_incidence$scenario)] <- 'School 0-11y'
@@ -132,7 +132,7 @@ data_incidence$scenario_label[grepl('scen21',data_incidence$scenario)] <- 'Basel
 data_incidence$scenario_label[grepl('scen22',data_incidence$scenario)] <- 'Baseline w/o B2B (c)'
 data_incidence$scenario_label[grepl('scen23',data_incidence$scenario)] <- 'Baseline w/o community (c)'
 data_incidence$scenario_label[grepl('scen24',data_incidence$scenario)] <- 'Baseline w/o school* (c)'
-data_incidence$scenario_label[grepl('scen25',data_incidence$scenario)] <- 'Baseline w/o PD @school* (c)'
+data_incidence$scenario_label[grepl('scen25',data_incidence$scenario)] <- 'Baseline w/o PM @school* (c)'
 
 data_incidence$scenario_label[grepl('scen26',data_incidence$scenario)] <- 'School 0-5y (c)'
 data_incidence$scenario_label[grepl('scen27',data_incidence$scenario)] <- 'School 0-11y (c)'

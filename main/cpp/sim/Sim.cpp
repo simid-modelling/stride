@@ -158,7 +158,7 @@ void Sim::TimeStep()
 			}
 
 			// Perform contact tracing (if activated)
-			m_public_health_agency.PerformContactTracing(m_population, m_rn_man, m_calendar);
+			m_public_health_agency.PerformContactTracing(m_population, m_handlers[thread_num], m_calendar);
 
 			// Infector updates individuals for contacts & transmission within each pool.
 			// Skip pools with id = 0, because it means Not Applicable.

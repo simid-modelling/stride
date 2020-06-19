@@ -21,6 +21,7 @@
 #pragma once
 
 #include "contact/ContactPool.h"
+#include "contact/ContactHandler.h"
 #include "util/RnMan.h"
 #include "util/SegmentedVector.h"
 
@@ -49,7 +50,7 @@ public:
         void SetTelework(std::shared_ptr<Population> pop, util::RnMan& rnMan);
 
         /// Public Health Strategy: look for contacts of infected cases and quarantine infected cases
-		void PerformContactTracing(std::shared_ptr<Population> pop, util::RnMan& rnMan, const std::shared_ptr<Calendar> calendar);
+		void PerformContactTracing(std::shared_ptr<Population> pop, ContactHandler& cHandler, const std::shared_ptr<Calendar> calendar);
 
 		bool IsK12SchoolOff(unsigned int age, bool isPreSchoolOff, bool isPrimarySchoolOff, bool isSecondarySchoolOff, bool isCollegeOff);
 
@@ -59,8 +60,8 @@ public:
 private:
         double m_telework_probability;    ///< Probability to perform telework (or equivalent) //TODO rename "telework"
         double m_detection_probability;   ///< Detection probability of symptomatic cases.
-        double m_tracing_efficency_household;  ///< Tracing probability for household members
-        double m_tracing_efficency_other;      ///< Tracing probability for non-household members
+        double m_tracing_efficiency_household;  ///< Tracing probability for household members
+        double m_tracing_efficiency_other;      ///< Tracing probability for non-household members
         unsigned int m_case_finding_capacity;  ///< Maximum number of symptomatic cases with contact tracing per day
         unsigned int m_delay_isolation_index;         ///< Number of days after symptom onset to perform a clinical test
         unsigned int m_delay_contact_tracing; ///< Number of days after clinical test to start contact tracing

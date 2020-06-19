@@ -56,7 +56,7 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
 		{"measles_26", 600000U},  {"r0_0", 1200U},     {"r0_4", 3400U},     {"r0_8", 9500U},
 		{"r0_12", 24000U},        {"r0_16", 47000U},   {"covid19_base", 84000U}, {"covid19_all", 74000U},
 		{"covid19_daily", 88000U},{"covid19_distancing", 19000U}, {"covid19_age_15min",92000U},
-		{"covid19_householdclusters", 49000U}, {"covid19_tracing",40000U}, {"covid19_tracing_all",33000U}};
+		{"covid19_householdclusters", 49000U}, {"covid19_tracing",49000U}, {"covid19_tracing_all",49000U}};
 
 	// Set margins per scenario
 	const map<string, double> margins_default = {

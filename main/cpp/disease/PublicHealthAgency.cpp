@@ -38,15 +38,15 @@ using namespace std;
 
 // Default constructor
 PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),m_detection_probability(0),
-		m_tracing_efficency_household(0),m_tracing_efficency_other(0),m_case_finding_capacity(0),m_delay_isolation_index(0),m_delay_contact_tracing(0),
+		m_tracing_efficiency_household(0),m_tracing_efficiency_other(0),m_case_finding_capacity(0),m_delay_isolation_index(0),m_delay_contact_tracing(0),
 		m_test_false_negative(0),  m_school_system_adjusted(false)
 	{}
 
 void PublicHealthAgency::Initialize(const ptree& config){
 	m_telework_probability        = config.get<double>("run.telework_probability",0);
 	m_detection_probability       = config.get<double>("run.detection_probability",0);
-	m_tracing_efficency_household = config.get<double>("run.tracing_efficency_household",0);
-	m_tracing_efficency_other     = config.get<double>("run.tracing_efficency_other",0);
+	m_tracing_efficiency_household = config.get<double>("run.tracing_efficiency_household",0);
+	m_tracing_efficiency_other     = config.get<double>("run.tracing_efficiency_other",0);
 
 	m_case_finding_capacity  = config.get<unsigned int>("run.case_finding_capacity",0);
 
@@ -58,8 +58,8 @@ void PublicHealthAgency::Initialize(const ptree& config){
 
 	// account for false negative tests
 	m_detection_probability        *= (1.0 - m_test_false_negative);
-	m_tracing_efficency_household  *= (1.0 - m_test_false_negative);
-	m_tracing_efficency_other      *= (1.0 - m_test_false_negative);
+	m_tracing_efficiency_household  *= (1.0 - m_test_false_negative);
+	m_tracing_efficiency_other      *= (1.0 - m_test_false_negative);
 
 }
 
@@ -119,7 +119,7 @@ bool PublicHealthAgency::IsContactTracingActive(const std::shared_ptr<Calendar> 
 }
 
 
-void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, util::RnMan& rnMan,
+void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, ContactHandler& cHandler,
 												const std::shared_ptr<Calendar> calendar)
 {
 
@@ -128,9 +128,8 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 			return;
 	}
 
-	//cout << m_detection_probability << " -- "<< m_tracing_efficency_household << " -- "<< m_tracing_efficency_other << " ** " << m_case_finding_capacity << endl;
+	//cout << m_detection_probability << " -- "<< m_tracing_efficiency_household << " -- "<< m_tracing_efficiency_other << " ** " << m_case_finding_capacity << endl;
 
-	auto  uniform01Gen = rnMan.GetUniform01Generator(0U);
 	auto& logger       = pop->RefEventLogger();
 	const auto  simDay = calendar->GetSimulationDay();
 
@@ -138,7 +137,7 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 	for (auto& p_case : *pop) {
 
 		if(p_case.GetHealth().NumberDaysInfected(1) &&
-				uniform01Gen() < m_detection_probability) {
+				cHandler() < m_detection_probability) {
 			p_case.SetTracingIndexCase();
 		}
 
@@ -178,7 +177,7 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 				Person* p_contact = *ip;
 
 				// combine contact tracing efficiency and false negative rate
-				double tracing_efficency = m_tracing_efficency_other;
+				double tracing_efficiency = m_tracing_efficiency_other;
 
 				// set default poolType as "other
 				std::string poolTypeString = "School";
@@ -186,7 +185,7 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 				// if contact is part of same household, change tracing efficiency and poolType
 				if(p_contact->GetPoolId(Id::Household) == p_case.GetPoolId(Id::Household)){
 					poolTypeString    = ToString(Id::Household);
-					tracing_efficency = m_tracing_efficency_household;
+					tracing_efficiency = m_tracing_efficiency_household;
 				}
 
 				// if contact is part of same community, change poolType
@@ -201,7 +200,7 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 					poolTypeString    = "Workplace";
 				}
 
-				if(uniform01Gen() < tracing_efficency){
+				if(cHandler() < tracing_efficiency){
 
 					if(p_contact->GetHealth().IsInfected()){
 						// start isolation over X days
