@@ -39,8 +39,12 @@ public:
         void SetId(unsigned int id) { m_id = id; }
         unsigned int GetId() const { return m_id; }
 
-        void AddIndividual(Person* p) { return m_individuals.push_back(p); }
-        void AddHousehold(const std::vector<Person*> household) { return m_households.push_back(household); }
+        void AddHousehold(const std::vector<Person*>& household) { 
+            m_households.push_back(household);
+            for (const auto& hh_member : household) {
+                m_individuals.push_back(hh_member);
+            }
+        }
 
         const std::vector<Person*>& GetIndividuals() const { return m_individuals; } 
         const std::vector<std::vector<Person*>>& GetHouseholds() const { return m_households; } 

@@ -170,9 +170,6 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
 
         int household_id = row.GetValue<int>(household_id_idx);
 		const auto& household = households[household_id].GetPool();
-        for (const auto& hh_member : household) {
-            pool.AddIndividual(hh_member);     
-        }
         pool.AddHousehold(household);
     } 
     
