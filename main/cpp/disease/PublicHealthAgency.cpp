@@ -195,7 +195,7 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
 
     //write the planning to file
     ofstream of;
-    of.open(m_unitest_planning_output_fn);
+    of.open(m_unitest_planning_output_fn.c_str());
     of << "day,georegion,id,size" << std::endl;
     for (unsigned int day = 0; day < n_days; ++day) {
         for (const auto& pool: m_unitest_planning[day]) {
