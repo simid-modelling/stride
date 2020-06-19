@@ -251,6 +251,7 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
 #endif 
   }
 
+  auto& logger = pop->RefContactLogger();
   auto uniform01Gen = rnMan.GetUniform01Generator(0U);
 
   //perform the testing, according to the planning
@@ -277,6 +278,13 @@ void PublicHealthAgency::PerformUniversalTesting(std::shared_ptr<Population> pop
         if (isolation_compliance) {
           for (const auto& indiv : household) {
               indiv->GetHealth().StartIsolation(m_unitest_isolation_delay);
+              logger->info("[UNITEST-ISOLATE] {} {} {} {} {} {}",
+                                                 pool.GetId(),
+                                                 indiv->GetPoolId(Id::Household),
+                                                 indiv->GetId(), 
+                                                 indiv->GetHealth().IsInfected(),
+                                                 m_unitest_isolation_delay,
+                                                 simDay);
           }
         }
       }
