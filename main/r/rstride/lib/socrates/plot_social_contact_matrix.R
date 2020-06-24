@@ -15,10 +15,10 @@ smd_load_packages(socrates_packages)
 # plot matrices according the Socrates app
 plot_socrates_all <- function(data_cnt,data_part,age_cat_breaks,project_dir,exp_tag,survey_start){
   
-  .rstride$create_pdf(project_dir,paste0(exp_tag,'_cnt_matrix_all'))
+  .rstride$create_pdf(project_dir,paste0(exp_tag,'_cnt_matrix_all'),9,4)
   
   opt_day <- unique(data_cnt$sim_day)
-  i_day <- 10
+  i_day <- 1
   for(i_day in opt_day){
     data_cnt_day <- data_cnt[data_cnt$sim_day == i_day,]
     plot_socrates_location(data_cnt_day,data_part,age_cat_breaks,as.Date(survey_start) + i_day)
@@ -31,9 +31,9 @@ plot_socrates_all <- function(data_cnt,data_part,age_cat_breaks,project_dir,exp_
   for(i_day in opt_day){
    
     # select contacts of 'i_day' and symptomatic participants (of the infected seeds)
-    data_cnt_day    <- data_cnt[data_cnt$sim_day == i_day,]
     data_part_sympt <- data_part[data_part$is_infected == 1  & (data_part$start_symptomatic-1) <= i_day & (data_part$end_symptomatic-1) > i_day,]
-
+    data_cnt_day    <- data_cnt[data_cnt$sim_day == i_day & data_cnt$local_id %in% data_part_sympt$local_id,]
+    
     if(nrow(data_part_sympt)>0 & nrow(data_cnt_day)>0){
       print(i_day)  
       plot_socrates_location(data_cnt_day,data_part_sympt,age_cat_breaks,as.Date(survey_start) + i_day)
@@ -46,7 +46,7 @@ plot_socrates_all <- function(data_cnt,data_part,age_cat_breaks,project_dir,exp_
    # data_cnt <- data_cnt_day; data_part <- data_part_sympt;survey_day <- as.Date(survey_start) + i_day
 plot_socrates_location <- function(data_cnt,data_part,age_cat_breaks,survey_day){
   
-  par(mfrow=c(3,2))
+  par(mfrow=c(2,3))
   
   ## TOTAL
   plot_contact_matrix_socrates(data_cnt,data_part,'total',age_cat_breaks)
@@ -73,7 +73,7 @@ plot_socrates_location <- function(data_cnt,data_part,age_cat_breaks,survey_day)
   # survey_day <- as.Date(exp_summary$start_date) + unique(data_cnt$sim_day)
   survey_day <- as.Date(survey_day)
   text(0,0,paste(format(survey_day,'%A'),survey_day),pos=3)
-  text(0,0,paste('Contacts during symptomatic period:',sum(data_cnt$part_sympt),
+  text(0,0,paste('Contacts when symptomatic:',sum(data_cnt$part_sympt),
                   '\nNumber of participants:',nrow(data_part)),pos=1)
   
 }

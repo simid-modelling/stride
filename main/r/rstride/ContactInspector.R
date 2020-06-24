@@ -232,11 +232,11 @@ inspect_contact_data <- function(project_dir){
   ## Socrates matrices ####
 
   # results with 2 age groups (minors and adults)   
-  age_cat_breaks <- c(0,19,110)
+  age_cat_breaks <- c(0,18,110)
   plot_socrates_all(data_cnt,data_part,age_cat_breaks,project_dir,paste0(exp_tag,'_AG2'),exp_summary$start_date)
   
   # results by 5 age groups
-  age_cat_breaks <- c(0,19,36,65,75,110)
+  age_cat_breaks <- c(0,18,36,65,75,110)
   plot_socrates_all(data_cnt,data_part,age_cat_breaks,project_dir,paste0(exp_tag,'_AG5'),exp_summary$start_date)
   
 } # end function

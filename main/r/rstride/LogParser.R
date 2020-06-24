@@ -172,7 +172,7 @@ if(0==1){
     # convert text into boolean
     # data_cnt$part_sympt <- as.numeric(data_cnt$part_sympt == 'true')
     # data_cnt$cnt_sympt  <- as.numeric(data_cnt$cnt_sympt == 'true')
-    col_boolean <- header_cnt[grepl('is_',header_cnt)]
+    col_boolean <- header_cnt[grepl('_sympt',header_cnt)]
     data_cnt[, (col_boolean) := replace(.SD, .SD == 'true', 1), .SDcols = col_boolean]
     data_cnt[, (col_boolean) := replace(.SD, .SD == 'false', 0), .SDcols = col_boolean]
     
