@@ -44,7 +44,7 @@ Sim::Sim()
 	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
 	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),m_cnt_other_exit_delay(0),
 	  m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_day_of_community_distancing_exit(0),m_cnt_intensity_householdCluster(0),
-	  m_public_health_agency(),m_num_daily_imported_cases(0)
+	  m_public_health_agency(),m_universal_testing(),m_num_daily_imported_cases(0)
 
 {
 }
@@ -166,7 +166,7 @@ void Sim::TimeStep()
          //TODO: this can be removed, by passing the calendar, to check whether uni testing is activated (see contact tracing code)
 			// Perform universal testing (if activated)
 			if(isUniversalTestingActivated){
-				m_public_health_agency.PerformUniversalTesting(m_population, m_rn_man, simDay);
+				m_universal_testing.PerformUniversalTesting(m_population, m_rn_man, simDay);
 			}
 
 #pragma omp parallel num_threads(m_num_threads)

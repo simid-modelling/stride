@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include "PCRPool.h"
 #include "contact/ContactPool.h"
 #include "contact/ContactHandler.h"
 #include "util/RnMan.h"
@@ -29,7 +28,6 @@
 
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <memory>
-#include <set>
 #include <vector>
 
 namespace stride {
@@ -55,8 +53,6 @@ public:
 
         /// Public Health Strategy: look for contacts of infected cases and quarantine infected cases
 		void PerformContactTracing(std::shared_ptr<Population> pop, ContactHandler& cHandler, const std::shared_ptr<Calendar> calendar);
-       /// Public Health Strategy: perform universal testing
-       void PerformUniversalTesting(std::shared_ptr<Population> pop, util::RnMan& rnMan, unsigned short int simDay);
 
 		bool IsK12SchoolOff(unsigned int age, bool isPreSchoolOff, bool isPrimarySchoolOff, bool isSecondarySchoolOff, bool isCollegeOff);
 
@@ -64,22 +60,7 @@ public:
 		bool IsContactTracingActive(const std::shared_ptr<Calendar> calendar) const;
 
 private:
-        bool Bernoulli(std::function<double()> uniform_01_rng, double prob_of_success);
-
-private:
         double m_telework_probability;    ///< Probability to perform telework (or equivalent) //TODO rename "telework"
-        filesys::path m_unitest_planning_output_fn; ///> Filename to output the planning to
-        //universal testing configuration
-        std::string m_unitest_pool_allocation; ///< File that lists the pool to which households belong
-        double m_unitest_fnr;             ///< False negative rate for pool testing (universal testing)
-        unsigned int m_unitest_n_tests_per_day; ///< Number of PCR tests per day (universal testing)
-        unsigned int m_unitest_pool_size; ///< Pool size (universal testing)
-        double m_unitest_test_compliance; ///< Household compliance with testing (universal testing)
-        double m_unitest_isolation_compliance; ///< Household compliance when isolated (universal testing)
-        unsigned int m_unitest_isolation_delay; ///< Delay (in days) after which positive individuals are isolated (universal testing)
-        //universal testing planning
-        std::vector<std::set<PCRPool>> m_unitest_planning; ///< Vector with at each element, a set of PCR pools, to be performed at one day
-        unsigned int m_unitest_day_in_sweep; ///< The n-th day of the current universal testing sweep
         //contact tracing configuration
         double m_detection_probability;   ///< Detection probability of symptomatic cases.
         double m_tracing_efficiency_household;  ///< Tracing probability for household members
