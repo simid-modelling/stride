@@ -35,11 +35,11 @@ namespace stride {
 
 using namespace std;
 using namespace util;
-using namespace ContactLogMode;
+using namespace EventLogMode;
 
 Sim::Sim()
-    : m_config(), m_contact_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
-      m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector(),
+    : m_config(), m_event_log_mode(Id::None), m_num_threads(1U), m_track_index_case(false),
+      m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector_default(),m_infector_tracing(),
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_workplace(0), m_cnt_reduction_other(0),
 	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
 	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),m_cnt_other_exit_delay(0),
@@ -72,7 +72,7 @@ void Sim::TimeStep()
         const bool isCollegeOff         = m_calendar->IsCollegeOff();
         const bool isWorkplaceDistancingEnforced   = m_calendar->IsWorkplaceDistancingEnforced();
         const bool isCommunityDistancingEnforced   = m_calendar->IsCommunityDistancingEnforced();
-        const bool isContactTracingActivated       = m_calendar->IsContactTracingActivated();
+        //TODO isUniversalTestingActivated can be removed by passing the calendar (see contact tracing code)
         const bool isUniversalTestingActivated     = m_calendar->IsUniversalTestingActivated();
         const bool isHouseholdClusteringAllowed    = m_calendar->IsHouseholdClusteringAllowed();
 
@@ -123,9 +123,11 @@ void Sim::TimeStep()
 		// To be used in update of population & contact pools.
         Population& population    = *m_population;
         auto&       poolSys       = population.RefPoolSys();
-        auto        contactLogger = population.RefContactLogger();
+        auto        eventLogger   = population.RefEventLogger();
         const auto  simDay        = m_calendar->GetSimulationDay();
-        const auto& infector      = *m_infector;
+
+        // Select infector, based on tracing
+        const auto& infector      = m_public_health_agency.IsContactTracingActive(m_calendar) ? *m_infector_tracing : *m_infector_default;
 
         // set HouseholdCluster intensity
         double cnt_intensity_householdCluster = 0.0;
@@ -151,22 +153,25 @@ void Sim::TimeStep()
 				bool isK12SchoolOff = m_public_health_agency.IsK12SchoolOff(population[i].GetAge(),isPreSchoolOff,isPrimarySchoolOff,
 						isSecondarySchoolOff, isCollegeOff);
 
-				// update presence
+				// update health and presence at diffent contact pools
 				population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
 						isWorkplaceDistancingEnforced, isHouseholdClusteringAllowed,
 						m_handlers[thread_num]);
 			}
+        }// end pragma openMP
 
-			// Perform contact tracing (if activated)
-			if(isContactTracingActivated){
-				m_public_health_agency.PerformContactTracing(m_population, m_rn_man, simDay);
-			}
+		 // Perform contact tracing (if activated)
+		 m_public_health_agency.PerformContactTracing(m_population, m_handlers[0], m_calendar);
 
+         //TODO: this can be removed, by passing the calendar, to check whether uni testing is activated (see contact tracing code)
 			// Perform universal testing (if activated)
 			if(isUniversalTestingActivated){
 				m_public_health_agency.PerformUniversalTesting(m_population, m_rn_man, simDay);
 			}
 
+#pragma omp parallel num_threads(m_num_threads)
+        {
+		    const auto thread_num = static_cast<unsigned int>(omp_get_thread_num());
 			// Infector updates individuals for contacts & transmission within each pool.
 			// Skip pools with id = 0, because it means Not Applicable.
 			for (auto typ : ContactType::IdList) {
@@ -179,7 +184,7 @@ void Sim::TimeStep()
 #pragma omp for schedule(static)
 					for (size_t i = 1; i < poolSys.RefPools(typ).size(); i++) { // NOLINT
 							infector(poolSys.RefPools(typ)[i], m_contact_profiles[typ], m_transmission_profile,
-									 m_handlers[thread_num], simDay, contactLogger,
+									 m_handlers[thread_num], simDay, eventLogger,
 									 workplace_distancing_factor,
 									 community_distancing_factor,
 									 school_distancing_factor,
@@ -187,9 +192,9 @@ void Sim::TimeStep()
 									 m_population,cnt_intensity_householdCluster);
 					}
 			}
-        }
+        } // end pragma openMP
 
-        m_population->RefContactLogger()->flush();
+        m_population->RefEventLogger()->flush();
         m_calendar->AdvanceDay();
 }
 

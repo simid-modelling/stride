@@ -44,7 +44,7 @@ dir_postfix <- '_cnt'
 num_seeds  <- 1
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(contact_log_level         = "All",
+exp_design <- expand.grid(event_log_level           = "All",
                           num_days                  = 20,
                           num_infected_seeds        = 4000,
                           num_participants_survey   = 4000,

@@ -200,16 +200,16 @@ if(!(exists('.rstride'))){
                             names(readRDS(data_filenames[length(data_filenames)]))))
   
   # loop over the output data types
-  data_type <- data_type_all[1]
+  data_type <- data_type_all[6]
   for(data_type in data_type_all){
 
     # check cluster
     smd_check_cluster()
       
     # loop over all experiments, rbind
-      i_file <- 2
+    i_file <- 1
     data_all <- foreach(i_file = 1:length(data_filenames),
-                        .combine='rbind') %do%
+                        .combine=.rstride$rbind_fill) %do%
     {
  
       # get file name
@@ -248,7 +248,7 @@ if(!(exists('.rstride'))){
       
     # continue if data_all is not NULL
     if(any(!is.null(data_all))){
-      
+
       # make data.frame #TODO: contine with data.table 
       data_all <- as.data.frame(data_all)
 
@@ -361,10 +361,13 @@ if(!(exists('.rstride'))){
 # check file presence
 .rstride$log_levels_exist <- function(design_of_experiment = exp_design){
   
-  valid_levels <- design_of_experiment$contact_log_level %in% c('None','Transmissions','All')
+  valid_levels <- design_of_experiment$event_log_level %in% 
+    c('None','Transmissions','All','ContactTracing')
   
   if(any(!valid_levels)){
-    smd_print('INVALID LOG LEVEL(S):', paste(design_of_experiment$contact_log_level[!valid_levels],collapse = ' '),WARNING=T)
+    smd_print('INVALID LOG LEVEL(S):', 
+              paste(design_of_experiment$event_log_level[!valid_levels],collapse = ' '),
+              WARNING=T)
     return(FALSE)
   }  
   
@@ -472,6 +475,9 @@ if(!(exists('.rstride'))){
   # load directory content (non recursive)
   sim_dirs <- dir(output_dir) 
   
+  # exclude .csv files
+  sim_dirs <- sim_dirs[!grepl('.csv',sim_dirs)]
+  
   # create project_dir (global)
   project_dir <<- file.path(output_dir,sim_dirs[length(sim_dirs)])
   
@@ -522,8 +528,25 @@ if(!(exists('.rstride'))){
   
 }
 
+.rstride$is_ua_cluster <- function(){
+  return(grepl('leibniz',system('hostname',intern = T)))
+}
+
 
 # cumulative sum, ignoring NA's
 .rstride$cumsum_na <- function(x){
   cumsum(replace_na(x,0))
 }
+
+# help function to combine unequal vectors in foreach loop
+.rstride$rbind_fill <- function(x,y){
+  if(is.null(y)){
+    return(x)
+  }
+  if(length(setdiff(names(x),names(y)))==0){
+    return(rbind(x,y))
+  } else{
+    return(rbind(x,y,fill=TRUE))
+  }
+}
+

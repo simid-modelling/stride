@@ -20,11 +20,12 @@
 
 #pragma once
 
-#include "contact/ContactLogMode.h"
 #include "contact/ContactType.h"
 
 #include <tuple>
 #include <vector>
+
+#include "EventLogMode.h"
 
 namespace stride {
 
@@ -83,7 +84,7 @@ private:
         std::tuple<bool, unsigned int> SortMembers();
 
         /// Calculates contacts and transmissions; accesses private methods and data.
-        template <ContactLogMode::Id LL, bool TIC, bool TO>
+        template <EventLogMode::Id LL, bool TIC, bool TO>
         friend class Infector;
 
 private:

@@ -59,6 +59,10 @@ inspect_participant_data <- function(project_dir, save_pdf = TRUE)
     flag_exp            <- .rstride$get_equal_rows(project_summary,input_opt_design[i_config,])
     data_part           <- .rstride$load_aggregated_output(project_dir,'data_participants',project_summary$exp_id[flag_exp])
     num_runs_exp        <- sum(flag_exp)
+
+    # adjust type of column
+    data_part$start_symptomatic  <- as.numeric(data_part$start_symptomatic)
+    data_part$end_infectiousness <- as.numeric(data_part$end_infectiousness)
     
     # adjust for asymptomatic cases
     flag_asymptomatic <- data_part$start_symptomatic == data_part$end_symptomatic

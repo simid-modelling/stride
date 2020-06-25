@@ -79,8 +79,8 @@ public:
         /// The ContactPoolSys of the simulator.
         const ContactPoolSys& CRefPoolSys() const { return m_pool_sys; }
 
-        /// Return the contactlogger.
-        std::shared_ptr<spdlog::logger>& RefContactLogger() { return m_contact_logger; }
+        /// Return the InfectorLogger.
+        std::shared_ptr<spdlog::logger>& RefEventLogger() { return m_event_logger; }
 
         /// Reference the ContactPoolSys of the Population.
         ContactPoolSys& RefPoolSys() { return m_pool_sys; }
@@ -95,7 +95,7 @@ private:
 
 private:
         ContactPoolSys                  m_pool_sys;       ///< The global @ContactPoolSys.
-        std::shared_ptr<spdlog::logger> m_contact_logger; ///< Logger for contact/transmission.
+        std::shared_ptr<spdlog::logger> m_event_logger; ///< Logger for contact/transmission/tracing/...
 };
 
 } // namespace stride

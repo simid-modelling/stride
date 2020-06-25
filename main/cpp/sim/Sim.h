@@ -22,7 +22,6 @@
 
 #include "contact/AgeContactProfiles.h"
 #include "contact/ContactHandler.h"
-#include "contact/ContactLogMode.h"
 #include "contact/InfectorExec.h"
 #include "contact/TransmissionProfile.h"
 #include "disease/PublicHealthAgency.h"
@@ -32,6 +31,7 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <string>
+#include "../contact/EventLogMode.h"
 
 namespace stride {
 
@@ -83,14 +83,15 @@ private:
 
 private:
         boost::property_tree::ptree m_config;                        ///< Configuration property tree
-        ContactLogMode::Id          m_contact_log_mode;              ///< Specifies contact/transmission logging mode.
+        EventLogMode::Id            m_event_log_mode;                ///< Specifies contact/transmission logging mode.
         unsigned int                m_num_threads;                   ///< The number of (OpenMP) threads.
         bool                        m_track_index_case;              ///< General simulation or tracking index case.
 
         std::shared_ptr<Calendar>   m_calendar;         ///< Management of calendar.
         AgeContactProfiles          m_contact_profiles; ///< Contact profiles w.r.t age.
         std::vector<ContactHandler> m_handlers;         ///< Contact handlers (random numbers & probabilities).
-        InfectorExec*               m_infector;         ///< Executes contacts/transmission loops in contact pool.
+        InfectorExec*               m_infector_default; ///< Executes optimized transmission loops in contact pools.
+        InfectorExec*               m_infector_tracing; ///< Executes all or optimized transmission loops in contact pools.
         std::shared_ptr<Population> m_population;       ///< Pointer to the Population.
         util::RnMan                 m_rn_man;           ///< Random number generation management.
 

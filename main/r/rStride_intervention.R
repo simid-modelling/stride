@@ -50,7 +50,7 @@ exp_param_list <- get_exp_param_default()
 ## GENERATE DESIGN OF EXPERIMENT GRID         ####
 ################################################ #
 
-# write rng seeds in full
+# add sequence with all rng seeds
 exp_param_list$rng_seed = seq(exp_param_list$num_seeds)
 
 # generate grid

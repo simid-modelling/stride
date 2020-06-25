@@ -143,7 +143,7 @@ run_rStride <- function(exp_design               = exp_design,
   config_default$run_tag          <- run_tag
   config_default$num_cea_samples  <- 1e4
   config_default$track_index_case              <- 'false'
-  config_default$contact_log_level             <- 'Transmissions'
+  config_default$event_log_level               <- 'Transmissions'
   
   # variable for hospital probability estimation
   config_default$hosp_probability_factor <- 1
@@ -151,7 +151,12 @@ run_rStride <- function(exp_design               = exp_design,
   ################################## #
   ## PARALLEL SETUP               ####
   ################################## #
-  smd_start_cluster(timeout = 2400, num_proc = num_parallel_workers)
+  
+  # choose timeout based on platform
+  cluster_timeout <- ifelse(.rstride$is_ua_cluster(),36000,1000)
+  
+  # start parallel workers
+  smd_start_cluster(timeout = cluster_timeout, num_proc = num_parallel_workers)
   
   ################################## #
   ## RUN                          ####
@@ -236,10 +241,10 @@ run_rStride <- function(exp_design               = exp_design,
                        # create rstride_out list
                        rstride_out <- list()
                        
-                       # parse contact_log (if present)
-                       contact_log_filename <- smd_file_path(config_exp$output_prefix,'contact_log.txt')
-                       if(file.exists(contact_log_filename)){
-                         rstride_out <- .rstride$parse_contact_logfile(contact_log_filename,i_exp)
+                       # parse event_log (if present)
+                       event_log_filename <- smd_file_path(config_exp$output_prefix,'event_log.txt')
+                       if(file.exists(event_log_filename)){
+                         rstride_out <- .rstride$parse_event_logfile(event_log_filename,i_exp)
                        
                          # account for non-symptomatic cases
                          flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms

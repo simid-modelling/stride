@@ -158,7 +158,7 @@ inspect_transmission_dynamics <- function(project_dir,save_pdf = TRUE)
             ylab='Relavive incidence')  
     
     # over time
-    y_lim <- range(0,data_incidence[,col_location]*1.1)
+    y_lim <- range(0,data_incidence[,col_location]*1.1,na.rm=T)
     plot(aggregate(formula(paste(col_location[1],'~ sim_date')), data = data_incidence,mean),
          ylim=y_lim,col=0,
          ylab='Incidence (infections)',
@@ -203,10 +203,14 @@ get_transmission_statistics <- function(data_transm)
   # set column types
   data_transm[,infection_date := as.Date(infection_date)]
   data_transm[,start_infectiousness := as.numeric(start_infectiousness)]
+  data_transm[,end_infectiousness := as.numeric(end_infectiousness)]
   data_transm[,start_symptoms := as.numeric(start_symptoms)]
   data_transm[,end_symptoms:= as.numeric(end_symptoms)]
   data_transm[,part_age := as.numeric(part_age)]
-
+  
+  # add recovery date
+  data_transm[, date_recovered := infection_date + end_infectiousness]
+  
   if(length(unique(data_transm$exp_id))>1){
     smd_print("TRANSMISSION STATISTICS ERROR: MULTIPLE EXPERIMENTS !!", WARNING = T, FORCED = T)
   }
@@ -215,7 +219,8 @@ get_transmission_statistics <- function(data_transm)
   # day of infection: case
   infection_time <- data.table(local_id       = data_transm$local_id,
                                infector_id    = data_transm$infector_id,
-                               infection_date = data_transm$infection_date)
+                               infection_date = data_transm$infection_date,
+                               recoverd_date  = data_transm$date_recovered)
   
   # day of infection: infector
   infector_time  <- data.table(infector_id            = data_transm$local_id,
@@ -248,7 +253,6 @@ get_transmission_statistics <- function(data_transm)
   sec_transm[, gen_interval := as.numeric(infection_date - infector_infection_date)]
 
   ## RENAME DATE COLUMN
-  sec_transm[,sim_date := infection_date]
   data_transm[,sim_date := infection_date]
   
   # AGE CATEGORIES     ----
@@ -275,7 +279,7 @@ get_transmission_statistics <- function(data_transm)
   
   # recovered
   #data_transm$date_recovered <- data_transm$infection_date + data_transm$end_symptoms
-  data_transm[, date_recovered := infection_date + end_symptoms]
+  #data_transm[, date_recovered := infection_date + end_infectiousness]
   summary_recovered   <- get_summary_table(data_transm,'date_recovered','age_cat','new_recovered_cases')
   
   # hospital admission     
@@ -328,9 +332,21 @@ get_transmission_statistics <- function(data_transm)
   # summary_col    <- c('sim_date','sec_cases','gen_interval')
   # summary_mean   <- aggregate(. ~ sim_date, data = sec_transm[,summary_col],mean)
   # summary_median <- aggregate(. ~ sim_date, data = sec_transm[,summary_col],median)
-  summary_out     <- sec_transm[,.(sec_cases = mean(sec_cases,na.rm=T),gen_interval = mean(gen_interval,na.rm=T)),by=sim_date]
-#  summary_out    <- merge(summary_mean,summary_median,by='sim_date',suffixes = c('_mean','_median'))
+  # summary_out     <- sec_transm[,.(sec_cases = mean(sec_cases,na.rm=T),gen_interval = mean(gen_interval,na.rm=T)),by=sim_date]
+  
+  # average generation interval, based on infection date
+  sec_transm[,sim_date := infection_date]
+  summary_out     <- sec_transm[,.(gen_interval = mean(gen_interval,na.rm=T)),by=sim_date]
+
+  # set key
   setkey(summary_out,'sim_date')
+  
+  # average number of secondary cases, upon recovery
+  sec_transm[,sim_date := recoverd_date]
+  summary_out <- merge(summary_out,sec_transm[,.(sec_cases = mean(sec_cases,na.rm=T)),by=sim_date],all.x = TRUE)
+  
+  #  summary_out    <- merge(summary_mean,summary_median,by='sim_date',suffixes = c('_mean','_median'))
+
   summary_out    <- merge(summary_out,summary_infections,all = TRUE)
   summary_out    <- merge(summary_out,summary_infectious,all.x = TRUE,nomatch=0)
   summary_out    <- merge(summary_out,summary_symptomatic,all.x = TRUE)

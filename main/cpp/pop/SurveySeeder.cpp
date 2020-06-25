@@ -38,7 +38,7 @@ SurveySeeder::SurveySeeder(const ptree& config, RnMan& rnMan) : m_config(config)
 
 shared_ptr<Population> SurveySeeder::Seed(shared_ptr<Population> pop)
 {
-        const string logLevel = m_config.get<string>("run.contact_log_level", "None");
+        const string logLevel = m_config.get<string>("run.event_log_level", "None");
         if (logLevel != "None") {
                 Population& population  = *pop;
                 const auto  popCount    = static_cast<unsigned int>(population.size() - 1);
@@ -71,12 +71,12 @@ shared_ptr<Population> SurveySeeder::Seed(shared_ptr<Population> pop)
 void SurveySeeder::RegisterParticipant(std::shared_ptr<Population> pop, Person& p)
 {
 
-	const string logLevel = m_config.get<string>("run.contact_log_level", "None");
+	const string logLevel = m_config.get<string>("run.event_log_level", "None");
 	if (logLevel != "None") {
 		 Population& population  = *pop;
 
 		auto&       poolSys     = population.CRefPoolSys();
-		auto&       logger      = population.RefContactLogger();
+		auto&       logger      = population.RefEventLogger();
 
 		// set person flag to be survey participant
 		p.ParticipateInSurvey();

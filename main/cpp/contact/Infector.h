@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "ContactLogMode.h"
+#include "EventLogMode.h"
 #include "TransmissionProfile.h"
 #include "calendar/Calendar.h"
 #include "contact/AgeContactProfile.h"
@@ -30,13 +30,14 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 
+
 namespace {
 
 using namespace stride;
 
 /// Indicates whether optimized implementation may be used.
 /// \tparam LL          LogLevel
-template <ContactLogMode::Id LL>
+template <EventLogMode::Id LL>
 struct UseOptimizedInfector
 {
         static constexpr bool value = false;
@@ -44,14 +45,14 @@ struct UseOptimizedInfector
 
 /// Indicates whether optimized implementation may be used.
 template <>
-struct UseOptimizedInfector<ContactLogMode::Id::None>
+struct UseOptimizedInfector<EventLogMode::Id::None>
 {
         static constexpr bool value = true;
 };
 
 /// Indicates whether optimized implementation may be used.
 template <>
-struct UseOptimizedInfector<ContactLogMode::Id::Transmissions>
+struct UseOptimizedInfector<EventLogMode::Id::Transmissions>
 {
         static constexpr bool value = true;
 };
@@ -65,14 +66,14 @@ class ContactPool;
 /// Actual contacts and transmission in contactpool (primary template).
 /// \tparam LL          LogLevel
 /// \tparam TIC         TrackIndexCase
-/// \tparam LIP         LocalInformationPolicy
-template <ContactLogMode::Id LL, bool TIC, bool TO = UseOptimizedInfector<LL>::value>
+/// \tparam TO          TransmissionOptimization
+template <EventLogMode::Id LL, bool TIC, bool TO = UseOptimizedInfector<LL>::value>
 class Infector
 {
 public:
         ///
         static void Exec(ContactPool& pool, const AgeContactProfile& profile, const TransmissionProfile& transProfile,
-                         ContactHandler& cHandler, unsigned short int simDay, std::shared_ptr<spdlog::logger> cLogger,
+                         ContactHandler& cHandler, unsigned short int simDay, std::shared_ptr<spdlog::logger> eventLogger,
 						 double cnt_reduction_work, double cnt_reduction_other, double cnt_reduction_school,
 						 double cnt_reduction_intergenearion, unsigned int cnt_reduction_intergeneration_cutoff,
 						 std::shared_ptr<Population> population, double m_cnt_intensity_householdCluster);
@@ -81,24 +82,24 @@ public:
 /// Time-optimized version (For None || Transmission logging).
 /// \tparam LL          LogLevel
 /// \tparam TIC         TrackIndexCase
-template <ContactLogMode::Id LL, bool TIC>
+template <EventLogMode::Id LL, bool TIC>
 class Infector<LL, TIC, true>
 {
 public:
         ///
         static void Exec(ContactPool& pool, const AgeContactProfile& profile, const TransmissionProfile& transProfile,
-                         ContactHandler& cHandler, unsigned short int simDay, std::shared_ptr<spdlog::logger> cLogger,
+                         ContactHandler& cHandler, unsigned short int simDay, std::shared_ptr<spdlog::logger> eventLogger,
 						 double cnt_reduction_work, double cnt_reduction_other, double cnt_reduction_school,
 						 double cnt_reduction_intergeneration, unsigned int cnt_reduction_intergeneration_cutoff,
 						 std::shared_ptr<Population> population, double m_cnt_intensity_householdCluster);
 };
 
 /// Explicit instantiations in cpp file.
-extern template class Infector<ContactLogMode::Id::None, false>;
-extern template class Infector<ContactLogMode::Id::None, true>;
-extern template class Infector<ContactLogMode::Id::Transmissions, false>;
-extern template class Infector<ContactLogMode::Id::Transmissions, true>;
-extern template class Infector<ContactLogMode::Id::All, false>;
-extern template class Infector<ContactLogMode::Id::All, true>;
+extern template class Infector<EventLogMode::Id::None, false>;
+extern template class Infector<EventLogMode::Id::None, true>;
+extern template class Infector<EventLogMode::Id::Transmissions, false>;
+extern template class Infector<EventLogMode::Id::Transmissions, true>;
+extern template class Infector<EventLogMode::Id::All, false>;
+extern template class Infector<EventLogMode::Id::All, true>;
 
 } // namespace stride

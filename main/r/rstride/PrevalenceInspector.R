@@ -67,15 +67,16 @@ inspect_prevalence_data <- function(project_dir)
   
   sim_dates_opt <- list(sim_dates_all,
                         c(as.Date("2020-03-01"),as.Date("2020-03-15")),
-                        c(as.Date("2020-04-20"),as.Date("2020-06-05")))
+                        c(as.Date("2020-05-18"),as.Date("2020-06-15")),
+                        c(as.Date(project_summary$start_date[1]),as.Date("2020-06-01")))
   
   for(sim_dates in sim_dates_opt){
     
     y_lim <- range(data_prevalence_exposed,data_prevalence_infectious)
-    if(any(sim_dates != sim_dates_all)){
+    if(!any(sim_dates == sim_dates_all[1])){
       y_lim <- c(0,3e4)
     }
-    
+
   plot(sim_dates,y_lim,
        col=0,
        xlab='Time',

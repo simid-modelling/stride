@@ -91,8 +91,8 @@ void DiseaseSeeder::ImportInfectedCases(std::shared_ptr<Population> pop, unsigne
         const auto   popSize     = pop->size();
         const auto   maxPopIndex = static_cast<int>(popSize - 1);
         auto         generator   = m_rn_man.GetUniformIntGenerator(0, maxPopIndex, 0U);
-        auto&        logger      = pop->RefContactLogger();
-        const string log_level   = m_config.get<string>("run.contact_log_level", "None");
+        auto&        logger      = pop->RefEventLogger();
+        const string log_level   = m_config.get<string>("run.event_log_level", "None");
 
 
         while (numInfected > 0) {

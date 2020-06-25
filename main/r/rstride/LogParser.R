@@ -29,22 +29,22 @@ if(0==1){
   
   #f_exp_dir <- file.path(output_dir,output_exp_dirs[i_exp])
   f_exp_dir <- file.path(project_dir,'exp0001')
-  contact_log_filename <- file.path(f_exp_dir,'contact_log.txt')
+  event_logfile <- file.path(f_exp_dir,'event_log.txt')
   
   
 }
 
-.rstride$parse_contact_logfile <- function(contact_log_filename,exp_id)
+.rstride$parse_event_logfile <- function(event_logfile,exp_id)
 {
   
   # terminal message
-  cat("PARSING LOGFILE:",contact_log_filename,fill=TRUE)
+  cat("PARSING LOGFILE:",event_logfile,fill=TRUE)
   
   # load log file and fill empty columns
-  data_log  <- fread(contact_log_filename, sep=' ',fill=T)
+  data_log  <- fread(event_logfile, sep=' ',fill=T)
 
   # experiment output directory
-  exp_dir <- dirname(contact_log_filename)
+  exp_dir <- dirname(event_logfile)
   
   # initialise output variables
   rstride_out <- list()
@@ -172,7 +172,7 @@ if(0==1){
     # convert text into boolean
     # data_cnt$part_sympt <- as.numeric(data_cnt$part_sympt == 'true')
     # data_cnt$cnt_sympt  <- as.numeric(data_cnt$cnt_sympt == 'true')
-    col_boolean <- header_cnt[grepl('is_',header_cnt)]
+    col_boolean <- header_cnt[grepl('_sympt',header_cnt)]
     data_cnt[, (col_boolean) := replace(.SD, .SD == 'true', 1), .SDcols = col_boolean]
     data_cnt[, (col_boolean) := replace(.SD, .SD == 'false', 0), .SDcols = col_boolean]
     
@@ -224,7 +224,7 @@ if(0==1){
   if(data_log[V1 %in% c("[TRACE]"),.N]>0)
   {
     header_trace           <- c('local_id', 'part_age', 'is_infected', 'is_symptomatic','pool_type', 
-                                'pool_id', 'case_id','case_age','sim_day','num_contacts_tested')
+                                'case_id','case_age','sim_day','num_unique_contacts','num_contacts_tested')
     sel_cols             <- paste0('V',seq_len(length(header_trace))+1)
     data_tracing         <- data_log[V1 %in% "[TRACE]",..sel_cols]
     names(data_tracing)  <- header_trace

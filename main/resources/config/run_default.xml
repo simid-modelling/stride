@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <run>
     <age_contact_matrix_file>contact_matrix_flanders_conditional_teachers.xml</age_contact_matrix_file>
-    <contact_log_level>Transmissions</contact_log_level>
-    <contact_output_file>true</contact_output_file>
+    <event_log_level>Transmissions</event_log_level>
+    <event_output_file>true</event_output_file>
     <disease_config_file>disease_measles_adaptive_behavior.xml</disease_config_file>
     <global_information_policy>NoGlobalInformation</global_information_policy>
     <holidays_file>holidays_none.json</holidays_file>

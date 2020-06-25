@@ -20,5 +20,6 @@ Current contributors are (in alphabetical order):
 * Jan Broeckhove
 * Niel Hens
 * Elise Kuylen
+* Pieter Libin
 * Signe Mogelmose 
 * Lander Willem (lander.willem@uantwerpen.be)

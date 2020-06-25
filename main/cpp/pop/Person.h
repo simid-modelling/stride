@@ -36,7 +36,8 @@ class Person
 {
 public:
         /// Default construction (for population vector).
-        Person() : m_age(0.0), m_id(0), m_pool_ids(), m_health(), m_in_pools(), m_is_participant(), m_able_to_telework() {}
+        Person() : m_age(0.0), m_id(0), m_pool_ids(), m_health(), m_in_pools(), m_is_participant(),
+		m_able_to_telework(), m_is_tracing_index(false), m_contact_tracing_list() {}
 
         /// Constructor: set the person data.
         Person(unsigned int id, float age, unsigned int householdId, unsigned int k12SchoolId, unsigned int collegeId,
@@ -44,7 +45,8 @@ public:
             : m_age(age), m_id(id), m_pool_ids{householdId, k12SchoolId,        collegeId,
                                                workId,      primaryCommunityId, secondaryCommunityId,
 											   householdClusterId},
-              m_health(), m_in_pools(true), m_is_participant(false), m_able_to_telework(false)
+              m_health(), m_in_pools(true), m_is_participant(false), m_able_to_telework(false),
+			  m_is_tracing_index(false), m_contact_tracing_list()
         {
         }
 
@@ -92,10 +94,29 @@ public:
                 m_in_pools[type] = (poolId != 0); // Means present in Household, absent elsewhere.
         }
 
-        // set ability to telework
+        /// set ability to telework
         void SetTeleworkAbility() { m_able_to_telework = true; }
 
+        /// Is this person able to telework
         bool IsAbleToTelework() const { return m_able_to_telework;}
+
+        /// Set this person as index case for track&trace strategies
+        void SetTracingIndexCase(){ m_is_tracing_index = true; }
+
+        /// Set this person as index case for track&trace strategies
+        bool IsTracingIndexCase() const { return m_is_tracing_index; }
+
+        /// Register contact, if this person is an index case for track&trace
+        void RegisterContact(Person* p) {
+        	if(m_is_tracing_index){
+        		m_contact_tracing_list.push_back(p);
+        	}
+        }
+
+        /// Get register with contacts during infected period
+        std::vector<Person*>& GetContactRegister () {
+        	return m_contact_tracing_list;
+        }
 
 private:
         float        m_age; ///< The age.
@@ -116,6 +137,12 @@ private:
 
         ///< Is the participant able to telework?
         bool m_able_to_telework;
+
+        ///< Is this an index case for track,trace, isolate strategies
+        bool m_is_tracing_index;
+
+        ///< Vector with the id of contacts during infected period
+        std::vector<Person*> m_contact_tracing_list;
 };
 
 } // namespace stride

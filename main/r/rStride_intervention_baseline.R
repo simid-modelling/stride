@@ -51,12 +51,16 @@ get_exp_param_default <- function(bool_child_param = FALSE){
                 cnt_reduction_intergeneration_cutoff = 65,
                 cnt_intensity_householdCluster = 0,
                 detection_probability          = 0,
-                case_finding_efficency         = 0.7,
+                tracing_efficiency_household   = 0.9, 
+                tracing_efficiency_other       = 0.5,
                 case_finding_capacity          = 10000, # no limit at this stage
+                delay_isolation_index          = 1,
                 delay_contact_tracing          = 3,
-                delay_testing                  = 1,
                 test_false_negative            = 0.1,
                 cnt_other_exit_delay           = 21,
+               
+               # log level
+               event_log_level                 = "Transmissions",
                 
                 # factor for parameter estimation and fitting
                 hosp_probability_factor        = 1
@@ -65,11 +69,9 @@ get_exp_param_default <- function(bool_child_param = FALSE){
    # change parameters if childrens infectiousness is 1/2 compared to adults
    if(bool_child_param){ #best fit on 2020-06-07
      out$disease_config_file <- "disease_covid19_child.xml"
-     out$cnt_reduction_workplace <- 0.75
-     out$cnt_reduction_other     <- 0.90
-     out$hosp_probability_factor <- 0.85
-     out$cnt_reduction_workplace_exit  = seq(0.55,0.75,0.1)
-     out$cnt_reduction_other_exit      = c(0.75,0.85,0.9)
+     out$cnt_reduction_workplace <- 0.85
+     out$cnt_reduction_other     <- 0.87
+     out$hosp_probability_factor <- 0.80
    }
    
    # return parameters

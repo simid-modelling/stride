@@ -59,12 +59,16 @@ inspect_tracing_data <- function(project_dir)
   # add config_id to incidence data
   data_tracing_all         <- merge(data_tracing_all,project_summary[,c('exp_id','config_id','start_date')] )
 
+  dim(data_tracing_all)
+  length(unique(data_tracing_all$case_id))
+  print(table(data_tracing_all$pool_type))
+  
   ## ENSEMBLE  ####
   .rstride$create_pdf(project_dir,'contact_tracing_all',width = 4, height = 4)
   par(mar=c(6,5,4,1))
   
   opt_config <- unique(data_tracing_all$config_id)
-  i_config <- 2
+  i_config <- 1
   for(i_config in 1:length(opt_config)){
 
     # get subset
@@ -79,14 +83,14 @@ inspect_tracing_data <- function(project_dir)
     head(data_tracing_sel)
     
     # index cases
-    data_tracing_index       <- data_tracing_sel[data_tracing_sel$pool_type == '-1',]
+    data_tracing_index       <- data_tracing_sel[data_tracing_sel$pool_type == 'Index',]
     tracing_num_day_index    <- aggregate(num_tests ~ sim_day_date + sim_day + exp_id + config_id, data = data_tracing_index, sum)
     tracing_num_day_contacts <- aggregate(num_contacts_tested ~ sim_day_date + exp_id + config_id, data = data_tracing_index, sum)
     tracing_num_day_contacts_mean <- aggregate(num_contacts_tested ~ sim_day_date + exp_id + config_id, data = data_tracing_index, mean)
     
     
     # contacts in quarentine
-    data_tracing_contacts      <- data_tracing_sel[data_tracing_sel$pool_type != '-1',]
+    data_tracing_contacts      <- data_tracing_sel[data_tracing_sel$pool_type != 'Index',]
     tracing_num_day_identified <- aggregate(num_tests ~ sim_day_date + exp_id + config_id, data = data_tracing_contacts, sum)
     tracing_num_day_sympt      <- aggregate(num_tests ~ sim_day_date + sim_day + exp_id + config_id + is_symptomatic, data = data_tracing_contacts, sum)
     tracing_num_day_sympt_mean <- aggregate(num_tests ~ sim_day_date + config_id + is_symptomatic, data = tracing_num_day_sympt, mean)
@@ -138,26 +142,56 @@ inspect_tracing_data <- function(project_dir)
     abline(v=x_ticks,lty=3,col='lightgray')
     
     
-    # boxplot(num_contacts_tested ~ sim_day_date, data = data_tracing_index,
-    #         las=2,ylab='contacts tested per index case',main=opt_config[i_config],
-    #         xaxt='n',yaxt='n')
-    # add_y_axis(data_tracing_index$num_contacts_tested)
-    # x_ticks_label <- format(unique(data_tracing_index$sim_day_date),'%d/%m')
-    # x_ticks       <- seq(1,length(x_ticks_label),7)
-    # x_ticks_label <- x_ticks_label[x_ticks]
-    # axis(1,x_ticks,x_ticks_label,las=2)
-    # grid(nx=NA,ny=NULL)
-    # abline(v=x_ticks,lty=3,col='lightgray')
+    boxplot(num_contacts_tested ~ sim_day_date, data = data_tracing_index,
+            las=2,ylab='contacts tested per index case',main=opt_config[i_config],
+            xaxt='n',yaxt='n')
+    add_y_axis(data_tracing_index$num_contacts_tested)
+    x_ticks_label <- format(unique(data_tracing_index$sim_day_date),'%d/%m')
+    x_ticks       <- seq(1,length(x_ticks_label),7)
+    x_ticks_label <- x_ticks_label[x_ticks]
+    axis(1,x_ticks,x_ticks_label,las=2)
+    grid(nx=NA,ny=NULL)
+    abline(v=x_ticks,lty=3,col='lightgray')
+    
+    boxplot(num_unique_contacts ~ sim_day_date, data = data_tracing_index,
+            las=2,ylab='unique contacts per index case',main=opt_config[i_config],
+            xaxt='n',yaxt='n')
+    add_y_axis(data_tracing_index$num_contacts_tested)
+    x_ticks_label <- format(unique(data_tracing_index$sim_day_date),'%d/%m')
+    x_ticks       <- seq(1,length(x_ticks_label),7)
+    x_ticks_label <- x_ticks_label[x_ticks]
+    axis(1,x_ticks,x_ticks_label,las=2)
+    grid(nx=NA,ny=NULL)
+    abline(v=x_ticks,lty=3,col='lightgray')
 
-    # boxplot(num_contacts_tested ~ sim_day_date, data = data_tracing_index,outline=F,
-    #         las=2,ylab='contacts tested per index case',main=opt_config[i_config],
-    #         xaxt='n')
-    # 
-    # axis(1,x_ticks,x_ticks_label,las=2)
-    # grid(nx=NA,ny=NULL)
-    # abline(v=x_ticks,lty=3,col='lightgray')
     
+    ## LOCATION
+    data_tracing_contacts$cases <- 1
+    dt_location <- aggregate(cases ~ pool_type + exp_id + sim_day_date, data = data_tracing_contacts, sum )
+    dt_location_mean <- aggregate(cases ~ pool_type + sim_day_date, data = dt_location, mean )
+   
+    table(data_tracing_contacts$pool_type) / nrow(data_tracing_contacts)
     
+    plot(cases ~ sim_day_date, 
+         data = dt_location_mean[dt_location_mean$pool_type == 'Household',],
+         ylim = range(dt_location_mean$cases),xaxt='n',yaxt='n',
+         xlab='',ylab='Secondary cases identified and isolated')
+    add_x_axis(dt_location_mean$sim_day_date)
+    add_y_axis(dt_location_mean$cases)
+    
+    points(cases ~ sim_day_date, 
+         data = dt_location_mean[dt_location_mean$pool_type == 'Workplace',],
+         col = 2)
+    points(cases ~ sim_day_date, 
+         data = dt_location_mean[dt_location_mean$pool_type == 'Community',],
+         col = 3)
+    points(cases ~ sim_day_date, 
+           data = dt_location_mean[dt_location_mean$pool_type == 'School',],
+           col = 4)
+    legend('topleft',
+           c('Household','Workplace','Community','School'),
+           fill = 1:4,
+           cex=0.5)
     }
   
   # close pdf stream
