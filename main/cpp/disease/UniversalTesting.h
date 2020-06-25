@@ -47,10 +47,10 @@ public:
 		void Initialize(const boost::property_tree::ptree& config);
 
        /// Public Health Strategy: perform universal testing
-       void PerformUniversalTesting(std::shared_ptr<Population> pop, util::RnMan& rnMan, unsigned short int simDay);
+       void PerformUniversalTesting(std::shared_ptr<Population> pop, ContactHandler& cHandler, const std::shared_ptr<Calendar> calendar);
 
 private:
-        bool Bernoulli(std::function<double()> uniform_01_rng, double prob_of_success);
+        bool Bernoulli(ContactHandler& cHandler, double prob_of_success);
 
 private:
         filesys::path m_unitest_planning_output_fn; ///> Filename to output the planning to

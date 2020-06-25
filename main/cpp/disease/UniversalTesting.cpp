@@ -63,16 +63,22 @@ void UniversalTesting::Initialize(const ptree& config){
     Replace(m_unitest_pool_allocation, "$unitest_pool_size", std::to_string(m_unitest_pool_size));
 }
 
-bool UniversalTesting::Bernoulli(std::function<double()> uniform_01_rng, double prob_of_success)
+bool UniversalTesting::Bernoulli(ContactHandler& cHandler, double prob_of_success)
 {
-  return uniform_01_rng() < prob_of_success; 
+  double rnd_uni_01 = cHandler();
+  return rnd_uni_01 < prob_of_success; 
 }
 
-void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop, util::RnMan& rnMan,
-                                            unsigned short int simDay)
+void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop, 
+        ContactHandler& cHandler, const std::shared_ptr<Calendar> calendar)
 {
+  if (!calendar->IsUniversalTestingActivated())
+    return;
+
   if (m_unitest_fnr < 0.0)
     return;
+
+  const auto simDay = calendar->GetSimulationDay();
 
   if (m_unitest_planning.empty()) {
     const auto& households = pop->CRefPoolSys().CRefPools(Id::Household);
@@ -185,14 +191,13 @@ void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop, 
   }
 
   auto& logger = pop->RefEventLogger();
-  auto uniform01Gen = rnMan.GetUniform01Generator(0U);
 
   //perform the testing, according to the planning
   for (const auto& pool : m_unitest_planning[m_unitest_day_in_sweep]) {
     bool pool_positive = false;
     std::vector<std::vector<Person*>> tested_households;
     for (const auto& household : pool.GetHouseholds()) {
-      bool compliant = Bernoulli(uniform01Gen, m_unitest_test_compliance);
+      bool compliant = Bernoulli(cHandler, m_unitest_test_compliance);
      
       if (compliant) {
         tested_households.push_back(household);
@@ -204,10 +209,10 @@ void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop, 
       }
     }
 
-    bool pcr_test_positive = pool_positive && Bernoulli(uniform01Gen, 1-m_unitest_fnr);
+    bool pcr_test_positive = pool_positive && Bernoulli(cHandler, 1-m_unitest_fnr);
     if (pcr_test_positive) {
       for (auto& household : tested_households) {
-        bool isolation_compliance = Bernoulli(uniform01Gen, m_unitest_isolation_compliance);
+        bool isolation_compliance = Bernoulli(cHandler, m_unitest_isolation_compliance);
         if (isolation_compliance) {
           for (const auto& indiv : household) {
               indiv->GetHealth().StartIsolation(m_unitest_isolation_delay);

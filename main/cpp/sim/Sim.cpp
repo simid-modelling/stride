@@ -72,8 +72,6 @@ void Sim::TimeStep()
         const bool isCollegeOff         = m_calendar->IsCollegeOff();
         const bool isWorkplaceDistancingEnforced   = m_calendar->IsWorkplaceDistancingEnforced();
         const bool isCommunityDistancingEnforced   = m_calendar->IsCommunityDistancingEnforced();
-        //TODO isUniversalTestingActivated can be removed by passing the calendar (see contact tracing code)
-        const bool isUniversalTestingActivated     = m_calendar->IsUniversalTestingActivated();
         const bool isHouseholdClusteringAllowed    = m_calendar->IsHouseholdClusteringAllowed();
 
         // skip all K12 schools?
@@ -163,11 +161,8 @@ void Sim::TimeStep()
 		 // Perform contact tracing (if activated)
 		 m_public_health_agency.PerformContactTracing(m_population, m_handlers[0], m_calendar);
 
-         //TODO: this can be removed, by passing the calendar, to check whether uni testing is activated (see contact tracing code)
-			// Perform universal testing (if activated)
-			if(isUniversalTestingActivated){
-				m_universal_testing.PerformUniversalTesting(m_population, m_rn_man, simDay);
-			}
+		 // Perform universal testing 
+	     m_universal_testing.PerformUniversalTesting(m_population, m_handlers[0], m_calendar);
 
 #pragma omp parallel num_threads(m_num_threads)
         {
