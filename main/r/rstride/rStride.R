@@ -52,6 +52,107 @@ rStride_files <- rStride_files[rStride_files != "./bin/rstride/SymptomaticProfil
 sapply(rStride_files,source)
 rStride_functions <- ls()
 
+#' Create a default config
+create_default_config <- function(config_default_filename, run_tag)
+{
+  config_default                  <- xmlToList(config_default_filename)
+  config_default$num_threads      <- 1
+  config_default$vaccine_profile  <- 'None'
+  config_default$vaccine_rate     <- 0
+  config_default$immunity_profile <- 'None'
+  config_default$immunity_rate    <- 0
+  config_default$output_summary   <- 'true'
+  config_default$run_tag          <- run_tag
+  config_default$num_cea_samples  <- 1e4
+  config_default$track_index_case              <- 'false'
+  config_default$event_log_level               <- 'Transmissions'
+  
+  # variable for hospital probability estimation
+  config_default$hosp_probability_factor <- 1
+
+  return(config_default)
+}
+
+#' Write a stride config file for one row in the exp_design
+write_stride_config_file <- function(config_default, exp_design, exp_row)
+{
+  # copy default param
+  config_exp <-   config_default
+                       
+  # add design parameters
+  for(i_param in 1:ncol(exp_design)){
+    config_exp[names(exp_design)[i_param]] <- exp_design[i_exp,i_param]
+  }  
+  
+  # update experiment output prefix
+  config_exp$output_prefix <- smd_file_path(project_dir,exp_tag,.verbose=FALSE)
+  
+  # create xml file
+  config_exp_filename <- .rstride$save_config_xml(config_exp,'run',config_exp$output_prefix)
+
+  return (config_exp_filename)
+}
+
+#' Parse log file
+parse_log_file <- function(output_prefix, i_exp)
+{
+  ## PARSE LOGFILE
+  # create rstride_out list
+  rstride_out <- list()
+  
+  # parse event_log (if present)
+  event_log_filename <- smd_file_path(output_prefix,'event_log.txt')
+  if(file.exists(event_log_filename)){
+    rstride_out <- .rstride$parse_event_logfile(event_log_filename,i_exp)
+    
+    # account for non-symptomatic cases
+    flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
+    rstride_out$data_transmission[flag,start_symptoms := NA]
+    rstride_out$data_transmission[flag,end_symptoms := NA]
+    
+    # add estimated hospital admission
+    rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission,config_exp)
+    
+    # get incidence data
+    rstride_out$data_transmission[,infection_date  := as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day]
+    rstride_out$data_incidence <- get_transmission_statistics(rstride_out$data_transmission)
+    
+    # store disease burden and hospital admission data (for additional analysis)
+    if(get_burden_rdata){
+      rstride_out$data_burden <- data.frame(day_infection           = rstride_out$data_transmission$sim_day,
+                                            part_age                = rstride_out$data_transmission$part_age,
+                                            start_infectiousness    = rstride_out$data_transmission$start_infectiousness,
+                                            end_infectiousness      = rstride_out$data_transmission$end_infectiousness,
+                                            start_symptoms          = rstride_out$data_transmission$start_symptoms,
+                                            end_symptoms            = rstride_out$data_transmission$end_symptoms,
+                                            hospital_admission      = rstride_out$data_transmission$hospital_admission_start,
+                                            infector_age            = rstride_out$data_transmission$infector_age,
+                                            infector_is_symptomatic = rstride_out$data_transmission$infector_is_symptomatic,
+                                            date_infection          = as.Date(config_exp$start_date,'%Y-%m-%d') + rstride_out$data_transmission$sim_day,
+                                            exp_id                  = rstride_out$data_transmission$exp_id)
+    }
+    
+    # if transmission data should not be stored, replace item by NA
+    if(!get_transmission_rdata){
+      rstride_out$data_transmission <- NA
+    }
+    
+  } else { # end if logfile does not existse
+    smd_print("LOGFILE NOT FOUND!!",WARNING = T)
+  }
+  
+  # convert 'prevalence' files (if present) 
+  rstride_out$data_prevalence_infected    <- get_prevalence_data(config_exp,'infected.csv')
+  rstride_out$data_prevalence_exposed     <- get_prevalence_data(config_exp,'exposed.csv')
+  rstride_out$data_prevalence_infectious  <- get_prevalence_data(config_exp,'infectious.csv')
+  rstride_out$data_prevalence_symptomatic <- get_prevalence_data(config_exp,'symptomatic.csv')
+  rstride_out$data_prevalence_total       <- get_prevalence_data(config_exp,'cases.csv')
+  
+  
+  # save list with all results
+  saveRDS(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.rds')))
+}
+
 #' Main function to run rStride for a given design of experiment
 #' 
 #' @param exp_design                vector with experimental design with parameter names as column names
@@ -129,24 +230,8 @@ run_rStride <- function(exp_design               = exp_design,
   # command line message
   smd_print('WORKING DIR',getwd())
   smd_print('PROJECT DIR',project_dir)
-  
-  ################################## #
-  ## GENERAL CONFIG MODIFICATIONS ####
-  ################################## #
-  config_default                  <- xmlToList(config_default_filename)
-  config_default$num_threads      <- 1
-  config_default$vaccine_profile  <- 'None'
-  config_default$vaccine_rate     <- 0
-  config_default$immunity_profile <- 'None'
-  config_default$immunity_rate    <- 0
-  config_default$output_summary   <- 'true'
-  config_default$run_tag          <- run_tag
-  config_default$num_cea_samples  <- 1e4
-  config_default$track_index_case              <- 'false'
-  config_default$event_log_level               <- 'Transmissions'
-  
-  # variable for hospital probability estimation
-  config_default$hosp_probability_factor <- 1
+
+  config_default <- create_default_config(config_default_filename, run_tag)
   
   ################################## #
   ## PARALLEL SETUP               ####
@@ -192,24 +277,9 @@ run_rStride <- function(exp_design               = exp_design,
 
                        # create experiment tag
                        exp_tag <- .rstride$create_exp_tag(i_exp)
-
-                       # copy default param
-                       config_exp <-   config_default
+                      
+                       config_exp_filename = write_stride_config_file(config_default, exp_design, i_exp)
                        
-                       # add design parameters
-                       for(i_param in 1:ncol(exp_design)){
-                         config_exp[names(exp_design)[i_param]] <- exp_design[i_exp,i_param]
-                       }  
-                       
-                       # set process RNG seed
-                       set.seed(config_exp$rng_seed + 16022018)
-                       
-                       # update experiment output prefix
-                       config_exp$output_prefix <- smd_file_path(project_dir,exp_tag,.verbose=FALSE)
-                       
-                       # create xml file
-                       config_exp_filename <- .rstride$save_config_xml(config_exp,'run',config_exp$output_prefix)
-
                        # run stride (using the C++ Controller)
                        cmd = paste(stride_bin,config_opt, paste0("../", config_exp_filename))
                        out_dir = paste0(config_exp$output_prefix)
@@ -237,61 +307,7 @@ run_rStride <- function(exp_design               = exp_design,
                            return(run_summary)
                        }
 
-                       ## PARSE LOGFILE
-                       # create rstride_out list
-                       rstride_out <- list()
-                       
-                       # parse event_log (if present)
-                       event_log_filename <- smd_file_path(config_exp$output_prefix,'event_log.txt')
-                       if(file.exists(event_log_filename)){
-                         rstride_out <- .rstride$parse_event_logfile(event_log_filename,i_exp)
-                       
-                         # account for non-symptomatic cases
-                         flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
-                         rstride_out$data_transmission[flag,start_symptoms := NA]
-                         rstride_out$data_transmission[flag,end_symptoms := NA]
-              
-                         # add estimated hospital admission
-                         rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission,config_exp)
-                         
-                         # get incidence data
-                         rstride_out$data_transmission[,infection_date  := as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day]
-                         rstride_out$data_incidence <- get_transmission_statistics(rstride_out$data_transmission)
-                         
-                         # store disease burden and hospital admission data (for additional analysis)
-                         if(get_burden_rdata){
-                            rstride_out$data_burden <- data.frame(day_infection           = rstride_out$data_transmission$sim_day,
-                                                                  part_age                = rstride_out$data_transmission$part_age,
-                                                                  start_infectiousness    = rstride_out$data_transmission$start_infectiousness,
-                                                                  end_infectiousness      = rstride_out$data_transmission$end_infectiousness,
-                                                                  start_symptoms          = rstride_out$data_transmission$start_symptoms,
-                                                                  end_symptoms            = rstride_out$data_transmission$end_symptoms,
-                                                                  hospital_admission      = rstride_out$data_transmission$hospital_admission_start,
-                                                                  infector_age            = rstride_out$data_transmission$infector_age,
-                                                                  infector_is_symptomatic = rstride_out$data_transmission$infector_is_symptomatic,
-                                                                  date_infection          = as.Date(config_exp$start_date,'%Y-%m-%d') + rstride_out$data_transmission$sim_day,
-                                                                  exp_id                  = rstride_out$data_transmission$exp_id)
-                         }
-                         
-                         # if transmission data should not be stored, replace item by NA
-                         if(!get_transmission_rdata){
-                           rstride_out$data_transmission <- NA
-                         }
-                         
-                       } else { # end if logfile does not existse
-                          smd_print("LOGFILE NOT FOUND!!",WARNING = T)
-                       }
-                       
-                       # convert 'prevalence' files (if present) 
-                       rstride_out$data_prevalence_infected    <- get_prevalence_data(config_exp,'infected.csv')
-                       rstride_out$data_prevalence_exposed     <- get_prevalence_data(config_exp,'exposed.csv')
-                       rstride_out$data_prevalence_infectious  <- get_prevalence_data(config_exp,'infectious.csv')
-                       rstride_out$data_prevalence_symptomatic <- get_prevalence_data(config_exp,'symptomatic.csv')
-                       rstride_out$data_prevalence_total       <- get_prevalence_data(config_exp,'cases.csv')
-                       
-                       
-                       # save list with all results
-                       saveRDS(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.rds')))
+                       parse_log_file(config_exp$output_prefix, i_exp)
                        
                        # remove experiment output and config
                        if(remove_run_output){
