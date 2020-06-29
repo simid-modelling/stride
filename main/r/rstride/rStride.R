@@ -158,7 +158,7 @@ parse_log_file <- function(config_exp, i_exp, project_dir_exp, get_burden_rdata,
 write_exp_design_to_csv <- function(exp_design, csv_fn) 
 {
   exp_design$id <- seq.int(nrow(exp_design))
-  write.csv(exp_design, smd_file_path(dir, csv_fn))
+  write.csv(exp_design, csv_fn, row.names=F)
 }
 
 #' Main function to run rStride for a given design of experiment
