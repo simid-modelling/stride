@@ -74,7 +74,7 @@ create_default_config <- function(config_default_filename, run_tag)
 }
 
 #' Write a stride config file for one row in the exp_design
-write_stride_config_file <- function(config_default, exp_design, exp_row)
+write_stride_config_file <- function(config_default, output_prefix, xml_filename, exp_design, i_exp)
 {
   # copy default param
   config_exp <-   config_default
@@ -85,17 +85,19 @@ write_stride_config_file <- function(config_default, exp_design, exp_row)
   }  
   
   # update experiment output prefix
-  config_exp$output_prefix <- smd_file_path(project_dir,exp_tag,.verbose=FALSE)
+  config_exp$output_prefix <- output_prefix 
   
   # create xml file
-  config_exp_filename <- .rstride$save_config_xml(config_exp,'run',config_exp$output_prefix)
+  .rstride$save_config_xml(config_exp,'run',xml_filename)
 
-  return (config_exp_filename)
+  return (config_exp)
 }
 
 #' Parse log file
-parse_log_file <- function(output_prefix, i_exp)
+parse_log_file <- function(config_exp, i_exp, project_dir_exp, get_burden_rdata, get_transmission_rdata)
 {
+  output_prefix <- config_exp$output_prefix
+
   ## PARSE LOGFILE
   # create rstride_out list
   rstride_out <- list()
@@ -268,6 +270,8 @@ run_rStride <- function(exp_design               = exp_design,
                      .export = c('.rstride','par_nodes_info',
                                  'add_hospital_admission_time',
                                  'get_prevalence_data',
+                                 'write_stride_config_file',
+                                 'parse_log_file',
                                  rStride_functions),
                      .verbose=FALSE) %dopar%
                      {  
@@ -278,11 +282,13 @@ run_rStride <- function(exp_design               = exp_design,
                        # create experiment tag
                        exp_tag <- .rstride$create_exp_tag(i_exp)
                       
-                       config_exp_filename = write_stride_config_file(config_default, exp_design, i_exp)
+                       output_prefix = smd_file_path(project_dir,exp_tag,.verbose=FALSE)
+                       config_exp_filename = paste0(output_prefix,".xml")
+                       config_exp = write_stride_config_file(config_default, output_prefix, config_exp_filename, exp_design, i_exp)
                        
                        # run stride (using the C++ Controller)
                        cmd = paste(stride_bin,config_opt, paste0("../", config_exp_filename))
-                       out_dir = paste0(config_exp$output_prefix)
+                       out_dir = output_prefix
                        if(stderr_fn != "") {
                         cmd = paste(cmd, paste0(" 2> ",out_dir,"/",stderr_fn)) 
                        }
@@ -293,7 +299,7 @@ run_rStride <- function(exp_design               = exp_design,
                        system(cmd)
 
                        # load output summary
-                       summary_filename <- file.path(config_exp$output_prefix,'summary.csv')
+                       summary_filename <- file.path(output_prefix,'summary.csv')
                        run_summary      <- read.table(summary_filename,header=T,sep=',')
                        
                        # merge output summary with input param
@@ -307,7 +313,7 @@ run_rStride <- function(exp_design               = exp_design,
                            return(run_summary)
                        }
 
-                       parse_log_file(config_exp$output_prefix, i_exp)
+                       parse_log_file(config_exp, i_exp, project_dir_exp, get_burden_rdata, get_transmission_rdata)
                        
                        # remove experiment output and config
                        if(remove_run_output){
