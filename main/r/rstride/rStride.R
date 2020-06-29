@@ -155,6 +155,12 @@ parse_log_file <- function(config_exp, i_exp, project_dir_exp, get_burden_rdata,
   saveRDS(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.rds')))
 }
 
+write_exp_design_to_csv <- function(exp_design, csv_fn) 
+{
+  exp_design$id <- seq.int(nrow(exp_design))
+  write.csv(exp_design, smd_file_path(dir, csv_fn))
+}
+
 #' Main function to run rStride for a given design of experiment
 #' 
 #' @param exp_design                vector with experimental design with parameter names as column names
