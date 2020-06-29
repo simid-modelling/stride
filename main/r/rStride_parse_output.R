@@ -38,8 +38,12 @@ source('./bin/rstride/rStride.R')
 run_tag <- exp_id
 default_config <- create_default_config('./config/run_default.xml', run_tag)
 
+#TODO: make a function to read this
 exp_design <- read.csv(smd_file_path(dir, csv_fn), stringsAsFactors=FALSE)
-xml_fn <- smd_file_path(dir,paste0("/",exp_id,"/"),"config.xml")
+#TODO: make a function to obtain this (have clear interface)
 exp_row <- match(TRUE, exp_design$id == exp_id)
 config_exp <- create_config_exp(default_config, dir, exp_design, exp_row)
-save_config_xml(config_exp,xml_fn)
+
+get_burden_rdata = TRUE
+get_transmission_rdata = TRUE
+parse_log_file(config_exp, exp_row, get_burden_rdata, get_transmission_rdata)

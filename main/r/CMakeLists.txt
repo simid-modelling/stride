@@ -32,6 +32,7 @@ INSTALL( FILES
             rStride_all.R
             rStride_contacts.R
             rStride_create_config.R
+            rStride_parse_output.R
             rStride_explore.R
             rStride_gtester_covid19.R
             rStride_r0.R 	

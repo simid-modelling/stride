@@ -73,8 +73,13 @@ create_default_config <- function(config_default_filename, run_tag)
   return(config_default)
 }
 
-#' Write a stride config file for one row in the exp_design
-write_stride_config_file <- function(config_default, output_prefix, xml_filename, exp_design, i_exp)
+save_config_xml <- function(config_exp, xml_filename)
+{
+  .rstride$save_config_xml(config_exp,'run',xml_filename)
+}
+
+#' Create a stride config object for one row in the exp_design
+create_config_exp <- function(config_default, output_prefix, exp_design, i_exp)
 {
   # copy default param
   config_exp <-   config_default
@@ -87,14 +92,11 @@ write_stride_config_file <- function(config_default, output_prefix, xml_filename
   # update experiment output prefix
   config_exp$output_prefix <- output_prefix 
   
-  # create xml file
-  .rstride$save_config_xml(config_exp,'run',xml_filename)
-
   return (config_exp)
 }
 
 #' Parse log file
-parse_log_file <- function(config_exp, i_exp, project_dir_exp, get_burden_rdata, get_transmission_rdata)
+parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission_rdata)
 {
   output_prefix <- config_exp$output_prefix
 
@@ -149,10 +151,6 @@ parse_log_file <- function(config_exp, i_exp, project_dir_exp, get_burden_rdata,
   rstride_out$data_prevalence_infectious  <- get_prevalence_data(config_exp,'infectious.csv')
   rstride_out$data_prevalence_symptomatic <- get_prevalence_data(config_exp,'symptomatic.csv')
   rstride_out$data_prevalence_total       <- get_prevalence_data(config_exp,'cases.csv')
-  
-  
-  # save list with all results
-  saveRDS(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.rds')))
 }
 
 write_exp_design_to_csv <- function(exp_design, csv_fn) 
@@ -290,8 +288,11 @@ run_rStride <- function(exp_design               = exp_design,
                       
                        output_prefix = smd_file_path(project_dir,exp_tag,.verbose=FALSE)
                        config_exp_filename = paste0(output_prefix,".xml")
-                       config_exp = write_stride_config_file(config_default, output_prefix, config_exp_filename, exp_design, i_exp)
+                       config_exp = create_config_exp(config_default, output_prefix, exp_design, i_exp)
                        
+                       #save the config as XML file
+                       save_config_xml(config_exp, xml_filename)
+
                        # run stride (using the C++ Controller)
                        cmd = paste(stride_bin,config_opt, paste0("../", config_exp_filename))
                        out_dir = output_prefix
@@ -319,7 +320,10 @@ run_rStride <- function(exp_design               = exp_design,
                            return(run_summary)
                        }
 
-                       parse_log_file(config_exp, i_exp, project_dir_exp, get_burden_rdata, get_transmission_rdata)
+                       parse_log_file(config_exp, i_exp, get_burden_rdata, get_transmission_rdata)
+  
+                       # save list with all results
+                       saveRDS(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.rds')))
                        
                        # remove experiment output and config
                        if(remove_run_output){
