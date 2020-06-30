@@ -39,7 +39,8 @@ run_tag <- exp_id
 default_config <- create_default_config('./config/run_default.xml', run_tag)
 
 exp_design <- read.csv(smd_file_path(dir, csv_fn), stringsAsFactors=FALSE)
-xml_fn <- smd_file_path(dir,paste0("/",exp_id,"/"),"config.xml")
+exp_dir <- paste0(dir,"/",exp_id,"/") 
+xml_fn <- smd_file_path(exp_dir,"config.xml")
 exp_row <- match(TRUE, exp_design$id == exp_id)
-config_exp <- create_config_exp(default_config, dir, exp_design, exp_row)
+config_exp <- create_config_exp(default_config, exp_dir, exp_design, exp_row)
 save_config_xml(config_exp,xml_fn)

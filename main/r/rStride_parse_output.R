@@ -42,7 +42,8 @@ default_config <- create_default_config('./config/run_default.xml', run_tag)
 exp_design <- read.csv(smd_file_path(dir, csv_fn), stringsAsFactors=FALSE)
 #TODO: make a function to obtain this (have clear interface)
 exp_row <- match(TRUE, exp_design$id == exp_id)
-config_exp <- create_config_exp(default_config, dir, exp_design, exp_row)
+exp_dir <- paste0(dir,"/",exp_id,"/") 
+config_exp <- create_config_exp(default_config, exp_dir, exp_design, exp_row)
 
 get_burden_rdata = TRUE
 get_transmission_rdata = TRUE
