@@ -194,6 +194,8 @@ void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop,
 
   //perform the testing, according to the planning
   for (const auto& pool : m_unitest_planning[m_unitest_day_in_sweep]) {
+    logger->info("[UNITEST] {} {}", simDay, m_unitest_day_in_sweep);
+
     bool pool_positive = false;
     std::vector<std::vector<Person*>> tested_households;
     for (const auto& household : pool.GetHouseholds()) {
