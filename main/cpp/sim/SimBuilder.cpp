@@ -104,6 +104,11 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
         sim->m_num_daily_imported_cases = m_config.get<double>("run.num_daily_imported_cases",0);
 
         // --------------------------------------------------------------
+		// Set Universal Testing 
+        // --------------------------------------------------------------
+        sim->m_universal_testing.Initialize(m_config);
+        
+        // --------------------------------------------------------------
 		// Set Public Health Agency
 		// --------------------------------------------------------------
         sim->m_public_health_agency.Initialize(m_config);
