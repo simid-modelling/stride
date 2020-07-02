@@ -218,7 +218,7 @@ void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop,
         if (isolation_compliance) {
           for (const auto& indiv : household) {
               indiv->GetHealth().StartIsolation(m_unitest_isolation_delay);
-              logger->info("[UNITEST-ISOLATE] {} {} {} {} {} {}",
+              logger->info("[UNITEST-ISOLATE] pool_id={} household_id={} indiv_id={} infected?={} isolation_delay={} sim_day={}",
                                                  pool.GetId(),
                                                  indiv->GetPoolId(Id::Household),
                                                  indiv->GetId(), 
