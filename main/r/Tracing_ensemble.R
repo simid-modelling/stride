@@ -267,7 +267,7 @@ mean_hosp_adm_scen <- mean_hosp_adm[flag_scen,]
 mean_hosp_adm_sel <- mean_hosp_adm_scen[mean_hosp_adm_scen$tracing_efficiency_household ==  0.9,]
 
 col1_name   <- 'test_false_negative'
-col1_tag    <- "False negative rate"
+col1_tag    <- "False negative predictive value"
 col1_unit   <- '%'
 
 col2_name <- 'tracing_efficiency_other'

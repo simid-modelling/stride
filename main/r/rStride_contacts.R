@@ -45,15 +45,16 @@ num_seeds  <- 1
 
 # add parameters and values to combine in a full-factorial grid
 exp_design <- expand.grid(event_log_level           = "All",
-                          num_days                  = 20,
-                          num_infected_seeds        = 4000,
-                          num_participants_survey   = 4000,
+                          num_days                  = 7,
+                          num_infected_seeds        = 1,
+                          num_participants_survey   = 4999,
                           #start_date                = c('2020-02-16','2020-02-17','2020-02-25',"2020-04-10","2020-04-11","2020-05-03","2020-05-04"),
-                          start_date                = c('2020-05-3'),
+                          start_date                = c('2020-03-1'),
                           rng_seed                  = 1:num_seeds,
                           disease_config_file       = "disease_covid19_age.xml", 
-                          population_file               = c("pop_belgium600k_c500_teachers_censushh_extended3.csv",
-                                                            "pop_belgium600k_c500_teachers_censushh.csv"),
+                          population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
+                          # population_file               = c("pop_belgium600k_c500_teachers_censushh_extended3.csv",
+                          #                                   "pop_belgium600k_c500_teachers_censushh.csv"),
                           age_contact_matrix_file   = "contact_matrix_flanders_conditional_teachers.xml",
                           #holidays_file             = "calendar_belgium_2020_covid19_may_workplace.json",
                           holidays_file             = "calendar_belgium_2020_covid19_exit_school_adjusted.json",
@@ -81,7 +82,7 @@ exp_design$rng_seed <- sample(nrow(exp_design))
 project_dir <- run_rStride(exp_design  = exp_design,
                            dir_postfix = dir_postfix,
                            ignore_stdout            = FALSE,
-                           remove_run_output        = TRUE)
+                           remove_run_output        = FALSE)
 
 
 #####################################################

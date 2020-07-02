@@ -74,6 +74,10 @@ mean(symptomatic_profile*data_pop_rel_prop)
 ########################################### #
 ## EXPLORE DATA AND RESULTS              ####
 ########################################### #
+
+# open pdf
+pdf(file='./sim_output/symptomatic_profile.pdf',6,6)
+
 par(mar=c(5,5,5,1))
 
 # plot Whu data + adjustments
@@ -81,7 +85,7 @@ plot(0:(length(age_profile_original)-1),age_profile_original,
      pch=15,
      ylab='Relative susceptibility\nto symptomatic infection',
      xlab='Age (years)',
-     main='Data from Wu et al,\nNature Medicine, 2020 (figure 2b)',
+     main='Based on Figure 2b from\nWu et al, Nature Medicine, 2020',
      ylim=c(0,3.2)
 )
 grid(col=8)
@@ -93,15 +97,17 @@ legend('topleft',
          'Truncated'),
        pch=15,
        col =1:3,
-       title='Source',
+       bg='white',
+       # title='Source',
        cex=0.8)
 
 # plot final proportions
-plot(symptomatic_profile,
+plot(0:(length(symptomatic_profile)-1),
+     symptomatic_profile,
      ylim=c(0,1.1),type='p',lwd=3,pch=15,
      ylab='Proportion symptomatic',
      xlab='Age (years)',
-     main='Age-specific proportion symptomatic (weighted for BE)',
+     main='Calculated proportion symptomatic\n(weighted by age for Belgium)',
      xlim=c(0,115))
 abline(h=mean(symptomatic_profile*data_pop_rel_prop),col=4,lwd=3)
 
@@ -111,6 +117,7 @@ legend('topleft',
        'Mean (weighted)',
        col=4,
        lwd=2,
+       bg='white',
        cex=0.8)
 
 # add numeric values
@@ -126,6 +133,7 @@ text(x = 0,
      pos=3,col=4,cex=0.8)
 
 
+dev.off()
 ########################################### #
 ## SAVE AS XML AND CSV	 	         ####
 ########################################### #
