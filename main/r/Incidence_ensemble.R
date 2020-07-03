@@ -23,6 +23,9 @@
 rm(list=ls())
 
 source('./bin/rstride/rStride.R')
+# install.packages('Rmisc')
+library('Rmisc')
+
 
 # set work dir
 .rstride$set_wd()
@@ -181,7 +184,7 @@ data_incidence <- merge(data_incidence,opt_scenario)
 #                             num_adm = hosp_cases_num,
 #                             cum_adm = hosp_cases_cum)
 
-hosp_ref_file_name <- 'sim_output/ref_hosp_sciensano.csv'
+hosp_ref_file_name <- smd_file_path('sim_output/ref_hosp_sciensano.csv')
 if(!file.exists(hosp_ref_file_name)){
   hosp_ref_url       <- 'https://epistat.sciensano.be/Data/COVID19BE_HOSP.csv'
   download.file(hosp_ref_url,hosp_ref_file_name)
@@ -346,6 +349,31 @@ get_incidence_reproduction_plot <- function(hosp_adm_data,plot_main,scen_tag,sce
   
 }
 
+# data_incidence <- data_incidence_base
+# date_start_str <- '2020-03-07'
+# date_end_str <- '2020-03-13'
+print_transmission_summary <- function(data_incidence, date_start_str, date_end_str,num_exp = 10){
+  
+  sel_dates    <- (as.Date(date_start_str):as.Date(date_end_str))
+  flag_date    <- data_incidence$sim_date %in% sel_dates & data_incidence$exp_id %in% 1:num_exp
+
+  # remove doubling times that are based on data beyond the selected period
+  data_incidence$doubling_time[data_incidence$sim_date + data_incidence$doubling_time  > max(sel_dates)] <- NA
+
+  # help function for CI with NA's
+  rm_na <- function(x){
+    return(x[!is.na(x)])
+  }
+  
+  print(paste0('GEN. INTERVAL (',date_start_str,' : ',date_end_str,')'))
+  print(round(CI(x=rm_na(data_incidence$gen_interval[flag_date]),ci=0.95),digits=2)[c(2,3,1)])
+  
+  print(paste0('DOUBLING TIME (',date_start_str,' : ',date_end_str,')'))
+  print(round(CI(x=rm_na(data_incidence$doubling_time[flag_date]),ci=0.95),digits=2)[c(2,3,1)])
+  
+  print(paste0('REPRODUCTION NUMBER (',date_start_str,' : ',date_end_str,')'))
+  print(round(CI(x=rm_na(data_incidence$sec_cases[flag_date]),ci=0.95),digits=2)[c(2,3,1)])
+}
 
 ## POLYGONS FULL ----
 
@@ -496,10 +524,17 @@ dev.off()
 
 
 ## BASELINE ADULT ----
-project_dir_base     <- 'sim_output/20200615_175553_int1_baseline'
+project_dir_base     <- smd_file_path(dir_results,'20200615_175553_int1_baseline')
 project_summary_base <- .rstride$load_project_summary(project_dir_base)
 input_opt_base       <- .rstride$get_variable_model_param(project_summary_base)
 data_incidence_base  <- data_incidence_scenario[grepl('scen01',data_incidence_scenario$scenario),]
+
+# summary statistics
+date_summary_start <- '2020-03-07'
+date_summary_end   <- '2020-03-13'
+num_exp            <- 10
+print(project_dir_base)
+print_transmission_summary(data_incidence_base,date_summary_start,date_summary_end,num_exp)
 
 bool_fitting <- TRUE
 
@@ -547,11 +582,17 @@ add_breakpoints()
 dev.off()
 
 
+
+
 ## BASELINE CHILD ----
-project_dir_base     <- 'sim_output/20200615_175609_int21_child_base'
+project_dir_base     <- smd_file_path(dir_results,'20200615_175609_int21_child_base')
 project_summary_base <- .rstride$load_project_summary(project_dir_base)
 input_opt_base       <- .rstride$get_variable_model_param(project_summary_base)
 data_incidence_base  <- data_incidence_scenario[grepl('scen21',data_incidence_scenario$scenario),]
+
+# summary statistics
+print(project_dir_base)
+print_transmission_summary(data_incidence_base,date_summary_start,date_summary_end,num_exp)
 
 bool_fitting <- TRUE
 
@@ -597,13 +638,6 @@ add_y_axis(data_incidence_base$sec_cases)
 add_breakpoints()
 
 dev.off()
-
-
-
-
-#### 
-
-
 
 
 
