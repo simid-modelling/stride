@@ -364,7 +364,8 @@ get_transmission_statistics <- function(data_transm)
 # Function to generate summary tables
 # colname_date <- 'infection_date'; colname_value <- 'cnt_location'; prefix <- 'location';
 # colname_date <- 'infection_date'; colname_value <- 'age_cat'; prefix <- 'cases';
-#colname_date <- 'infection_date'; colname_value <-'age_cat';prefix <- 'new_infections'
+# colname_date <- 'infection_date'; colname_value <-'age_cat';prefix <- 'new_infections'
+# data_transm <- ref_case_data_table; colname_date="DATE";colname_value='AGEGROUP';prefix='d'
 get_summary_table <- function(data_transm,colname_date,colname_value,prefix){
   
   # overal summary

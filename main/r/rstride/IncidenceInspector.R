@@ -97,23 +97,15 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id','tracing_id','contact_id')] )
 
   ## REFERENCE DATA COVID-19: new hospital admissions ----
-  # use (local version of) most recent SCIENSANO data (or local backup version)
-  hosp_ref_file_name <- smd_file_path('data',paste0('covid19_reference_data_',gsub('-','',Sys.Date()),'.csv'))
-  if(!file.exists(hosp_ref_file_name)){
-    hosp_ref_url       <- 'https://epistat.sciensano.be/Data/COVID19BE_HOSP.csv'
-    tryCatch(download.file(hosp_ref_url,hosp_ref_file_name,quiet =TRUE),
-    error = function(e){
-      # use included backup file
-      hosp_ref_file_name <- './data/BACKUP_ref_hosp_sciensano'
-    })
-  }
+  # use (local version of) most recent SCIENSANO data (or backup version)
+  ref_data          <- get_observed_incidence_data()
+  ref_data$sim_date <- as.Date(ref_data$sim_date)
+  dim(ref_data)
   
   # reformat reference data
-  ref_hosp_data_all  <- read.table(hosp_ref_file_name,sep=',',header=T,stringsAsFactors = F)
-  hosp_adm_data      <- aggregate(NEW_IN ~ DATE, data= ref_hosp_data_all,sum,na.rm=T)
-  hosp_adm_data$DATE <- as.Date(hosp_adm_data$DATE)
-  names(hosp_adm_data) <- c('date','num_adm')
-  hosp_adm_data$cum_adm <- cumsum(hosp_adm_data$num_adm)
+  hosp_adm_data <- data.frame(date = ref_data$sim_date,
+                              num_adm = ref_data$hospital_admissions,
+                              cum_adm = ref_data$cumulative_hospital_admissions)
   
   # remove reference data if simulation period is shorter
   flag_compare  <- hosp_adm_data$date %in% data_incidence_all$sim_date
