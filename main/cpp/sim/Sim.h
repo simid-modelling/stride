@@ -25,6 +25,7 @@
 #include "contact/InfectorExec.h"
 #include "contact/TransmissionProfile.h"
 #include "disease/PublicHealthAgency.h"
+#include "disease/UniversalTesting.h"
 
 #include "util/RnMan.h"
 
@@ -114,6 +115,7 @@ private:
         double                      m_cnt_intensity_householdCluster;
 
         PublicHealthAgency          m_public_health_agency;
+        UniversalTesting            m_universal_testing;
 
         // Introduce new infected cases on a daily basis?
         unsigned int                m_num_daily_imported_cases;

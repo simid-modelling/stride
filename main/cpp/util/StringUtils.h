@@ -190,5 +190,10 @@ inline std::string intToDottedString(const T& value)
         return res;
 }
 
+inline void Replace(std::string& s, const std::string& pattern, const std::string& replace)
+{
+    boost::replace_all(s, pattern, replace);
+}
+
 } // namespace util
 } // namespace stride

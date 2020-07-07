@@ -44,7 +44,7 @@ Sim::Sim()
 	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
 	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),m_cnt_other_exit_delay(0),
 	  m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_day_of_community_distancing_exit(0),m_cnt_intensity_householdCluster(0),
-	  m_public_health_agency(),m_num_daily_imported_cases(0)
+	  m_public_health_agency(),m_universal_testing(),m_num_daily_imported_cases(0)
 
 {
 }
@@ -160,6 +160,9 @@ void Sim::TimeStep()
 
 		 // Perform contact tracing (if activated)
 		 m_public_health_agency.PerformContactTracing(m_population, m_handlers[0], m_calendar);
+
+		 // Perform universal testing 
+	     m_universal_testing.PerformUniversalTesting(m_population, m_handlers[0], m_calendar);
 
 #pragma omp parallel num_threads(m_num_threads)
         {

@@ -138,7 +138,7 @@ if(!(exists('.rstride'))){
 # root_name <- 'disease'
 # output_prefix <- 'sim_output'
 # Save a list in XML format with given root node
-.rstride$save_config_xml <- function(list_config,root_name,output_prefix){
+.rstride$save_config_xml <- function(list_config,root_name,filename){
   
   # setup XML doc (to add prefix)
   xml_doc = newXMLDoc()
@@ -149,9 +149,6 @@ if(!(exists('.rstride'))){
   # add list info
   smd_listToXML(root, list_config)
   
-  # create filename
-  filename <- paste0(output_prefix,'.xml')
-  
   # xml prefix
   xml_prefix <- paste0(' This file is part of the Stride software [', format(Sys.time()), ']')
   
@@ -159,9 +156,6 @@ if(!(exists('.rstride'))){
   # note: if we use an XMLdoc to include prefix, the line break dissapears...
   # fix: http://r.789695.n4.nabble.com/saveXML-prefix-argument-td4678407.html
   cat( saveXML( xml_doc, indent = TRUE, prefix = newXMLCommentNode(xml_prefix)),  file = filename) 
-  
-  # return the filename
-  return(filename)
 }
 
 ############################# #

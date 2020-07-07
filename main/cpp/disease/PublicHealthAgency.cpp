@@ -45,6 +45,7 @@ PublicHealthAgency::PublicHealthAgency(): m_telework_probability(0),m_detection_
 void PublicHealthAgency::Initialize(const ptree& config){
 	m_telework_probability        = config.get<double>("run.telework_probability",0);
 	m_detection_probability       = config.get<double>("run.detection_probability",0);
+
 	m_tracing_efficiency_household = config.get<double>("run.tracing_efficiency_household",0);
 	m_tracing_efficiency_other     = config.get<double>("run.tracing_efficiency_other",0);
 
@@ -113,9 +114,7 @@ bool PublicHealthAgency::IsK12SchoolOff(unsigned int age, bool isPreSchoolOff,
 }
 
 bool PublicHealthAgency::IsContactTracingActive(const std::shared_ptr<Calendar> calendar) const {
-
 	return (m_detection_probability > 0) && calendar->IsContactTracingActivated();
-
 }
 
 

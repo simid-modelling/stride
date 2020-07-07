@@ -59,6 +59,7 @@ public:
 
 private:
         double m_telework_probability;    ///< Probability to perform telework (or equivalent) //TODO rename "telework"
+        //contact tracing configuration
         double m_detection_probability;   ///< Detection probability of symptomatic cases.
         double m_tracing_efficiency_household;  ///< Tracing probability for household members
         double m_tracing_efficiency_other;      ///< Tracing probability for non-household members

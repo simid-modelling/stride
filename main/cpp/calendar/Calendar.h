@@ -115,6 +115,13 @@ public:
 					 m_contact_tracing.end());
 		}
 
+  		/// Check if universal testing is place
+		bool IsUniversalTestingActivated() const
+		{
+			 return (std::find(m_universal_testing.begin(), m_universal_testing.end(), m_date) !=
+					 m_universal_testing.end());
+		}
+
 		/// Check if household clustering is allowed
 		bool IsHouseholdClusteringAllowed() const
 		{
@@ -177,6 +184,7 @@ private:
         std::vector<boost::gregorian::date> m_workplace_distancing;       ///< Vector of days with social distancing enforcement for work places
         std::vector<boost::gregorian::date> m_community_distancing;       ///< Vector of days with social distancing enforcement in the community
         std::vector<boost::gregorian::date> m_contact_tracing;            ///< Vector of days with case finding measures
+        std::vector<boost::gregorian::date> m_universal_testing;          ///< Vector of days with universal testing measures
         std::vector<boost::gregorian::date> m_household_clustering;       ///< Vector of days when household clusters are allowed
 
 #else
@@ -189,6 +197,7 @@ private:
         std::vector<date::year_month_day> m_workplace_distancing;      ///< Vector of days with social distancing enforcement for work places
         std::vector<date::year_month_day> m_community_distancing;      ///< Vector of days with social distancing enforcement in the community
         std::vector<date::year_month_day> m_contact_tracing;           ///< Vector of days with case finding measures
+        std::vector<date::year_month_day> m_universal_testing;         ///< Vector of days with universal testing measures
         std::vector<date::year_month_day> m_household_clustering;      ///< Vector of days when household clusters are allowed
 
 #endif
