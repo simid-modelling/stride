@@ -23,6 +23,7 @@
 #include "contact/ContactPool.h"
 #include "contact/ContactHandler.h"
 #include "util/RnMan.h"
+#include "util/FileSys.h"
 #include "util/SegmentedVector.h"
 
 #include <boost/property_tree/ptree_fwd.hpp>

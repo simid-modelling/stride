@@ -50,7 +50,6 @@ rStride_files <- dir('./bin/rstride',recursive = T,pattern = '\\.R',full.names =
 rStride_files <- rStride_files[rStride_files != "./bin/rstride/rStride.R"]
 rStride_files <- rStride_files[rStride_files != "./bin/rstride/SymptomaticProfileCreator.R"]
 sapply(rStride_files,source)
-rStride_functions <- ls()
 
 #' Create a default config
 create_default_config <- function(config_default_filename, run_tag)
@@ -96,7 +95,7 @@ create_config_exp <- function(config_default, output_prefix, exp_design, i_exp)
 }
 
 #' Parse log file
-parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission_rdata)
+parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission_rdata, project_dir_exp)
 {
   output_prefix <- config_exp$output_prefix
 
@@ -115,6 +114,7 @@ parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission
     rstride_out$data_transmission[flag,end_symptoms := NA]
     
     # add estimated hospital admission
+    set.seed(config_exp$rng_seed + 16022018)
     rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission,config_exp)
     
     # get incidence data
@@ -151,6 +151,9 @@ parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission
   rstride_out$data_prevalence_infectious  <- get_prevalence_data(config_exp,'infectious.csv')
   rstride_out$data_prevalence_symptomatic <- get_prevalence_data(config_exp,'symptomatic.csv')
   rstride_out$data_prevalence_total       <- get_prevalence_data(config_exp,'cases.csv')
+  
+  # save list with all results
+  saveRDS(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.rds')))
 }
 
 write_exp_design_to_csv <- function(exp_design, csv_fn) 
@@ -272,10 +275,6 @@ run_rStride <- function(exp_design               = exp_design,
                      .combine='rbind',
                      .packages=c('XML','simid.rtools','data.table'),
                      .export = c('.rstride','par_nodes_info',
-                                 'add_hospital_admission_time',
-                                 'get_prevalence_data',
-                                 'write_stride_config_file',
-                                 'parse_log_file',
                                  rStride_functions),
                      .verbose=FALSE) %dopar%
                      {  
@@ -291,7 +290,7 @@ run_rStride <- function(exp_design               = exp_design,
                        config_exp = create_config_exp(config_default, output_prefix, exp_design, i_exp)
                        
                        #save the config as XML file
-                       save_config_xml(config_exp, xml_filename)
+                       save_config_xml(config_exp, config_exp_filename)
 
                        # run stride (using the C++ Controller)
                        cmd = paste(stride_bin,config_opt, paste0("../", config_exp_filename))
@@ -320,11 +319,9 @@ run_rStride <- function(exp_design               = exp_design,
                            return(run_summary)
                        }
 
-                       parse_log_file(config_exp, i_exp, get_burden_rdata, get_transmission_rdata)
+                       # parse log output (and save as rds file)
+                       parse_log_file(config_exp, i_exp, get_burden_rdata, get_transmission_rdata, project_dir_exp)
   
-                       # save list with all results
-                       saveRDS(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.rds')))
-                       
                        # remove experiment output and config
                        if(remove_run_output){
                          unlink(config_exp$output_prefix,recursive=TRUE)
@@ -484,5 +481,8 @@ get_prevalence_data <- function(config_exp,file_name){
   }
 
 }
+
+## STORE ALL FUNCTIONS ----
+rStride_functions <- ls()
 
 
