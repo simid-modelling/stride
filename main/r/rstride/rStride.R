@@ -106,7 +106,7 @@ parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission
   # parse event_log (if present)
   event_log_filename <- smd_file_path(output_prefix,'event_log.txt')
   if(file.exists(event_log_filename)){
-    rstride_out <- .rstride$parse_event_logfile(event_log_filename,i_exp)
+    rstride_out <- parse_event_logfile(event_log_filename,i_exp)
     
     # account for non-symptomatic cases
     flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
@@ -175,8 +175,9 @@ write_exp_design_to_csv <- function(exp_design, csv_fn)
 #' @param num_parallel_workers      number of parallel workers (NA = use default settings)
 run_rStride <- function(exp_design               = exp_design, 
                         dir_postfix              = '',
-                        stdout_fn                = "", 
-                        stderr_fn                = "", 
+                        ignore_stdout            = TRUE,
+                        stdout_fn                = '', 
+                        stderr_fn                = '', 
                         parse_log_data           = TRUE,
                         get_csv_output           = FALSE,
                         remove_run_output        = TRUE,
@@ -188,7 +189,8 @@ run_rStride <- function(exp_design               = exp_design,
   
   # debug
   if(0==1){
-    attach(list(stdout_fn                = "stdout", 
+    attach(list(ignore_stdout            = FALSE,
+                stdout_fn                = "stdout", 
                 stderr_fn                = "stderr", 
                 parse_log_data           = TRUE,
                 get_csv_output           = FALSE,
@@ -269,12 +271,12 @@ run_rStride <- function(exp_design               = exp_design,
   project_dir_exp <- smd_file_path(project_dir,'exp_all')
   
   time_stamp_loop = Sys.time()
-  i_exp=1
+  i_exp=2
   # run all experiments (in parallel)
   par_out <- foreach(i_exp=1:nrow(exp_design),
                      .combine='rbind',
                      .packages=c('XML','simid.rtools','data.table'),
-                     .export = c('.rstride','par_nodes_info',
+                     .export = c('par_nodes_info',
                                  rStride_functions),
                      .verbose=FALSE) %dopar%
                      {  
@@ -285,9 +287,9 @@ run_rStride <- function(exp_design               = exp_design,
                        # create experiment tag
                        exp_tag <- .rstride$create_exp_tag(i_exp)
                       
-                       output_prefix = smd_file_path(project_dir,exp_tag,.verbose=FALSE)
+                       output_prefix       = smd_file_path(project_dir,exp_tag,.verbose=FALSE)
                        config_exp_filename = paste0(output_prefix,".xml")
-                       config_exp = create_config_exp(config_default, output_prefix, exp_design, i_exp)
+                       config_exp          = create_config_exp(config_default, output_prefix, exp_design, i_exp)
                        
                        #save the config as XML file
                        save_config_xml(config_exp, config_exp_filename)
@@ -301,8 +303,7 @@ run_rStride <- function(exp_design               = exp_design,
                        if(stdout_fn != "") {
                         cmd = paste(cmd, paste0(" > ",out_dir,"/",stdout_fn)) 
                        }
-                       smd_print("cmd:",cmd)
-                       system(cmd)
+                       system(cmd,ignore.stdout = ignore_stdout)
 
                        # load output summary
                        summary_filename <- file.path(output_prefix,'summary.csv')
@@ -335,7 +336,6 @@ run_rStride <- function(exp_design               = exp_design,
   # print final statement
   smd_print('COMPLETE:',nrow(exp_design),'/',nrow(exp_design))
   
-  
   # save overal summary
   write.table(par_out,file=file.path(project_dir,paste0(run_tag,'_summary.csv')),sep=',',row.names=F)
   
@@ -351,7 +351,6 @@ run_rStride <- function(exp_design               = exp_design,
   if(remove_run_output){
     unlink(project_dir_exp,recursive = T)
   }
-  
   
   ################################## #
   ## TERMINATE PARALLEL NODES     ####
@@ -483,6 +482,5 @@ get_prevalence_data <- function(config_exp,file_name){
 }
 
 ## STORE ALL FUNCTIONS ----
-rStride_functions <- ls()
-
+rStride_functions <- ls(all.names = T)
 

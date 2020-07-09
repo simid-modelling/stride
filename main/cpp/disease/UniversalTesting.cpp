@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2020, Willem L
+ *  Copyright 2020, Libin P, Willem L
  */
 
 /**
@@ -75,7 +75,7 @@ void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop,
   if (!calendar->IsUniversalTestingActivated())
     return;
 
-  if (m_unitest_fnr < 0.0)
+  if (m_unitest_fnr < 0.0 || m_unitest_n_tests_per_day <= 0)
     return;
 
   const auto simDay = calendar->GetSimulationDay();
@@ -219,7 +219,8 @@ void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop,
           for (const auto& indiv : household) {
               indiv->GetHealth().StartIsolation(m_unitest_isolation_delay);
               logger->info("[UNITEST-ISOLATE] pool_id={} household_id={} indiv_id={} infected?={} isolation_delay={} sim_day={}",
-                                                 pool.GetId(),
+              //logger->info("[UNITEST-ISOLATE] {} {} {} {} {} {}",
+            		                             pool.GetId(),
                                                  indiv->GetPoolId(Id::Household),
                                                  indiv->GetId(), 
                                                  indiv->GetHealth().IsInfected(),

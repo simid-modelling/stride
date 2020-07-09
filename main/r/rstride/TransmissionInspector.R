@@ -25,6 +25,9 @@ inspect_transmission_dynamics <- function(project_dir,save_pdf = TRUE)
   # command line message
   smd_print('INSPECT TRANSMISSION DYNAMICS...')
   
+  #debug
+  if(!exists('save_pdf')) {save_pdf = FALSE}
+
   # load project summary
   project_summary      <- .rstride$load_project_summary(project_dir)
   
@@ -199,15 +202,7 @@ get_transmission_statistics <- function(data_transm)
 {
   # setup data.table
   data_transm[,ID := 1:nrow(data_transm),]
-  
-  # set column types
-  data_transm[,infection_date := as.Date(infection_date)]
-  data_transm[,start_infectiousness := as.numeric(start_infectiousness)]
-  data_transm[,end_infectiousness := as.numeric(end_infectiousness)]
-  data_transm[,start_symptoms := as.numeric(start_symptoms)]
-  data_transm[,end_symptoms:= as.numeric(end_symptoms)]
-  data_transm[,part_age := as.numeric(part_age)]
-  
+
   # add recovery date
   data_transm[, date_recovered := infection_date + end_infectiousness]
   
@@ -304,11 +299,11 @@ get_transmission_statistics <- function(data_transm)
   # use dummy column to aggregte
   #data_transm$num_symptomatic_infectors <- as.numeric(data_transm$infector_is_symptomatic)
   # summary_symptomatic_infectors         <- aggregate(num_symptomatic_infectors ~ sim_date, data = data_transm, sum,na.rm=T)
-  summary_symptomatic_infectors <- data_transm[,.(num_symptomatic_infectors = sum(infector_is_symptomatic)), by=c('sim_date')]
+  summary_symptomatic_infectors <- data_transm[,.(num_symptomatic_infectors = sum(infector_is_symptomatic,na.rm=T)), by=c('sim_date')]
 
   
   ## LOCATION ----
-  summary_location <- get_summary_table(data_transm,'infection_date','cnt_location','location')
+  summary_location <- get_summary_table(data_transm,'infection_date','pool_type','location')
   summary_location$location    <- NULL # remove
   summary_location$location_NA <- NULL # remove
   

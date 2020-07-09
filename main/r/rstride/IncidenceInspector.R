@@ -170,6 +170,11 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   flag_plot               <- data_incidence_all$config_id %in% config_tag_sel$config_tag
   data_incidence_ensemble <- data_incidence_all[flag_plot,]
   
+  # check hospital admission data
+  if(all(is.na(data_incidence_all$new_hospital_admissions))){
+    smd_print("NO HOSPITAL ADMISSION DATA", WARNING = TRUE)
+    return(NULL)
+  }
   
   ## ENSEMBLE  ####
   .rstride$create_pdf(project_dir,'incidence_ensemble',width = 6, height = 7)

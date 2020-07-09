@@ -26,7 +26,7 @@
 ################################## #
 
 # get default parameter values to combine in a full-factorial grid
-get_exp_param_default <- function(bool_child_param = FALSE){
+get_exp_param_default <- function(bool_child_param = FALSE, bool_min_restrictive = FALSE){
    out <- list(r0                            = seq(3.4,3.4,0.1),
                 num_days                      = 196,
                 num_seeds                     = 10,
@@ -36,7 +36,7 @@ get_exp_param_default <- function(bool_child_param = FALSE){
                 population_file               = c("pop_belgium11M_c500_teachers_censushh.csv"),
                 age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                 start_date                    = c('2020-02-17'),
-                holidays_file                 = 'calendar_belgium_2020_covid19_exit_school_adjusted.json',
+                holidays_file                 = 'calendar_belgium_2020_covid19_exit_school_adjusted_universal.json',
                 school_system_adjusted        = 1,
                 telework_probability          = 0,
                 cnt_reduction_workplace       = 0.8,
@@ -63,7 +63,16 @@ get_exp_param_default <- function(bool_child_param = FALSE){
                event_log_level                 = "Transmissions",
                 
                 # factor for parameter estimation and fitting
-                hosp_probability_factor        = 1
+                hosp_probability_factor        = 1,
+               
+               # unversal testing
+               unitest_pool_allocation       = c("data/pop_belgium11M_c500_pool_allocation_$unitest_pool_size.csv"),
+               unitest_fnr                   = c(0.01),
+               unitest_n_tests_per_day       = c(25000),
+               unitest_pool_size             = c(32),
+               unitest_test_compliance       = c(0.9),
+               unitest_isolation_compliance  = c(0.8)
+               
           )
    
    # change parameters if childrens infectiousness is 1/2 compared to adults
@@ -72,6 +81,12 @@ get_exp_param_default <- function(bool_child_param = FALSE){
      out$cnt_reduction_workplace <- 0.85
      out$cnt_reduction_other     <- 0.87
      out$hosp_probability_factor <- 0.80
+   }
+   
+   # select least stringent social mixing assumptions
+   if(bool_min_restrictive){
+      out$cnt_reduction_workplace_exit <- min(out$cnt_reduction_workplace_exit)
+      out$cnt_reduction_other_exit <- min(out$cnt_reduction_other_exit)
    }
    
    # return parameters
