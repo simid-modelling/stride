@@ -41,7 +41,7 @@ ProcessorCount(PROCCOUNT)
 # Required to avoid ld problems on Mac
 set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 #
-set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++2a -Wall -Wextra -pedantic -Weffc++")
+set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++20 -Wall -Wextra -pedantic -Weffc++")
 set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast" )
 set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0"   )
