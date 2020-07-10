@@ -29,9 +29,8 @@
 #include <type_traits>
 #include <vector>
 
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
-namespace filesys = boost::filesystem;
+#include <filesystem>
+namespace filesys = std::filesystem;
 
 namespace stride {
 namespace util {

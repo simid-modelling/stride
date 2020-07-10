@@ -11,6 +11,7 @@
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
  *  Copyright 2017, Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2020, Willem L
  */
 
 /**
@@ -24,9 +25,8 @@
 #include <functional>
 #include <string>
 
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
-namespace filesys = boost::filesystem;
+#include <filesystem>
+namespace filesys = std::filesystem;
 
 namespace stride {
 namespace util {

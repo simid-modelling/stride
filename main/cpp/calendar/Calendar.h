@@ -26,12 +26,7 @@
 #include <cstdlib>
 #include <memory>
 #include <vector>
-
-#ifdef BOOST_FOUND
-#include "boost/date_time/gregorian/gregorian.hpp"
-#else
-#include <date/date.h>
-#endif
+#include <chrono>
 
 namespace stride {
 
@@ -174,33 +169,19 @@ private:
         void Initialize(const boost::property_tree::ptree& configPt);
 
 private:
-#ifdef BOOST_FOUND
-        boost::gregorian::date              m_date;                       ///< Current simulated date.
-        std::vector<boost::gregorian::date> m_public_holidays;            ///< Vector of public holidays
-        std::vector<boost::gregorian::date> m_preschool_holidays;         ///< Vector of pre-school closure
-        std::vector<boost::gregorian::date> m_primary_school_holidays;    ///< Vector of primary school closure
-        std::vector<boost::gregorian::date> m_secondary_school_holidays;  ///< Vector of secondary school closure
-        std::vector<boost::gregorian::date> m_college_holidays;           ///< Vector of college closure
-        std::vector<boost::gregorian::date> m_workplace_distancing;       ///< Vector of days with social distancing enforcement for work places
-        std::vector<boost::gregorian::date> m_community_distancing;       ///< Vector of days with social distancing enforcement in the community
-        std::vector<boost::gregorian::date> m_contact_tracing;            ///< Vector of days with case finding measures
-        std::vector<boost::gregorian::date> m_universal_testing;          ///< Vector of days with universal testing measures
-        std::vector<boost::gregorian::date> m_household_clustering;       ///< Vector of days when household clusters are allowed
 
-#else
-        date::year_month_day              m_date;                      ///< Current simulated date.
-        std::vector<date::year_month_day> m_public_holidays;           ///< Vector of public holidays
-        std::vector<date::year_month_day> m_preschool_holidays;        ///< Vector of pre-school closure
-        std::vector<date::year_month_day> m_primary_school_holidays;   ///< Vector of primary school closure
-        std::vector<date::year_month_day> m_secondary_school_holidays; ///< Vector of secondary school closure
-        std::vector<date::year_month_day> m_college_holidays;          ///< Vector of college closure
-        std::vector<date::year_month_day> m_workplace_distancing;      ///< Vector of days with social distancing enforcement for work places
-        std::vector<date::year_month_day> m_community_distancing;      ///< Vector of days with social distancing enforcement in the community
-        std::vector<date::year_month_day> m_contact_tracing;           ///< Vector of days with case finding measures
-        std::vector<date::year_month_day> m_universal_testing;         ///< Vector of days with universal testing measures
-        std::vector<date::year_month_day> m_household_clustering;      ///< Vector of days when household clusters are allowed
+        std::chrono::year_month_day              m_date;                      ///< Current simulated date.
+        std::vector<std::chrono::year_month_day> m_public_holidays;           ///< Vector of public holidays
+        std::vector<std::chrono::year_month_day> m_preschool_holidays;        ///< Vector of pre-school closure
+        std::vector<std::chrono::year_month_day> m_primary_school_holidays;   ///< Vector of primary school closure
+        std::vector<std::chrono::year_month_day> m_secondary_school_holidays; ///< Vector of secondary school closure
+        std::vector<std::chrono::year_month_day> m_college_holidays;          ///< Vector of college closure
+        std::vector<std::chrono::year_month_day> m_workplace_distancing;      ///< Vector of days with social distancing enforcement for work places
+        std::vector<std::chrono::year_month_day> m_community_distancing;      ///< Vector of days with social distancing enforcement in the community
+        std::vector<std::chrono::year_month_day> m_contact_tracing;           ///< Vector of days with case finding measures
+        std::vector<std::chrono::year_month_day> m_universal_testing;         ///< Vector of days with universal testing measures
+        std::vector<std::chrono::year_month_day> m_household_clustering;      ///< Vector of days when household clusters are allowed
 
-#endif
         unsigned short int m_day; ///< Current day since start of simulation.
 };
 
