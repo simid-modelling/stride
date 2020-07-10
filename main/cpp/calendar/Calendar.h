@@ -40,7 +40,7 @@ class Calendar
 {
 public:
         /// Constructor
-        explicit Calendar(const boost::property_tree::ptree& configPt);
+        explicit Calendar(const boost::property_tree::ptree& configPt,unsigned int num_days);
 
         /// Advance the simulated calendar by one day.
         void AdvanceDay();
@@ -126,11 +126,25 @@ public:
 					 m_household_clustering.end());
 		}
 
+		unsigned int GetNumberOfImportedCases() const{
+
+			return m_imported_cases[GetDayIndex(m_date)];
+		}
+
 private:
+
+		unsigned short int GetDayIndex(boost::gregorian::date date) const;
+
+		bool IsDatePartOfSimulation(boost::gregorian::date date) const
+		{
+			return m_date_start <= date && date < m_date_end;
+		}
+
 		/// Check if it's a public holiday.
 		bool IsPublicHoliday() const
 		{
-			return (std::find(m_public_holidays.begin(), m_public_holidays.end(), m_date) != m_public_holidays.end());
+			//return (std::find(m_public_holidays.begin(), m_public_holidays.end(), m_date) != m_public_holidays.end());
+			return m_public_holidays_bool[GetDayIndex(m_date)];
 		}
 
 		/// Check if pre-schools are closed.
@@ -170,9 +184,9 @@ private:
 		/// Initialize the calendar
         void Initialize(const boost::property_tree::ptree& configPt);
 
-private:
-#ifdef BOOST_FOUND
         boost::gregorian::date              m_date;                       ///< Current simulated date.
+        boost::gregorian::date              m_date_start;                 ///< Start simulation.
+        boost::gregorian::date              m_date_end;                   ///< End simulation.
         std::vector<boost::gregorian::date> m_public_holidays;            ///< Vector of public holidays
         std::vector<boost::gregorian::date> m_preschool_holidays;         ///< Vector of pre-school closure
         std::vector<boost::gregorian::date> m_primary_school_holidays;    ///< Vector of primary school closure
@@ -184,21 +198,9 @@ private:
         std::vector<boost::gregorian::date> m_universal_testing;          ///< Vector of days with universal testing measures
         std::vector<boost::gregorian::date> m_household_clustering;       ///< Vector of days when household clusters are allowed
 
-#else
-        date::year_month_day              m_date;                      ///< Current simulated date.
-        std::vector<date::year_month_day> m_public_holidays;           ///< Vector of public holidays
-        std::vector<date::year_month_day> m_preschool_holidays;        ///< Vector of pre-school closure
-        std::vector<date::year_month_day> m_primary_school_holidays;   ///< Vector of primary school closure
-        std::vector<date::year_month_day> m_secondary_school_holidays; ///< Vector of secondary school closure
-        std::vector<date::year_month_day> m_college_holidays;          ///< Vector of college closure
-        std::vector<date::year_month_day> m_workplace_distancing;      ///< Vector of days with social distancing enforcement for work places
-        std::vector<date::year_month_day> m_community_distancing;      ///< Vector of days with social distancing enforcement in the community
-        std::vector<date::year_month_day> m_contact_tracing;           ///< Vector of days with case finding measures
-        std::vector<date::year_month_day> m_universal_testing;         ///< Vector of days with universal testing measures
-        std::vector<date::year_month_day> m_household_clustering;      ///< Vector of days when household clusters are allowed
+        std::vector<bool>m_public_holidays_bool;
+        std::vector<unsigned int>m_imported_cases; ///<Vector of days when cases are imported (~daily seeding activated)
 
-#endif
-        unsigned short int m_day; ///< Current day since start of simulation.
 };
 
 } // namespace stride

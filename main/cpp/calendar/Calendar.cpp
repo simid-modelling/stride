@@ -33,21 +33,24 @@ using namespace stride::util;
 using boost::property_tree::ptree;
 
 
-Calendar::Calendar(const ptree& configPt) :
-		m_date(), m_public_holidays(), m_preschool_holidays(), m_primary_school_holidays(),
+Calendar::Calendar(const ptree& configPt,unsigned int num_days) :
+		m_date(), m_date_start(), m_date_end(), m_public_holidays(), m_preschool_holidays(), m_primary_school_holidays(),
 		  m_secondary_school_holidays(), m_college_holidays(), m_workplace_distancing(),
-		m_community_distancing(), m_contact_tracing(), m_universal_testing(), m_household_clustering(), m_day(0U)
+		m_community_distancing(), m_contact_tracing(), m_universal_testing(), m_household_clustering(),
+		m_public_holidays_bool(num_days), m_imported_cases(num_days,0U)
 {
         // Set start date
         m_date = boost::gregorian::from_simple_string(configPt.get<string>("run.start_date", "2020-01-01"));
+        m_date_start = m_date;
+        m_date_end = m_date + boost::gregorian::days(num_days);
 
-        // Set holidays & school holidays
+        //cout << "setup calendar :: " << m_public_holidays_bool.size() << endl;
+
         Initialize(configPt);
 }
 
 void Calendar::AdvanceDay()
 {
-        m_day++;
         m_date = m_date + boost::gregorian::date_duration(1);
 }
 
@@ -57,9 +60,24 @@ size_t Calendar::GetDayOfTheWeek() const { return m_date.day_of_week(); }
 
 size_t Calendar::GetMonth() const { return m_date.month(); }
 
-unsigned short int Calendar::GetSimulationDay() const { return m_day; }
+unsigned short int Calendar::GetSimulationDay() const {
+
+	return GetDayIndex(m_date);
+}
+
+
+unsigned short int Calendar::GetDayIndex(boost::gregorian::date date) const{
+
+	if(date == m_date_start){ return 0; }
+
+	return (date - m_date_start).days();
+}
+
 
 size_t Calendar::GetYear() const { return m_date.year(); }
+
+
+
 
 void Calendar::Initialize(const ptree& configPt)
 {
@@ -83,7 +101,11 @@ void Calendar::Initialize(const ptree& configPt)
                 // read in general holidays
                 for (const auto& date : holidaysPt.get_child("general." + month)) {
                         const auto d = string(lead).append(date.second.get_value<string>());
-                        m_public_holidays.push_back(boost::gregorian::from_simple_string(d));
+                        const auto d_date = boost::gregorian::from_simple_string(d);
+
+                        if(IsDatePartOfSimulation(d_date)){
+                        	m_public_holidays_bool[GetDayIndex(d_date)] = true;
+                        }
                 }
 
                 // read in pre-school holidays
@@ -145,6 +167,28 @@ void Calendar::Initialize(const ptree& configPt)
 					for (const auto& date : holidaysPt.get_child("household_clustering." + month)) {
 							const string d = string(lead).append(date.second.get_value<string>());
 							m_household_clustering.push_back(boost::gregorian::from_simple_string(d));
+					}
+				}
+
+				// read in imported cases
+				if(holidaysPt.count("import_cases") != 0){
+					for (const auto& date : holidaysPt.get_child("import_cases." + month)) {
+						const auto d = string(lead).append(date.second.get_value<string>());
+						const auto d_date = boost::gregorian::from_simple_string(d);
+
+						unsigned int num_cases = configPt.get<unsigned int>("run.num_daily_imported_cases",0);
+						//unsigned int num_cases = field_num_cases.second.get_value<unsigned int>();
+//						cout << num_cases << " * " << d_date << " " << IsDatePartOfSimulation(d_date) << endl;
+//						cout <<  (m_date_start <= d_date) << " & " << (d_date < m_date_end) << endl;
+						if(IsDatePartOfSimulation(d_date)){
+							m_imported_cases[GetDayIndex(d_date)] = num_cases;
+						}
+					}
+				} else { // if no calendar info present, use the same value throuthout the simulation
+					unsigned int num_cases = configPt.get<unsigned int>("run.num_daily_imported_cases",0);
+					for (unsigned int day_index = 0 ; day_index < m_imported_cases.size() ; day_index++){
+						//cout << m_imported_cases.size() << " * " << day_index << endl;
+						m_imported_cases[day_index] = num_cases;
 					}
 				}
         }

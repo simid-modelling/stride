@@ -63,6 +63,7 @@ std::shared_ptr<Sim> Sim::Create(const boost::property_tree::ptree& config, shar
 
 void Sim::TimeStep()
 {
+
         // Logic where you compute (on the basis of input/config for initial day or on the basis of
         // number of sick persons, duration of epidemic etc) what kind of DaysOff scheme you apply.
         const bool isRegularWeekday     = m_calendar->IsRegularWeekday();
@@ -134,8 +135,12 @@ void Sim::TimeStep()
 		}
 
         // Import infected cases into the population
-        if(m_num_daily_imported_cases > 0){
-        	DiseaseSeeder(m_config, m_rn_man).ImportInfectedCases(m_population, m_num_daily_imported_cases, simDay);
+//        if(m_num_daily_imported_cases > 0){
+//        	DiseaseSeeder(m_config, m_rn_man).ImportInfectedCases(m_population, m_num_daily_imported_cases, simDay);
+//        }
+        if(m_calendar->GetNumberOfImportedCases() > 0){
+        	DiseaseSeeder(m_config, m_rn_man).ImportInfectedCases(m_population, m_calendar->GetNumberOfImportedCases(), simDay);
+        cout << "import cases: " << m_calendar->GetNumberOfImportedCases() << endl;
         }
 
 #pragma omp parallel num_threads(m_num_threads)
