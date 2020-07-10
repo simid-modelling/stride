@@ -85,8 +85,8 @@ int main(int argc, char** argv)
                         configPt = RunConfigManager::Create(config);
                 } else {
                         config = regex_replace(config, regex(string("^file=")), string(""));
-                        const filesystem::path configPath =
-                            (installedArg.getValue()) ? FileSys::GetConfigDir() /= config : filesystem::path(config);
+                        const filesys::path configPath =
+                            (installedArg.getValue()) ? FileSys::GetConfigDir() /= config : filesys::path(config);
                         configPt = FileSys::ReadPtreeFile(configPath);
                 }
 

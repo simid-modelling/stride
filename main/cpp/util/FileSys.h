@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2020, Willem L, Kuylen E, Broeckhove J, Libin P
+ *  Copyright 2017, Kuylen E, Willem L, Broeckhove J
  */
 
 /**
@@ -23,8 +23,10 @@
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <functional>
 #include <string>
-#include <filesystem>
 
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+namespace filesys = boost::filesystem;
 
 namespace stride {
 namespace util {
@@ -43,26 +45,26 @@ public:
         static bool CreateDirectory(std::string s);
 
         /// Interpret prefix (directory or filename prefix) and return appropriate path.
-        static std::filesystem::path BuildPath(const std::string& output_prefix, const std::string& filename);
+        static filesys::path BuildPath(const std::string& output_prefix, const std::string& filename);
 
         /// Read ptree from file at path.
-        static boost::property_tree::ptree ReadPtreeFile(const std::filesystem::path& f_p);
+        static boost::property_tree::ptree ReadPtreeFile(const filesys::path& f_p);
 
         /// Read ptree from file specifified by name string.
         static boost::property_tree::ptree ReadPtreeFile(const std::string& f_n);
 
         /// Write ptree to file at path.
-        static void WritePtreeFile(const std::filesystem::path& f_p, const boost::property_tree::ptree& pt);
+        static void WritePtreeFile(const filesys::path& f_p, const boost::property_tree::ptree& pt);
 
         /// Write ptree to file specifified by name string.
         static void WritePtreeFile(const std::string& f_n, const boost::property_tree::ptree& pt);
 
 public:
         /// Get path to the current directory.
-        static std::filesystem::path GetCurrentDir() { return Get().m_current_dir; }
+        static filesys::path GetCurrentDir() { return Get().m_current_dir; }
 
         /// Get path of the executable.
-        static std::filesystem::path GetExecPath() { return Get().m_exec_path; }
+        static filesys::path GetExecPath() { return Get().m_exec_path; }
 
 public:
         /// Verify that current dir is root dir and all install dirs are present.
@@ -72,19 +74,19 @@ public:
             std::function<void(const std::string&)> logger = std::function<void(const std::string&)>());
 
         /// Return bin dir (only relevant when use_install_dirs mode is active)
-        static std::filesystem::path GetBinDir() { return Get().m_bin_dir; }
+        static filesys::path GetBinDir() { return Get().m_bin_dir; }
 
         /// Return config dir (only relevant when use_install_dirs mode is active)
-        static std::filesystem::path GetConfigDir() { return Get().m_config_dir; }
+        static filesys::path GetConfigDir() { return Get().m_config_dir; }
 
         /// /// Return data dir (only relevant when use_install_dirs mode is active)
-        static std::filesystem::path GetDataDir() { return Get().m_data_dir; }
+        static filesys::path GetDataDir() { return Get().m_data_dir; }
 
         /// Return install root dir (only relevant when use_install_dirs mode is active)
-        static std::filesystem::path GetRootDir() { return Get().m_root_dir; }
+        static filesys::path GetRootDir() { return Get().m_root_dir; }
 
         /// Return tests dir (only relevant when use_install_dirs mode is active)
-        static std::filesystem::path GetTestsDir() { return Get().m_tests_dir; }
+        static filesys::path GetTestsDir() { return Get().m_tests_dir; }
 
 private:
         /// Using this to avoid global variables & their initialization.
@@ -94,15 +96,15 @@ private:
                     : m_current_dir(), m_exec_path(), m_bin_dir(), m_config_dir(), m_data_dir(), m_root_dir(),
                       m_tests_dir(){};
 
-                std::filesystem::path m_current_dir;
-                std::filesystem::path m_exec_path;
+                filesys::path m_current_dir;
+                filesys::path m_exec_path;
 
                 // only relevant when use_install_dirs mode is active
-                std::filesystem::path m_bin_dir;
-                std::filesystem::path m_config_dir;
-                std::filesystem::path m_data_dir;
-                std::filesystem::path m_root_dir;
-                std::filesystem::path m_tests_dir;
+                filesys::path m_bin_dir;
+                filesys::path m_config_dir;
+                filesys::path m_data_dir;
+                filesys::path m_root_dir;
+                filesys::path m_tests_dir;
         };
 
 private:
