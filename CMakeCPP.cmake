@@ -41,7 +41,7 @@ ProcessorCount(PROCCOUNT)
 # Required to avoid ld problems on Mac
 set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 #
-set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++20 -Wall -Wextra -pedantic -Weffc++")
+set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wextra -pedantic -Weffc++")
 set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast" )
 set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0"   )
@@ -67,7 +67,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fPIC")
 #
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-	set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++2a")
+	set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++1z")
 endif()
 
 #----------------------------------------------------------------------------
@@ -105,7 +105,7 @@ set(LIBS ${LIBS} sha1)
 #----------------------------------------------------------------------------
 set(Boost_USE_MULTITHREADED TRUE)     # prevent issues with threaded and unthreaded boost libraries.
 set(Boost_NO_BOOST_CMAKE ON)          # to tell FindBoost not to defer to BoostConfig.cmake.
-find_package(Boost)
+find_package(Boost COMPONENTS filesystem date_time)
 if (Boost_FOUND)
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
     add_compile_definitions(BOOST_FOUND)

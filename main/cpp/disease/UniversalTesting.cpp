@@ -20,8 +20,6 @@
 
 #include "UniversalTesting.h"
 
-#include <fstream>
-
 #include "calendar/Calendar.h"
 #include "pop/Population.h"
 #include "util/Containers.h"
@@ -29,7 +27,6 @@
 #include "util/FileSys.h"
 #include "util/LogUtils.h"
 #include "util/StringUtils.h"
-
 
 #include <boost/property_tree/ptree.hpp>
 #include <algorithm>
@@ -138,7 +135,7 @@ void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop,
     }
 
     //write the planning to file
-    std::ofstream of;
+    ofstream of;
     of.open(m_unitest_planning_output_fn.c_str());
     of << "day,georegion,id,size" << std::endl;
     for (unsigned int day = 0; day < n_days; ++day) {
