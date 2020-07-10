@@ -53,7 +53,7 @@ private:
         bool Bernoulli(ContactHandler& cHandler, double prob_of_success);
 
 private:
-        filesys::path m_unitest_planning_output_fn; ///> Filename to output the planning to
+        std::filesystem::path m_unitest_planning_output_fn; ///> Filename to output the planning to
         //universal testing configuration
         std::string m_unitest_pool_allocation; ///< File that lists the pool to which households belong
         double m_unitest_fnr;             ///< False negative rate for pool testing (universal testing)

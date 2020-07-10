@@ -31,9 +31,9 @@ namespace {
 /// @param root root of the path.
 /// @return the full path to the file if it exists
 /// @throws runtime error if file doesn't exist
-const filesys::path check(const filesys::path& filename, const filesys::path& root = filesys::current_path())
+const filesystem::path check(const filesystem::path& filename, const filesystem::path& root = filesystem::current_path())
 {
-        const filesys::path file_path = canonical(absolute(root / filename));
+        const filesystem::path file_path = canonical(absolute(root / filename));
         if (!is_regular_file(file_path)) {
                 throw runtime_error(string(__func__) + ">File " + file_path.string() + " not present. Aborting.");
         }
@@ -45,10 +45,10 @@ const filesys::path check(const filesys::path& filename, const filesys::path& ro
 namespace stride {
 namespace util {
 
-CSV::CSV(const filesys::path& path, std::initializer_list<std::string> optLabels) : m_labels(), m_column_count(0)
+CSV::CSV(const filesystem::path& path, std::initializer_list<std::string> optLabels) : m_labels(), m_column_count(0)
 {
         try {
-                filesys::path full_path = check(path);
+                filesystem::path full_path = check(path);
                 std::ifstream file;
                 file.open(full_path.string());
                 if (!file.is_open()) {
@@ -99,7 +99,7 @@ size_t CSV::GetIndexForLabel(const string& label) const
         throw runtime_error("Label: " + label + " not found in CSV");
 }
 
-void CSV::Write(const filesys::path& path) const
+void CSV::Write(const filesystem::path& path) const
 {
         std::ofstream file;
         file.open(path.string());

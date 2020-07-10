@@ -139,14 +139,14 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
 ptree SimBuilder::ReadAgeContactPtree()
 {
         const auto fn = m_config.get<string>("run.age_contact_matrix_file", "contact_matrix.xml");
-        const auto fp = m_config.get<bool>("run.use_install_dirs") ? FileSys::GetDataDir() /= fn : filesys::path(fn);
+        const auto fp = m_config.get<bool>("run.use_install_dirs") ? FileSys::GetDataDir() /= fn : filesystem::path(fn);
         return FileSys::ReadPtreeFile(fp);
 }
 
 ptree SimBuilder::ReadDiseasePtree()
 {
         const auto fn = m_config.get<string>("run.disease_config_file");
-        const auto fp = m_config.get<bool>("run.use_install_dirs") ? FileSys::GetDataDir() /= fn : filesys::path(fn);
+        const auto fp = m_config.get<bool>("run.use_install_dirs") ? FileSys::GetDataDir() /= fn : filesystem::path(fn);
         return FileSys::ReadPtreeFile(fp);
 }
 

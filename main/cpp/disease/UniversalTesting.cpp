@@ -20,6 +20,8 @@
 
 #include "UniversalTesting.h"
 
+#include <fstream>
+
 #include "calendar/Calendar.h"
 #include "pop/Population.h"
 #include "util/Containers.h"
@@ -27,6 +29,7 @@
 #include "util/FileSys.h"
 #include "util/LogUtils.h"
 #include "util/StringUtils.h"
+
 
 #include <boost/property_tree/ptree.hpp>
 #include <algorithm>
