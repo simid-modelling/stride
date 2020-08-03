@@ -174,26 +174,10 @@ data_incidence <- merge(data_incidence,opt_scenario)
 
 
 ## REFERENCE DATA COVID-19: new hospitalisation ----
-# file_name <- './data/covid19.csv'
-# burden_of_disaese  <- read.table(file_name,sep=',',header=T,stringsAsFactors = F)
-# hosp_cases_num     <- burden_of_disaese$NewPatientsNotReferredHospital
-# hosp_cases_cum     <- cumsum(hosp_cases_num)
-# hosp_cases_date    <- as.Date(burden_of_disaese$DateCase)
-# # aggregate into one data.frame
-# hosp_adm_data <- data.frame(date    = hosp_cases_date,
-#                             num_adm = hosp_cases_num,
-#                             cum_adm = hosp_cases_cum)
-
-hosp_ref_file_name <- smd_file_path('sim_output/ref_hosp_sciensano.csv')
-if(!file.exists(hosp_ref_file_name)){
-  hosp_ref_url       <- 'https://epistat.sciensano.be/Data/COVID19BE_HOSP.csv'
-  download.file(hosp_ref_url,hosp_ref_file_name)
-}
-ref_hosp_data_all  <- read.table(hosp_ref_file_name,sep=',',header=T,stringsAsFactors = F)
-hosp_adm_data      <- aggregate(NEW_IN ~ DATE, data= ref_hosp_data_all,sum,na.rm=T)
-hosp_adm_data$DATE <- as.Date(hosp_adm_data$DATE)
-names(hosp_adm_data) <- c('date','num_adm')
-hosp_adm_data$cum_adm <- cumsum(hosp_adm_data$num_adm)
+hosp_adm_data      <- get_observed_incidence_data()
+hosp_adm_data$date <- as.Date(hosp_adm_data$sim_date)
+hosp_adm_data$num_adm <- hosp_adm_data$hospital_admissions
+hosp_adm_data$cum_adm <- hosp_adm_data$cumulative_hospital_admissions
 
 ## PREVALENCE DATA STOCHASTIC MODEL
 prevalence_ref <- readRDS('./data/prevalence_stochastic_model_20200604.rds')
@@ -349,6 +333,7 @@ get_incidence_reproduction_plot <- function(hosp_adm_data,plot_main,scen_tag,sce
   
 }
 
+
 # data_incidence <- data_incidence_base
 # date_start_str <- '2020-03-07'
 # date_end_str <- '2020-03-13'
@@ -413,6 +398,250 @@ for(i in 1:nrow(scen_opt)){
 
 dev.off()
 
+## POLYGONS BUBBLES ----
+
+# reproduction number => remove burn-in and last 2 weeks
+#data_incidence_scenario$sec_cases[data_incidence_scenario$sim_date > max(data_incidence_scenario$sim_date)-14] <- NA
+#data_incidence_scenario$sec_cases[data_incidence_scenario$sim_date < min(data_incidence_scenario$sim_date)+14] <- NA
+
+pdf(smd_file_path(dir_results,paste0(output_tag,'_manuscript_polygon_bubble.pdf')),4,4)
+
+scen_opt <- paste0('scen',c('01',10:16)) # child = 1/2 adult
+
+
+unique(data_incidence_scenario$contact_id)
+
+i <- 1
+
+opt_cnt <- c(',15',',20')
+
+for(i in 1:length(scen_opt)){
+
+  flag <- grepl(scen_opt[i],data_incidence_scenario$scenario)
+  data_incidence_scenario[flag,]
+  scenario_id    <- unique(data_incidence_scenario$scenario_id[flag])
+  scenario_label <- unique(data_incidence$scenario_label[data_incidence$scenario_id == scenario_id])
+  
+  get_incidence_reproduction_plot(hosp_adm_data,
+                                  plot_main = scenario_label,
+                                  scen_tag = scen_opt[i],
+                                  scen_color = 4,
+                                  data_incidence = data_incidence_scenario)
+}
+
+dev.off()
+
+
+## POLYGONS MEDIA ----
+
+# reproduction number => remove burn-in and last 2 weeks
+#data_incidence_scenario$sec_cases[data_incidence_scenario$sim_date > max(data_incidence_scenario$sim_date)-14] <- NA
+#data_incidence_scenario$sec_cases[data_incidence_scenario$sim_date < min(data_incidence_scenario$sim_date)+14] <- NA
+
+add_copyright_statement <- function(y_pos = -200,bool_nl = TRUE){
+  par(xpd=TRUE)
+  copyr_statment <- ifelse(bool_nl,
+                        'Gebaseerd op "Willem L. et al (2020, MedRxiv, under review)"\n Universiteit Antwerpen en UHasselt',
+                        'Based on "Willem L. et al (2020, MedRxiv, under review)"\n University of Antwerp and UHasselt'
+                        )
+  text(max(pretty(data_incidence_scenario$sim_date)+15),
+       y_pos,
+       copyr_statment,
+       cex=0.5,
+       pos=2)
+  par(xpd=FALSE)
+  
+}
+cex_lgnd <- 0.55
+date_threshold <- as.Date("2020-05-10")
+
+pdf(smd_file_path(dir_results,paste0(output_tag,'_manuscript_polygon_bubble_media.pdf')),6,4)
+library('RColorBrewer')
+
+y_lim  <- c(0,700)
+x_lim  <- range(data_incidence_scenario$sim_date)
+plot_main <- ''
+par(mar=c(5,5,0.8,0.8))
+plot(hosp_adm_data$date,hosp_adm_data$num_adm,pch=20,
+     col=0,
+     xaxt='n', yaxt='n',
+     xlab = '',ylab='COVID-19 hospitalisaties',
+     ylim = y_lim,
+     xlim = x_lim)
+add_x_axis(data_incidence_scenario$sim_date,bool_num=T)
+add_y_axis(y_lim)
+sum_scen1  <- add_polygon('scen01','new_hospital_admissions',1,data_incidence_scenario)
+sum_scen10 <- add_polygon('scen10','new_hospital_admissions',4,data_incidence_scenario[data_incidence_scenario$sim_date >= date_threshold,])
+add_vertical_line("2020-05-10",TRUE)
+legend('topright',
+       c('Simulaties met open contact bubbels',
+         'Simulaties met gesloten contact bubbels'),
+       lwd=4,
+       col=c(alpha(c(1,4),0.4)),
+       cex=cex_lgnd,
+       bg='white'
+       )
+add_copyright_statement()
+
+# ADD REPORTED DATA
+y_lim  <- c(0,700)
+x_lim  <- range(data_incidence_scenario$sim_date)
+plot_main <- ''
+par(mar=c(5,5,0.8,0.8))
+hosp_adm_data_fit <- hosp_adm_data[hosp_adm_data$date<= as.Date('2020-06-08'),]
+hosp_adm_data_val <- hosp_adm_data[hosp_adm_data$date > as.Date('2020-06-08'),]
+
+plot(hosp_adm_data_fit$date,hosp_adm_data_fit$num_adm,pch=20,
+     col=1,
+     xaxt='n', yaxt='n',
+     xlab = '',ylab='COVID-19 hospitalisaties',
+     ylim = y_lim,
+     xlim = x_lim)
+
+add_x_axis(data_incidence_scenario$sim_date,bool_num=T)
+add_y_axis(y_lim)
+sum_scen1  <- add_polygon('scen01','new_hospital_admissions',1,data_incidence_scenario)
+sum_scen10 <- add_polygon('scen10','new_hospital_admissions',4,data_incidence_scenario[data_incidence_scenario$sim_date >= date_threshold,])
+add_vertical_line("2020-05-10",TRUE)
+legend('topright',
+       c('Simulaties met open contact bubbels',
+         'Simulaties met gesloten contact bubbels',
+         'Gerapporteerd tot 08/06/2020'
+         ),
+       lty=c(1,1,1,NA),
+       lwd=c(4,4,NA),
+       pch=c(NA,NA,20,1),
+       col=c(alpha(c(1,4),0.4),
+             'darkslateblue',
+             1),
+       cex=cex_lgnd,
+       bg='white'
+)
+add_copyright_statement()
+
+# ADD REPORTED DATA (ENG)
+y_lim  <- c(0,700)
+x_lim  <- range(data_incidence_scenario$sim_date)
+plot_main <- ''
+par(mar=c(5,5,0.8,0.8))
+hosp_adm_data_fit <- hosp_adm_data[hosp_adm_data$date<= as.Date('2020-06-08'),]
+hosp_adm_data_val <- hosp_adm_data[hosp_adm_data$date > as.Date('2020-06-08'),]
+
+plot(hosp_adm_data_fit$date,hosp_adm_data_fit$num_adm,pch=20,
+     col=1,
+     xaxt='n', yaxt='n',
+     xlab = '',ylab='COVID-19 hospital admissions',
+     ylim = y_lim,
+     xlim = x_lim)
+
+add_x_axis(data_incidence_scenario$sim_date)
+add_y_axis(y_lim)
+sum_scen1  <- add_polygon('scen01','new_hospital_admissions',1,data_incidence_scenario)
+sum_scen10 <- add_polygon('scen10','new_hospital_admissions',4,data_incidence_scenario[data_incidence_scenario$sim_date >= date_threshold,])
+add_vertical_line("2020-05-10",TRUE)
+legend('topright',
+       c('Simulations with open contact bubbles',
+         'Simulations with closed contact bubbles',
+         'Reported untill June 08, 2020'
+       ),
+       lty=c(1,1,1,NA),
+       lwd=c(4,4,NA),
+       pch=c(NA,NA,20,1),
+       col=c(alpha(c(1,4),0.4),
+             'darkslateblue',
+             1),
+       cex=cex_lgnd,
+       bg='white'
+)
+add_copyright_statement(bool_nl=FALSE)
+
+# FOCUS ON 'PREDICTION'
+y_lim  <- c(0,700)
+x_lim  <- range(data_incidence_scenario$sim_date)
+plot_main <- ''
+par(mar=c(5,5,0.8,0.8))
+plot(hosp_adm_data_fit$date,hosp_adm_data_fit$num_adm,pch=20,
+     col=1,
+     xaxt='n', yaxt='n',
+     xlab = '',ylab='COVID-19 Hospitalisaties',
+     ylim = y_lim,
+     xlim = x_lim)
+
+add_x_axis(data_incidence_scenario$sim_date,bool_num=T)
+add_y_axis(y_lim)
+sum_scen1  <- add_polygon('scen01','new_hospital_admissions',1,data_incidence_scenario[data_incidence_scenario$sim_date>as.Date("2020-05-10"),])
+sum_scen10 <- add_polygon('scen10','new_hospital_admissions',4,data_incidence_scenario[data_incidence_scenario$sim_date>as.Date("2020-05-10"),])
+legend('topright',
+       c('Voorspellingen met open contact bubbels',
+         'Voorspellingen met gesloten contact bubbels',
+         'Overlappende voorspellingen',
+         'Gerapporteerd tot 08/06/2020'
+       ),
+       lty=c(1,1,1,NA),
+       lwd=c(4,4,4,1),
+       pch=c(NA,NA,NA,20,1),
+       col=c(alpha(c(1,4),0.4),
+             'darkslateblue',
+             1),
+       cex=cex_lgnd,
+       bg='white'
+)
+add_vertical_line("2020-05-10",TRUE)
+add_copyright_statement()
+
+dev.off()
+
+## POLYGONS MEDIA 2----
+pdf(smd_file_path(dir_results,paste0(output_tag,'_manuscript_polygon_bubble_media2.pdf')),9,3)
+par(mar=c(4,5,0.8,0.8))
+par(mfrow=c(1,2))
+## OPEN
+plot(hosp_adm_data_fit$date,hosp_adm_data_fit$num_adm,pch=20,
+     col=1,
+     xaxt='n', yaxt='n',
+     xlab = '',ylab='COVID-19 hospitalisaties',
+     ylim = y_lim,
+     xlim = x_lim)
+add_x_axis(data_incidence_scenario$sim_date,bool_num=T)
+add_y_axis(y_lim)
+sum_scen1  <- add_polygon('scen01','new_hospital_admissions',1,data_incidence_scenario)
+#sum_scen10 <- add_polygon('scen10','new_hospital_admissions',4,data_incidence_scenario)
+legend('topright',
+       c('Open contact bubbels',
+         'Gerapporteerd tot 8 juni'),
+       lwd=c(4,0),
+       pch=c(NA,20),
+       col=c(alpha(c(1),0.4),1),
+       cex=cex_lgnd,
+       bg='white'
+)
+
+
+#CLOSED
+plot(hosp_adm_data_fit$date,hosp_adm_data_fit$num_adm,pch=20,
+     col=1,
+     xaxt='n', yaxt='n',
+     xlab = '',ylab='COVID-19 hospitalisaties',
+     ylim = y_lim,
+     xlim = x_lim)
+add_x_axis(data_incidence_scenario$sim_date,bool_num=T)
+add_y_axis(y_lim)
+add_vertical_line("2020-05-10",TRUE)
+sum_scen1  <- add_polygon('scen01','new_hospital_admissions',1,data_incidence_scenario[data_incidence_scenario$sim_date < date_threshold,])
+sum_scen10 <- add_polygon('scen10','new_hospital_admissions',4,data_incidence_scenario[data_incidence_scenario$sim_date >= date_threshold,])
+legend('topright',
+       c('Open contact bubbels',
+         'Gesloten contact bubbels',
+         'Gerapporteerd tot 8 juni'),
+       lwd=c(4,4,NA),
+       pch=c(NA,NA,20),
+       col=c(alpha(c(1,4),0.4),1),
+       cex=cex_lgnd,
+       bg='white'
+)
+add_copyright_statement(y_pos = -250)
+
+dev.off()
 
 
 ## BOXPLOTS ALL ----

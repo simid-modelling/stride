@@ -712,9 +712,15 @@ plot_distancing <- function(project_summary){
   
 }
 
-add_x_axis <- function(sim_dates){
+
+#sim_dates <- data_incidence_scenario$sim_date
+add_x_axis <- function(sim_dates,bool_numeric=FALSE){
   x_ticks <- pretty(sim_dates,5)
-  axis(1,x_ticks, format(x_ticks,'%e %b'),cex.axis=0.9)
+  if(bool_numeric){
+    axis(1,x_ticks, format(x_ticks,'%e/%m'),cex.axis=0.9)
+  } else{
+    axis(1,x_ticks, format(x_ticks,'%e %b'),cex.axis=0.9)
+  }
   abline(v=pretty(sim_dates,7),lty=3,col='lightgray')
   #grid(nx=NA,ny=NULL,lty=3,col='lightgray')
 }

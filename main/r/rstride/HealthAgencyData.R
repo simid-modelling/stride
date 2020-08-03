@@ -60,7 +60,7 @@ get_observed_incidence_data <- function(num_samples = 1)
   
   # load test data
   ref_test_data_all <- read.table(tests_ref_file,sep=',',header = T)
-  ref_test_data     <- aggregate(TESTS ~ DATE, data= ref_test_data_all,sum,na.rm=T)
+  ref_test_data     <- aggregate(TESTS_ALL ~ DATE, data= ref_test_data_all,sum,na.rm=T)
   names(ref_test_data)  <- c('sim_date','covid19_tests')
   
   # merge hospital and case data
