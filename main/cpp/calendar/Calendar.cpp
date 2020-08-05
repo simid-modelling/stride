@@ -45,9 +45,18 @@ Calendar::Calendar(const ptree& configPt,unsigned int num_days) :
         m_date_start = m_date;
         m_date_end = m_date + boost::gregorian::days(num_days);
 
-        //cout << "setup calendar :: " << m_public_holidays_bool.size() << endl;
+        string holiday_file = configPt.get<string>("run.holidays_file", "holidays_flanders_2020.json");
+        string csv_extension = "csv";
 
-        Initialize(configPt);
+		// temporary switch
+		if (IsSubstring(holiday_file, csv_extension)){
+			Initialize_csv(configPt);   // csv file
+		} else{
+			Initialize(configPt);       // json file => default
+		}
+
+
+
 }
 
 void Calendar::AdvanceDay()
@@ -213,6 +222,73 @@ void Calendar::Initialize(const ptree& configPt)
         }
 }
 
+void Calendar::Initialize_csv(const ptree& configPt)
+{
+        // Load csv file
+		const auto fileName = configPt.get<string>("run.holidays_file", "holidays_flanders_2020.csv");
+		const filesys::path filePath{FileSys::GetDataDir() /= fileName};
+		if (!is_regular_file(filePath)) {
+				throw runtime_error(string(__func__) + "> Holidays file " + filePath.string() + " not present.");
+		}
+
+        ifstream calendarFile;
+		calendarFile.open(filePath.string());
+		if (!calendarFile.is_open()) {
+				throw runtime_error(string(__func__) + "> Error opening population file " + filePath.string());
+		}
+
+		// do we need to add "imported cases" later on?
+		bool bool_no_imported_cases_dates = true;
+
+		string line;
+		getline(calendarFile, line); // step over file header
+
+		while (getline(calendarFile, line)) {
+				const auto values               = Split(line, ",");
+				const auto category             = FromString<string>(values[0]);
+				const auto date_str             = FromString<string>(values[1]);
+				//const auto value                = FromString<double>(values[2]);
+				const auto type                 = FromString<string>(values[3]);
+
+				// convert date
+				const auto date = boost::gregorian::from_simple_string(date_str);
+
+				// check date
+				if(IsDatePartOfSimulation(date_str)){
+
+					if(category == "general")          {  m_public_holidays[GetDayIndex(date)] = true; }
+					if(category == "preschool")        {  m_preschool_holidays[GetDayIndex(date)] = true; }
+					if(category == "primary_school")   {  m_primary_school_holidays[GetDayIndex(date)] = true; }
+					if(category == "secondary_school") {  m_secondary_school_holidays[GetDayIndex(date)] = true; }
+					if(category == "college")          {  m_college_holidays[GetDayIndex(date)] = true; }
+
+					if(category == "workplace_distancing") {  m_workplace_distancing[GetDayIndex(date)] = true; }
+					if(category == "community_distancing") {  m_community_distancing[GetDayIndex(date)] = true; }
+					if(category == "household_clustering") {  m_household_clustering[GetDayIndex(date)] = true; }
+					if(category == "contact_tracing")      {  m_contact_tracing[GetDayIndex(date)] = true; }
+					if(category == "universal_testing")    {  m_universal_testing[GetDayIndex(date)] = true; }
+					if(category == "imported_cases")
+					{
+						unsigned int num_cases = configPt.get<unsigned int>("run.num_daily_imported_cases",0);
+						m_imported_cases[GetDayIndex(date)] = num_cases;
+						bool_no_imported_cases_dates = false;
+					}
+
+				} // end if valid date
+			} // end iteration over all lines
+
+
+		// special case for "imported cases" if no calendar info is present
+		if(bool_no_imported_cases_dates){
+			unsigned int num_cases = configPt.get<unsigned int>("run.num_daily_imported_cases",0);
+			for (unsigned int day_index = 0 ; day_index < m_imported_cases.size() ; day_index++){
+				m_imported_cases[day_index] = num_cases;
+			}
+		}
+
+		// close file stream
+		calendarFile.close();
+}
 
 
 } // namespace stride

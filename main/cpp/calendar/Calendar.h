@@ -182,6 +182,10 @@ private:
 		/// Initialize the calendar (json)
         void Initialize(const boost::property_tree::ptree& configPt);
 
+
+		/// Initialize the calendar (csv)
+        void Initialize_csv(const boost::property_tree::ptree& configPt);
+
         boost::gregorian::date              m_date;                       ///< Current simulated date.
         boost::gregorian::date              m_date_start;                 ///< Start simulation.
         boost::gregorian::date              m_date_end;                   ///< End simulation.

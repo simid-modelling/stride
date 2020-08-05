@@ -49,6 +49,7 @@ source('./bin/rstride/Misc.R')
 rStride_files <- dir('./bin/rstride',recursive = T,pattern = '\\.R',full.names = T)
 rStride_files <- rStride_files[rStride_files != "./bin/rstride/rStride.R"]
 rStride_files <- rStride_files[rStride_files != "./bin/rstride/SymptomaticProfileCreator.R"]
+rStride_files <- rStride_files[rStride_files != "./bin/rstride/CalendarCreator.R"]
 sapply(rStride_files,source)
 
 #' Create a default config
