@@ -94,85 +94,83 @@ public:
         /// Check if quarantine measures are in place
         bool IsWorkplaceDistancingEnforced() const
         {
-			 return (std::find(m_workplace_distancing.begin(), m_workplace_distancing.end(), m_date) !=
-					 m_workplace_distancing.end());
+			 return m_workplace_distancing[GetDayIndex(m_date)];
 		}
 
         /// Check if quarantine measures are in place
 		bool IsCommunityDistancingEnforced() const
 		{
-			 return (std::find(m_community_distancing.begin(), m_community_distancing.end(), m_date) !=
-					 m_community_distancing.end());
+			 return m_community_distancing[GetDayIndex(m_date)];
 		}
 
 		/// Check if contact tracing is place
 		bool IsContactTracingActivated() const
 		{
-			 return (std::find(m_contact_tracing.begin(), m_contact_tracing.end(), m_date) !=
-					 m_contact_tracing.end());
+			 return m_contact_tracing[GetDayIndex(m_date)];
 		}
 
   		/// Check if universal testing is place
 		bool IsUniversalTestingActivated() const
 		{
-			 return (std::find(m_universal_testing.begin(), m_universal_testing.end(), m_date) !=
-					 m_universal_testing.end());
+			 return m_universal_testing[GetDayIndex(m_date)];
+
 		}
 
 		/// Check if household clustering is allowed
 		bool IsHouseholdClusteringAllowed() const
 		{
-			 return (std::find(m_household_clustering.begin(), m_household_clustering.end(), m_date) !=
-					 m_household_clustering.end());
+			 return m_household_clustering[GetDayIndex(m_date)];
 		}
 
-		unsigned int GetNumberOfImportedCases() const{
-
+		unsigned int GetNumberOfImportedCases() const
+		{
 			return m_imported_cases[GetDayIndex(m_date)];
 		}
 
 private:
 
 		unsigned short int GetDayIndex(boost::gregorian::date date) const;
+		unsigned short int GetDayIndex(std::string date) const;
 
 		bool IsDatePartOfSimulation(boost::gregorian::date date) const
 		{
 			return m_date_start <= date && date < m_date_end;
 		}
 
+		bool IsDatePartOfSimulation(std::string date) const
+		{
+			return IsDatePartOfSimulation(boost::gregorian::from_simple_string(date));
+		}
+
 		/// Check if it's a public holiday.
 		bool IsPublicHoliday() const
 		{
 			//return (std::find(m_public_holidays.begin(), m_public_holidays.end(), m_date) != m_public_holidays.end());
-			return m_public_holidays_bool[GetDayIndex(m_date)];
+			return m_public_holidays[GetDayIndex(m_date)];
 		}
 
 		/// Check if pre-schools are closed.
 		bool IsPreSchoolClosed() const
 		{
-			 return (std::find(m_preschool_holidays.begin(), m_preschool_holidays.end(), m_date) !=
-					 m_preschool_holidays.end());
+			 return m_preschool_holidays[GetDayIndex(m_date)];
 		}
 
 		/// Check if primary schools are closed.
 		bool IsPrimarySchoolClosed() const
 		{
-			 return (std::find(m_primary_school_holidays.begin(), m_primary_school_holidays.end(), m_date) !=
-					 m_primary_school_holidays.end());
+			 return m_primary_school_holidays[GetDayIndex(m_date)];
 		}
 
 		/// Check if secondary schools are closed.
 		bool IsSecondarySchoolClosed() const
 		{
-			 return (std::find(m_secondary_school_holidays.begin(), m_secondary_school_holidays.end(), m_date) !=
-					 m_secondary_school_holidays.end());
+			 return m_secondary_school_holidays[GetDayIndex(m_date)];
 		}
 
 		/// Check if Colleges are closed.
 		bool IsCollegeClosed() const
 		{
-			 return (std::find(m_college_holidays.begin(), m_college_holidays.end(), m_date) !=
-					 m_college_holidays.end());
+			 return m_college_holidays[GetDayIndex(m_date)];
 		}
 
 		/// Check if it's weekend.
@@ -181,24 +179,23 @@ private:
 			return (GetDayOfTheWeek() == 6 || GetDayOfTheWeek() == 0);
 		}
 
-		/// Initialize the calendar
+		/// Initialize the calendar (json)
         void Initialize(const boost::property_tree::ptree& configPt);
 
         boost::gregorian::date              m_date;                       ///< Current simulated date.
         boost::gregorian::date              m_date_start;                 ///< Start simulation.
         boost::gregorian::date              m_date_end;                   ///< End simulation.
-        std::vector<boost::gregorian::date> m_public_holidays;            ///< Vector of public holidays
-        std::vector<boost::gregorian::date> m_preschool_holidays;         ///< Vector of pre-school closure
-        std::vector<boost::gregorian::date> m_primary_school_holidays;    ///< Vector of primary school closure
-        std::vector<boost::gregorian::date> m_secondary_school_holidays;  ///< Vector of secondary school closure
-        std::vector<boost::gregorian::date> m_college_holidays;           ///< Vector of college closure
-        std::vector<boost::gregorian::date> m_workplace_distancing;       ///< Vector of days with social distancing enforcement for work places
-        std::vector<boost::gregorian::date> m_community_distancing;       ///< Vector of days with social distancing enforcement in the community
-        std::vector<boost::gregorian::date> m_contact_tracing;            ///< Vector of days with case finding measures
-        std::vector<boost::gregorian::date> m_universal_testing;          ///< Vector of days with universal testing measures
-        std::vector<boost::gregorian::date> m_household_clustering;       ///< Vector of days when household clusters are allowed
+        std::vector<bool> m_public_holidays;            ///< Vector of public holidays
+        std::vector<bool> m_preschool_holidays;         ///< Vector of pre-school closure
+        std::vector<bool> m_primary_school_holidays;    ///< Vector of primary school closure
+        std::vector<bool> m_secondary_school_holidays;  ///< Vector of secondary school closure
+        std::vector<bool> m_college_holidays;           ///< Vector of college closure
+        std::vector<bool> m_workplace_distancing;       ///< Vector of days with social distancing enforcement for work places
+        std::vector<bool> m_community_distancing;       ///< Vector of days with social distancing enforcement in the community
+        std::vector<bool> m_contact_tracing;            ///< Vector of days with case finding measures
+        std::vector<bool> m_universal_testing;          ///< Vector of days with universal testing measures
+        std::vector<bool> m_household_clustering;       ///< Vector of days when household clusters are allowed
 
-        std::vector<bool>m_public_holidays_bool;
         std::vector<unsigned int>m_imported_cases; ///<Vector of days when cases are imported (~daily seeding activated)
 
 };

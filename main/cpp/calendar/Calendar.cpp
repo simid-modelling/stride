@@ -21,6 +21,7 @@
 #include "Calendar.h"
 
 #include "util/FileSys.h"
+#include "util/StringUtils.h"
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -34,10 +35,10 @@ using boost::property_tree::ptree;
 
 
 Calendar::Calendar(const ptree& configPt,unsigned int num_days) :
-		m_date(), m_date_start(), m_date_end(), m_public_holidays(), m_preschool_holidays(), m_primary_school_holidays(),
-		  m_secondary_school_holidays(), m_college_holidays(), m_workplace_distancing(),
-		m_community_distancing(), m_contact_tracing(), m_universal_testing(), m_household_clustering(),
-		m_public_holidays_bool(num_days), m_imported_cases(num_days,0U)
+		m_date(), m_date_start(), m_date_end(), m_public_holidays(num_days), m_preschool_holidays(num_days),
+		m_primary_school_holidays(num_days), m_secondary_school_holidays(num_days), m_college_holidays(num_days),
+		m_workplace_distancing(num_days), m_community_distancing(num_days), m_contact_tracing(num_days),
+		m_universal_testing(num_days), m_household_clustering(num_days), m_imported_cases(num_days,0U)
 {
         // Set start date
         m_date = boost::gregorian::from_simple_string(configPt.get<string>("run.start_date", "2020-01-01"));
@@ -73,6 +74,11 @@ unsigned short int Calendar::GetDayIndex(boost::gregorian::date date) const{
 	return (date - m_date_start).days();
 }
 
+unsigned short int Calendar::GetDayIndex(std::string date) const{
+
+	return GetDayIndex(boost::gregorian::from_simple_string(date));
+}
+
 
 size_t Calendar::GetYear() const { return m_date.year(); }
 
@@ -83,14 +89,12 @@ void Calendar::Initialize(const ptree& configPt)
 {
         // Load json file
         ptree holidaysPt;
-        {
-                const string        fName{configPt.get<string>("run.holidays_file", "holidays_flanders_2020.json")};
-                const filesys::path fPath{FileSys::GetDataDir() /= fName};
-                if (!is_regular_file(fPath)) {
-                        throw runtime_error(string(__func__) + "Holidays file " + fPath.string() + " not present.");
-                }
-                read_json(fPath.string(), holidaysPt);
-        }
+		const string        fName{configPt.get<string>("run.holidays_file", "holidays_flanders_2020.json")};
+		const filesys::path fPath{FileSys::GetDataDir() /= fName};
+		if (!is_regular_file(fPath)) {
+				throw runtime_error(string(__func__) + "Holidays file " + fPath.string() + " not present.");
+		}
+		read_json(fPath.string(), holidaysPt);
 
         // Read in holidays
         for (int i = 1; i < 13; i++) {
@@ -100,94 +104,109 @@ void Calendar::Initialize(const ptree& configPt)
 
                 // read in general holidays
                 for (const auto& date : holidaysPt.get_child("general." + month)) {
-                        const auto d = string(lead).append(date.second.get_value<string>());
-                        const auto d_date = boost::gregorian::from_simple_string(d);
-
-                        if(IsDatePartOfSimulation(d_date)){
-                        	m_public_holidays_bool[GetDayIndex(d_date)] = true;
+                        const auto d_date = string(lead).append(date.second.get_value<string>());
+                         if(IsDatePartOfSimulation(d_date)){
+                        	m_public_holidays[GetDayIndex(d_date)] = true;
                         }
                 }
 
                 // read in pre-school holidays
                 for (const auto& date : holidaysPt.get_child("preschool." + month)) {
-                        const string d = string(lead).append(date.second.get_value<string>());
-                        m_preschool_holidays.push_back(boost::gregorian::from_simple_string(d));
+                        const auto d_date = string(lead).append(date.second.get_value<string>());
+						if(IsDatePartOfSimulation(d_date)){
+							m_preschool_holidays[GetDayIndex(d_date)] = true;
+						}
                 }
                 // read in primary school holidays
 				for (const auto& date : holidaysPt.get_child("primary_school." + month)) {
-						const string d = string(lead).append(date.second.get_value<string>());
-						m_primary_school_holidays.push_back(boost::gregorian::from_simple_string(d));
+						const auto d_date = string(lead).append(date.second.get_value<string>());
+						if(IsDatePartOfSimulation(d_date)){
+							m_primary_school_holidays[GetDayIndex(d_date)] = true;
+						}
 				}
 
                 // read in secondary school holidays
 				for (const auto& date : holidaysPt.get_child("secondary_school." + month)) {
-						const string d = string(lead).append(date.second.get_value<string>());
-						m_secondary_school_holidays.push_back(boost::gregorian::from_simple_string(d));
+						const auto d_date = string(lead).append(date.second.get_value<string>());
+						if(IsDatePartOfSimulation(d_date)){
+							m_secondary_school_holidays[GetDayIndex(d_date)] = true;
+						}
 				}
 
 				// read in college holidays
                 for (const auto& date : holidaysPt.get_child("college." + month)) {
-                        const string d = string(lead).append(date.second.get_value<string>());
-                        m_college_holidays.push_back(boost::gregorian::from_simple_string(d));
+						const auto d_date = string(lead).append(date.second.get_value<string>());
+						if(IsDatePartOfSimulation(d_date)){
+							m_college_holidays[GetDayIndex(d_date)] = true;
+						}
+
                 }
                 // read in work place distancing data (if present)
                 if(holidaysPt.count("workplace_distancing") != 0){
 					for (const auto& date : holidaysPt.get_child("workplace_distancing." + month)) {
-							const string d = string(lead).append(date.second.get_value<string>());
-							m_workplace_distancing.push_back(boost::gregorian::from_simple_string(d));
+							const auto d_date = string(lead).append(date.second.get_value<string>());
+							if(IsDatePartOfSimulation(d_date)){
+								m_workplace_distancing[GetDayIndex(d_date)] = true;
+							}
 					}
                 }
 
                 // read in community distancing data (if present)
 				if(holidaysPt.count("community_distancing") != 0){
 					for (const auto& date : holidaysPt.get_child("community_distancing." + month)) {
-							const string d = string(lead).append(date.second.get_value<string>());
-							m_community_distancing.push_back(boost::gregorian::from_simple_string(d));
+							const auto d_date = string(lead).append(date.second.get_value<string>());
+							if(IsDatePartOfSimulation(d_date)){
+								m_community_distancing[GetDayIndex(d_date)] = true;
+							}
+
 					}
 				}
 
 				// read in contact tracing data (if present)
 				if(holidaysPt.count("contact_tracing") != 0){
 					for (const auto& date : holidaysPt.get_child("contact_tracing." + month)) {
-							const string d = string(lead).append(date.second.get_value<string>());
-							m_contact_tracing.push_back(boost::gregorian::from_simple_string(d));
+							const auto d_date = string(lead).append(date.second.get_value<string>());
+							if(IsDatePartOfSimulation(d_date)){
+								m_contact_tracing[GetDayIndex(d_date)] = true;
+							}
+
 					}
 				}
 
 				// read in universal testing data (if present)
 				if(holidaysPt.count("universal_testing") != 0){
 					for (const auto& date : holidaysPt.get_child("universal_testing." + month)) {
-							const string d = string(lead).append(date.second.get_value<string>());
-							m_universal_testing.push_back(boost::gregorian::from_simple_string(d));
+							const auto d_date = string(lead).append(date.second.get_value<string>());
+							if(IsDatePartOfSimulation(d_date)){
+								m_universal_testing[GetDayIndex(d_date)] = true;
+							}
+
 					}
 				}
 
 				// read in household clustering data (if present)
 				if(holidaysPt.count("household_clustering") != 0){
 					for (const auto& date : holidaysPt.get_child("household_clustering." + month)) {
-							const string d = string(lead).append(date.second.get_value<string>());
-							m_household_clustering.push_back(boost::gregorian::from_simple_string(d));
+							const auto d_date = string(lead).append(date.second.get_value<string>());
+							if(IsDatePartOfSimulation(d_date)){
+								m_household_clustering[GetDayIndex(d_date)] = true;
+							}
+
 					}
 				}
 
 				// read in imported cases
 				if(holidaysPt.count("import_cases") != 0){
 					for (const auto& date : holidaysPt.get_child("import_cases." + month)) {
-						const auto d = string(lead).append(date.second.get_value<string>());
-						const auto d_date = boost::gregorian::from_simple_string(d);
-
+						const auto d_date = string(lead).append(date.second.get_value<string>());
 						unsigned int num_cases = configPt.get<unsigned int>("run.num_daily_imported_cases",0);
-						//unsigned int num_cases = field_num_cases.second.get_value<unsigned int>();
-//						cout << num_cases << " * " << d_date << " " << IsDatePartOfSimulation(d_date) << endl;
-//						cout <<  (m_date_start <= d_date) << " & " << (d_date < m_date_end) << endl;
 						if(IsDatePartOfSimulation(d_date)){
 							m_imported_cases[GetDayIndex(d_date)] = num_cases;
 						}
 					}
-				} else { // if no calendar info present, use the same value throuthout the simulation
+				} else { // if no calendar info present, use the same value throughout the simulation
 					unsigned int num_cases = configPt.get<unsigned int>("run.num_daily_imported_cases",0);
 					for (unsigned int day_index = 0 ; day_index < m_imported_cases.size() ; day_index++){
-						//cout << m_imported_cases.size() << " * " << day_index << endl;
 						m_imported_cases[day_index] = num_cases;
 					}
 				}

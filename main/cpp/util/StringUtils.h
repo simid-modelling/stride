@@ -26,6 +26,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <regex>
 
 #include <vector>
 
@@ -193,6 +194,13 @@ inline std::string intToDottedString(const T& value)
 inline void Replace(std::string& s, const std::string& pattern, const std::string& replace)
 {
     boost::replace_all(s, pattern, replace);
+}
+
+inline bool IsSubstring(std::string& s, std::string& pattern){
+
+	std::regex e(pattern);
+	return(std::regex_search(s,e));
+
 }
 
 } // namespace util
