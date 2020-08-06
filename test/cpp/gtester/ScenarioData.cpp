@@ -52,9 +52,9 @@ tuple<ptree, unsigned int, double> ScenarioData::Get(string tag)
 
 	// Set target values per scenario
 	const map<string, unsigned int> targets_default = {
-		{"influenza_a", 500000U}, {"influenza_b", 0U}, {"influenza_c", 5U}, {"measles_16", 47000U},
+		{"influenza_a", 500000U}, {"influenza_b", 0U}, {"influenza_c", 5U}, {"measles_16", 45000U},
 		{"measles_26", 600000U},  {"r0_0", 1200U},     {"r0_4", 3400U},     {"r0_8", 9500U},
-		{"r0_12", 22300U},        {"r0_16", 47000U},   {"covid19_base", 80000U}, {"covid19_all", 80000U},
+		{"r0_12", 23000U},        {"r0_16", 45000U},   {"covid19_base", 80000U}, {"covid19_all", 80000U},
 		{"covid19_daily", 88000U},{"covid19_distancing", 19000U}, {"covid19_age_15min",88000U},
 		{"covid19_householdclusters", 49000U}, {"covid19_tracing",37000U}, {"covid19_tracing_all",37000U}};
 
