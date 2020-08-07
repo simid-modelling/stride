@@ -96,7 +96,10 @@ size_t Calendar::GetYear() const { return m_date.year(); }
 
 void Calendar::Initialize(const ptree& configPt)
 {
-        // Load json file
+		// include warning
+		std::cout << "WARNING: JSON CALENDAR FILES WILL NOT BE SUPPORTED IN FUTURE VERSIONS... PLEASE SWITCH TO CSV" << std::endl;
+
+		// Load json file
         ptree holidaysPt;
 		const string        fName{configPt.get<string>("run.holidays_file", "holidays_flanders_2020.json")};
 		const filesys::path fPath{FileSys::GetDataDir() /= fName};
@@ -244,11 +247,11 @@ void Calendar::Initialize_csv(const ptree& configPt)
 		getline(calendarFile, line); // step over file header
 
 		while (getline(calendarFile, line)) {
-				const auto values               = Split(line, ",");
-				const auto category             = FromString<string>(values[0]);
-				const auto date_str             = FromString<string>(values[1]);
-				//const auto value                = FromString<double>(values[2]);
-				const auto type                 = FromString<string>(values[3]);
+				const auto calendar_item        = Split(line, ",");
+				const auto category             = FromString<string>(calendar_item[0]);
+				const auto date_str             = FromString<string>(calendar_item[1]);
+				const auto value                = FromString<bool>(calendar_item[2]);
+				//const auto type                 = FromString<string>(calendar_item[3]);
 
 				// convert date
 				const auto date = boost::gregorian::from_simple_string(date_str);
@@ -256,17 +259,20 @@ void Calendar::Initialize_csv(const ptree& configPt)
 				// check date
 				if(IsDatePartOfSimulation(date_str)){
 
-					if(category == "general")          {  m_public_holidays[GetDayIndex(date)] = true; }
-					if(category == "preschool")        {  m_preschool_holidays[GetDayIndex(date)] = true; }
-					if(category == "primary_school")   {  m_primary_school_holidays[GetDayIndex(date)] = true; }
-					if(category == "secondary_school") {  m_secondary_school_holidays[GetDayIndex(date)] = true; }
-					if(category == "college")          {  m_college_holidays[GetDayIndex(date)] = true; }
+					// convert value into boolean
+					const bool value_boolean = value == 1.0;
 
-					if(category == "workplace_distancing") {  m_workplace_distancing[GetDayIndex(date)] = true; }
-					if(category == "community_distancing") {  m_community_distancing[GetDayIndex(date)] = true; }
-					if(category == "household_clustering") {  m_household_clustering[GetDayIndex(date)] = true; }
-					if(category == "contact_tracing")      {  m_contact_tracing[GetDayIndex(date)] = true; }
-					if(category == "universal_testing")    {  m_universal_testing[GetDayIndex(date)] = true; }
+					if(category == "general")          {  m_public_holidays[GetDayIndex(date)] = value_boolean; }
+					if(category == "preschool")        {  m_preschool_holidays[GetDayIndex(date)] = value_boolean; }
+					if(category == "primary_school")   {  m_primary_school_holidays[GetDayIndex(date)] = value_boolean; }
+					if(category == "secondary_school") {  m_secondary_school_holidays[GetDayIndex(date)] = value_boolean; }
+					if(category == "college")          {  m_college_holidays[GetDayIndex(date)] = value_boolean; }
+
+					if(category == "workplace_distancing") {  m_workplace_distancing[GetDayIndex(date)] = value_boolean; }
+					if(category == "community_distancing") {  m_community_distancing[GetDayIndex(date)] = value_boolean; }
+					if(category == "household_clustering") {  m_household_clustering[GetDayIndex(date)] = value_boolean; }
+					if(category == "contact_tracing")      {  m_contact_tracing[GetDayIndex(date)] = value_boolean; }
+					if(category == "universal_testing")    {  m_universal_testing[GetDayIndex(date)] = value_boolean; }
 					if(category == "imported_cases")
 					{
 						unsigned int num_cases = configPt.get<unsigned int>("run.num_daily_imported_cases",0);

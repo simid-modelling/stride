@@ -45,11 +45,14 @@ smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table'
 # load general help functions
 source('./bin/rstride/Misc.R')
 
-# load rStride files (excluding this file and SymptomaticProfileCreator.R)
+# load rStride files (excluding this file)
 rStride_files <- dir('./bin/rstride',recursive = T,pattern = '\\.R',full.names = T)
 rStride_files <- rStride_files[rStride_files != "./bin/rstride/rStride.R"]
-rStride_files <- rStride_files[rStride_files != "./bin/rstride/SymptomaticProfileCreator.R"]
-rStride_files <- rStride_files[rStride_files != "./bin/rstride/CalendarCreator.R"]
+
+# remove 'Factory' files... which are used to pre-process data and files
+rStride_files <- rStride_files[!grepl('Factory',rStride_files)]
+
+# load all (remaining files)
 sapply(rStride_files,source)
 
 #' Create a default config

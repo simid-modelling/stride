@@ -712,15 +712,14 @@ plot_distancing <- function(project_summary){
   
 }
 
-
 #sim_dates <- data_incidence_scenario$sim_date
 add_x_axis <- function(sim_dates,bool_numeric=FALSE,num_ticks = 7){
+  
+  # set date format (character vs numeric)
+  date_format <- ifelse(bool_numeric,'%e/%m/%y','%e %b')
+  
   x_ticks <- pretty(sim_dates,num_ticks-2)
-  if(bool_numeric){
-    axis(1,x_ticks, format(x_ticks,'%e/%m'),cex.axis=0.9)
-  } else{
-    axis(1,x_ticks, format(x_ticks,'%e %b'),cex.axis=0.9)
-  }
+  axis(1,x_ticks, format(x_ticks,date_format),cex.axis=0.9)
   abline(v=pretty(sim_dates,num_ticks),lty=3,col='lightgray')
   #grid(nx=NA,ny=NULL,lty=3,col='lightgray')
 }
