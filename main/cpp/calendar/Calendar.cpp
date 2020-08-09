@@ -237,7 +237,7 @@ void Calendar::Initialize_csv(const ptree& configPt)
         ifstream calendarFile;
 		calendarFile.open(filePath.string());
 		if (!calendarFile.is_open()) {
-				throw runtime_error(string(__func__) + "> Error opening population file " + filePath.string());
+				throw runtime_error(string(__func__) + "> Error when opening calendar file " + filePath.string());
 		}
 
 		// do we need to add "imported cases" later on?
@@ -246,8 +246,15 @@ void Calendar::Initialize_csv(const ptree& configPt)
 		string line;
 		getline(calendarFile, line); // step over file header
 
+		// set and check line separator
+		string line_sep = ",";
+		if(!IsSubstring(line, line_sep)){
+			throw runtime_error(string(__func__) + "> Error when parsing calendar file " + filePath.string() + ": no separator ',' present");
+		}
+
 		while (getline(calendarFile, line)) {
-				const auto calendar_item        = Split(line, ",");
+
+				const auto calendar_item        = Split(line, line_sep);
 				const auto category             = FromString<string>(calendar_item[0]);
 				const auto date_str             = FromString<string>(calendar_item[1]);
 				const auto value                = FromString<bool>(calendar_item[2]);

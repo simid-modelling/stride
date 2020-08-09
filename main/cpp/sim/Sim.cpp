@@ -42,7 +42,7 @@ Sim::Sim()
       m_calendar(nullptr), m_contact_profiles(), m_handlers(), m_infector_default(),m_infector_tracing(),
       m_population(nullptr), m_rn_man(), m_transmission_profile(), m_cnt_reduction_workplace(0), m_cnt_reduction_other(0),
 	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
-	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),m_cnt_other_exit_delay(0),
+	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),
 	  m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_day_of_community_distancing_exit(0),m_cnt_intensity_householdCluster(0),
 	  m_public_health_agency(),m_universal_testing(),m_num_daily_imported_cases(0)
 
@@ -106,13 +106,7 @@ void Sim::TimeStep()
 			}
 		} else if (m_day_of_community_distancing > 0){
 
-			m_day_of_community_distancing_exit += 1;
-
-			if(m_day_of_community_distancing_exit < m_cnt_other_exit_delay){
-				community_distancing_factor       = m_cnt_reduction_other;
-			} else{
-				community_distancing_factor       = m_cnt_reduction_other_exit;
-			}
+			community_distancing_factor       = m_cnt_reduction_other_exit;
 			intergeneration_distancing_factor = m_cnt_reduction_intergeneration;
 		}
 

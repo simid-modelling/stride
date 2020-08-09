@@ -57,7 +57,6 @@ get_exp_param_default <- function(bool_child_param = FALSE, bool_min_restrictive
                 delay_isolation_index          = 1,
                 delay_contact_tracing          = 3,
                 test_false_negative            = 0.1,
-                cnt_other_exit_delay           = 21,
                
                # log level
                event_log_level                 = "Transmissions",

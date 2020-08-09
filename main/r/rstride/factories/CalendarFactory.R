@@ -34,6 +34,8 @@ source('./bin/rstride/rStride.R')
 
 # default value in C++ CALENDAR vectors ==>> 0
 
+cnt_other_exit_delay <- 21
+
 
 ########################################### #
 ## 1.a Public holidays                 ####
@@ -59,11 +61,6 @@ summary(d_calendar_holiday)
 ## 1.b School holidays                 ####
 ########################################### #
 
-# set default "as.Date origin"
-date_origin <- as.Date('2020-01-01') - as.numeric(as.Date('2020-01-01'))
-
-
-  
 data.table(category = "school_holiday",
            date     = c(seq(as.Date('2019-01-01'),as.Date('2019-01-06'),1), # 2019
                         seq(as.Date('2019-03-04'),as.Date('2019-03-10'),1),
@@ -173,18 +170,16 @@ dcal_college_closure[,category := 'college']
 
 # workplace distancing
 data.table(category = "workplace_distancing",
-           date     = as.Date(c(as.Date('2020-03-14'):as.Date('2020-05-03')),
-                              origin = date_origin),
+           date     = seq(as.Date('2020-03-14'),as.Date('2020-05-03'),1),
            value    = 1,
            type = 'boolean',
            stringsAsFactors = F
 ) -> dcal_workplace_distancing
 
 
-# workplace distancing
+# community distancing
 data.table(category = "community_distancing",
-           date     = as.Date(c(as.Date('2020-03-14'):as.Date('2020-05-03')),
-                              origin = date_origin),
+           date     = seq(as.Date('2020-03-14'),as.Date('2020-05-03')+cnt_other_exit_delay,1),
            value    = 1,
            type = 'boolean',
            stringsAsFactors = F
@@ -192,8 +187,7 @@ data.table(category = "community_distancing",
 
 # household clustering
 data.table(category = "household_clustering",
-           date     = as.Date(c(as.Date('2020-05-10'):as.Date('2020-08-31')),
-                              origin = date_origin),
+           date     = seq(as.Date('2020-05-10'),as.Date('2020-08-31'),1),
            value    = 1,
            type = 'boolean',
            stringsAsFactors = F
@@ -204,8 +198,7 @@ data.table(category = "household_clustering",
 ########################################### #
 
 data.table(category = "import_cases",
-           date     = as.Date(c(as.Date('2020-07-01'):as.Date('2020-08-31')),
-                              origin = date_origin),
+           date     = seq(as.Date('2020-07-01'),as.Date('2020-08-31'),1),
            value    = 1,
            type = 'boolean',
            stringsAsFactors = F
@@ -216,8 +209,7 @@ data.table(category = "import_cases",
 ########################################### #
 
 data.table(category = "contact_tracing",
-           date     = as.Date(c(as.Date('2020-05-11'):as.Date('2020-08-31')),
-                              origin = date_origin),
+           date     = seq(as.Date('2020-05-11'),as.Date('2020-08-31'),1),
            value    = 1,
            type = 'boolean',
            stringsAsFactors = F
@@ -228,8 +220,7 @@ data.table(category = "contact_tracing",
 ########################################### #
 
 data.table(category = "universal_testing",
-           date     = as.Date(c(as.Date('2020-05-11'):as.Date('2020-08-31')),
-                              origin = date_origin),
+           date     = seq(as.Date('2020-05-11'),as.Date('2020-08-31'),1),
            value    = 1,
            type = 'boolean',
            stringsAsFactors = F
