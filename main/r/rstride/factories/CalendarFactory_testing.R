@@ -27,6 +27,20 @@
 # - Creates one csv calendar file with and one without imported cases
 #
 ############################################################################ #
+## code for debugging ----
+if(0==1){
+  
+  # specify delay to import cases
+  delay_import_cases <- 8*7
+  
+  # create calender with switch on the 1th of May
+  date_policy_switch <- "2020-05-01"
+  create_calenders_universal_testing(date_policy_switch,delay_import_cases)
+  
+  # create calender with switch on the 1th of July
+  create_calenders_universal_testing("2020-07-01",delay_import_cases)
+  
+}
 
 create_calenders_universal_testing <- function(date_policy_switch, delay_import_cases)
 {
@@ -153,7 +167,7 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
   ## 3. Imported cases                 ####
   ########################################### #
   
-  data.table(category = "import_cases",
+  data.table(category = "imported_cases",
                date     = dates_import_cases,
                value    = 1,
                type = 'boolean',
@@ -188,11 +202,12 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
   opt_other <- ls(pattern='dcal_')
   
   # combine all 'dcal_*' variable
-  d_calendar_all <- foreach(i_other  = opt_other[-3],
+  d_calendar_all <- foreach(i_other  = opt_other,
                       .init    = d_calendar_holiday,
                       .combine = 'rbind') %do% {
                         get(i_other)
                       } 
+  unique(d_calendar_all$category)
   
   ########################################### #
   ## EXPLORE DATA                         ####
@@ -261,18 +276,4 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
 } # end function
 
 
-
-## code for debugging ----
-if(0==1){
-  
-  # specify delay to import cases
-  delay_import_cases <- 8*7
-  
-  # create calender with switch on the 1th of May
-  create_calenders_universal_testing("2020-05-01",delay_import_cases)
-  
-  # create calender with switch on the 1th of July
-  create_calenders_universal_testing("2020-07-01",delay_import_cases)
-  
-}
 

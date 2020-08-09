@@ -284,14 +284,18 @@ void Calendar::Initialize_csv(const ptree& configPt)
 					{
 						unsigned int num_cases = configPt.get<unsigned int>("run.num_daily_imported_cases",0);
 						m_imported_cases[GetDayIndex(date)] = num_cases;
-						bool_no_imported_cases_dates = false;
 					}
 
 				} // end if valid date
+
+				// check if "imported cases" is present in the calendar file
+				if(category == "imported_cases"){
+					bool_no_imported_cases_dates = false;
+				}
 			} // end iteration over all lines
 
 
-		// special case for "imported cases" if no calendar info is present
+		// special case if "imported cases" is not present in the calendar file
 		if(bool_no_imported_cases_dates){
 			unsigned int num_cases = configPt.get<unsigned int>("run.num_daily_imported_cases",0);
 			for (unsigned int day_index = 0 ; day_index < m_imported_cases.size() ; day_index++){

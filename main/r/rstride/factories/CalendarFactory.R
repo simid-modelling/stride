@@ -197,7 +197,7 @@ data.table(category = "household_clustering",
 ## 3. Imported cases                 ####
 ########################################### #
 
-data.table(category = "import_cases",
+data.table(category = "imported_cases",
            date     = seq(as.Date('2020-07-01'),as.Date('2020-08-31'),1),
            value    = 1,
            type = 'boolean',
