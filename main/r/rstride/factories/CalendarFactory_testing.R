@@ -134,9 +134,14 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
   dcal_secondary_closure <- copy(d_school_closure)
   dcal_secondary_closure[,category := 'secondary_school']
   
-  # college
-  dcal_college_closure <- copy(d_school_closure)
-  dcal_college_closure[,category := 'college']
+  # college (default remains closed)
+  data.table(category = "college",
+             date     = c(dates_lockdown,dates_universal_testing),
+             value    = 1,
+             type = 'boolean',
+             stringsAsFactors = F
+  ) -> dcal_college_closure
+
   
   ########################################### #
   ##  2b. Contact reductions: other        ####
@@ -256,6 +261,7 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
   # create standardised names
   filename_calendar        <- paste0('calendar_belgium_covid19_universaltest_d',day_index_policy_switch,'.csv')
   filename_calendar_import <- gsub('.csv',paste0('_import_d',day_index_import_cases,'.csv'),filename_calendar)
+  filename_calendar_import_college <- gsub('.csv',paste0('_import_college_d',day_index_import_cases,'.csv'),filename_calendar)
   
   # save all calendar info as csv
   write.table(d_calendar_all,
@@ -267,11 +273,19 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
               file = smd_file_path('data',filename_calendar),
               sep=',',row.names=F,quote=F)
 
-  smd_print("CREATED", smd_file_path('data',filename_calendar_import))
+  # save subset (college reopens)
+  d_calendar_all[date %in% dates_universal_testing & category == "college",value:=0]
+  write.table(d_calendar_all,
+              file = smd_file_path('data',filename_calendar_import_college),
+              sep=',',row.names=F,quote=F)
+  plot_calendar(d_calendar_all)
+  
   smd_print("CREATED", smd_file_path('data',filename_calendar))
+  smd_print("CREATED", smd_file_path('data',filename_calendar_import))
+  smd_print("CREATED", smd_file_path('data',filename_calendar_import_college))
   
   # return filenames
-  return(c(filename_calendar_import,filename_calendar))
+  return(c(filename_calendar_import,filename_calendar,filename_calendar_import_college))
   
 } # end function
 
