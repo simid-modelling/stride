@@ -27,13 +27,13 @@
 # Clear work environment
 rm(list=ls())
 
+# Load rStride
+source('./bin/rstride/rStride.R')
+
 args = commandArgs(trailingOnly=TRUE)
 dir = args[1]
 csv_fn = args[2]
 exp_id = args[3]
-
-# Load rStride
-source('./bin/rstride/rStride.R')
 
 run_tag <- exp_id
 default_config <- create_default_config('./config/run_default.xml', run_tag)
