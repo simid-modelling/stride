@@ -213,35 +213,35 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
   ## EXPLORE DATA                         ####
   ########################################### #
   
-  # open pdf stream
-  #pdf(file='./sim_output/calendar_profile.pdf',6,6)
-  
-  plot_calendar <- function(dt_calendar){
-    category_opt <- unique(dt_calendar$category)
-    par(mfrow=c(4,2))
-    
-    x_lim <- range(dt_calendar$date)
-    i_cat <- category_opt[1]
-    for(i_cat in category_opt){
-      plot(x   = dt_calendar[category == i_cat,date],
-           y   = dt_calendar[category == i_cat,value],
-           xlim = x_lim,
-           ylim = range(0,1,dt_calendar$value),
-           col  = 1,
-           pch  = 15,
-           main = i_cat,
-           bty='n',
-           xlab = '',
-           ylab = unique(dt_calendar[,type])
-           #xaxt = 'n'
-      )
-      #add_x_axis(x_lim,num_ticks = 12,bool_numeric = T)      
-    }
-  }
-  plot_calendar(d_calendar_all)
-  
-  # close pdf stream
-  #dev.off()
+  # # open pdf stream
+  # #pdf(file='./sim_output/calendar_profile.pdf',6,6)
+  # 
+  # plot_calendar <- function(dt_calendar){
+  #   category_opt <- unique(dt_calendar$category)
+  #   par(mfrow=c(4,2))
+  #   
+  #   x_lim <- range(dt_calendar$date)
+  #   i_cat <- category_opt[1]
+  #   for(i_cat in category_opt){
+  #     plot(x   = dt_calendar[category == i_cat,date],
+  #          y   = dt_calendar[category == i_cat,value],
+  #          xlim = x_lim,
+  #          ylim = range(0,1,dt_calendar$value),
+  #          col  = 1,
+  #          pch  = 15,
+  #          main = i_cat,
+  #          bty='n',
+  #          xlab = '',
+  #          ylab = unique(dt_calendar[,type])
+  #          #xaxt = 'n'
+  #     )
+  #     #add_x_axis(x_lim,num_ticks = 12,bool_numeric = T)      
+  #   }
+  # }
+  # plot_calendar(d_calendar_all)
+  # 
+  # # close pdf stream
+  # #dev.off()
   
   ########################################### #
   ## SAVE AS XML AND CSV	 	         ####

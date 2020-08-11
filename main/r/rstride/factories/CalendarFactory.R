@@ -19,23 +19,21 @@
 #
 ############################################################################ #
 
-# clear workspace
-rm(list=ls())
+# debug
+if(0==1){
+  cnt_other_exit_delay <- 21
+  show_plots = TRUE
+}
 
-# load packages
-suppressPackageStartupMessages(library(simid.rtools)) # to save a list as XML
-
-# load rStride functions
-source('./bin/rstride/rStride.R')
-
+create_calendar_files <- function(cnt_other_exit_delay = 21, show_plots = FALSE)
+{
 ########################################### #
 ## INITIATE DATA                       ####
 ########################################### #
 
-# default value in C++ CALENDAR vectors ==>> 0
 
-cnt_other_exit_delay <- 21
-
+  
+  # default value in C++ CALENDAR vectors ==>> 0
 
 ########################################### #
 ## 1.a Public holidays                 ####
@@ -249,25 +247,27 @@ d_calendar_all <- foreach(i_other  = opt_other,
 #pdf(file='./sim_output/calendar_profile.pdf',6,6)
 
 plot_calendar <- function(dt_calendar){
-  category_opt <- unique(dt_calendar$category)
-  par(mfrow=c(4,2))
-  
-  x_lim <- range(dt_calendar$date)
-  i_cat <- category_opt[1]
-  for(i_cat in category_opt){
-    plot(x   = dt_calendar[category == i_cat,date],
-         y   = dt_calendar[category == i_cat,value],
-         xlim = x_lim,
-         ylim = range(0,1,dt_calendar$value),
-         col  = 1,
-         pch  = 15,
-         main = i_cat,
-         bty='n',
-         xlab = '',
-         ylab = unique(dt_calendar[,type]),
-         xaxt = 'n'
-    )
-    add_x_axis(x_lim,num_ticks = 12,bool_numeric = T)      
+  if(show_plots){
+    category_opt <- unique(dt_calendar$category)
+    par(mfrow=c(4,2))
+    
+    x_lim <- range(dt_calendar$date)
+    i_cat <- category_opt[1]
+    for(i_cat in category_opt){
+      plot(x   = dt_calendar[category == i_cat,date],
+           y   = dt_calendar[category == i_cat,value],
+           xlim = x_lim,
+           ylim = range(0,1,dt_calendar$value),
+           col  = 1,
+           pch  = 15,
+           main = i_cat,
+           bty='n',
+           xlab = '',
+           ylab = unique(dt_calendar[,type]),
+           xaxt = 'n'
+      )
+      add_x_axis(x_lim,num_ticks = 12,bool_numeric = T)
+    }
   }
 }
 plot_calendar(d_calendar_all)
@@ -276,7 +276,7 @@ plot_calendar(d_calendar_all)
 #dev.off()
 
 ########################################### #
-## SAVE AS XML AND CSV	 	         ####
+## SAVE AS CSV	 	         ####
 ########################################### #
 
 # # format date
@@ -285,24 +285,24 @@ plot_calendar(d_calendar_all)
 
 # save as csv (none ==>> dummy)
 write.table(d_calendar_holiday[category == 'na',],
-            file = 'sim_output/holidays_none.csv',sep=',',row.names=F,quote=F)
+            file = smd_file_path('sim_output/holidays_none.csv'),sep=',',row.names=F,quote=F)
 
 # save as csv (default holidays)
 write.table(d_calendar_holiday,
             file = 'sim_output/holidays_belgium_2019_2021.csv',sep=',',row.names=F,quote=F)
 
 # save as csv (selection)
-write.table(d_calendar_all[!category %in% c('universal_testing','import_cases'),],
+write.table(d_calendar_all[!category %in% c('universal_testing'),],
             file = 'sim_output/calendar_belgium_2020_covid19_exit_school_adjusted.csv',sep=',',row.names=F,quote=F)
 
 # save as csv (selection)
 write.table(d_calendar_all[!category %in% c('import_cases'),],
-            file = 'sim_output/calendar_belgium_2020_covid19_exit_school_adjusted_inversal.csv',sep=',',row.names=F,quote=F)
+            file = 'data/calendar_belgium_2020_covid19_exit_school_adjusted_universal.csv',sep=',',row.names=F,quote=F)
 
 
 # save as csv (all calendar info)
 write.table(d_calendar_all,
-            file = 'sim_output/calendar_belgium_2020_covid19_exit_school_adjusted_universal_import.csv',sep=',',row.names=F,quote=F)
+            file = 'data/calendar_belgium_2020_covid19_exit_school_adjusted_universal_import.csv',sep=',',row.names=F,quote=F)
 
 unique(d_calendar_all$category)
 
@@ -322,7 +322,7 @@ d_calendar_exit_school[value==0,value := 1]
 d_calendar_exit_subset <- copy(d_calendar_exit_school)
 d_calendar_exit_subset[date %in% d_school_reopening & category == 'preschool', value := 0]
 write.table(d_calendar_exit_subset,
-            file = 'sim_output/calendar_belgium_2020_covid19_may_preschool.csv',sep=',',row.names=F,quote=F)
+            file = 'data/calendar_belgium_2020_covid19_may_preschool.csv',sep=',',row.names=F,quote=F)
 plot_calendar(d_calendar_exit_subset[date %in% d_school_reopening & grepl('school',category),])
 
 
@@ -330,29 +330,29 @@ plot_calendar(d_calendar_exit_subset[date %in% d_school_reopening & grepl('schoo
 d_calendar_exit_subset <- copy(d_calendar_exit_school)
 d_calendar_exit_subset[date %in% d_school_reopening & category == 'primary_school', value := 0]
 write.table(d_calendar_exit_subset,
-            file = 'sim_output/calendar_belgium_2020_covid19_may_primary_school.csv',sep=',',row.names=F,quote=F)
+            file = 'data/calendar_belgium_2020_covid19_may_primary_school.csv',sep=',',row.names=F,quote=F)
 plot_calendar(d_calendar_exit_subset[date %in% d_school_reopening & grepl('school',category),])
 
 # secondary school
 d_calendar_exit_subset <- copy(d_calendar_exit_school)
 d_calendar_exit_subset[date %in% d_school_reopening & category == 'secondary_school', value := 0]
 write.table(d_calendar_exit_subset,
-            file = 'sim_output/calendar_belgium_2020_covid19_may_secondary_school.csv',sep=',',row.names=F,quote=F)
+            file = 'data/calendar_belgium_2020_covid19_may_secondary_school.csv',sep=',',row.names=F,quote=F)
 plot_calendar(d_calendar_exit_subset[date %in% d_school_reopening & grepl('school',category),])
 
 # K6 schools
 d_calendar_exit_subset <- copy(d_calendar_exit_school)
 d_calendar_exit_subset[date %in% d_school_reopening & category %in% c('preschool','primary_school'), value := 0]
 write.table(d_calendar_exit_subset,
-            file = 'sim_output/calendar_belgium_2020_covid19_may_k6school.csv',sep=',',row.names=F,quote=F)
+            file = 'data/calendar_belgium_2020_covid19_may_k6school.csv',sep=',',row.names=F,quote=F)
 plot_calendar(d_calendar_exit_subset[date %in% d_school_reopening & grepl('school',category),])
 
 #K12 school
 d_calendar_exit_subset <- copy(d_calendar_exit_school)
 d_calendar_exit_subset[date %in% d_school_reopening & grepl('school',category), value := 0]
 write.table(d_calendar_exit_subset,
-            file = 'sim_output/calendar_belgium_2020_covid19_may_k12school.csv',sep=',',row.names=F,quote=F)
+            file = 'data/calendar_belgium_2020_covid19_may_k12school.csv',sep=',',row.names=F,quote=F)
 plot_calendar(d_calendar_exit_subset[date %in% d_school_reopening & grepl('school',category),])
 
-
+}
 

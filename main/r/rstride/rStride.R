@@ -49,9 +49,6 @@ source('./bin/rstride/Misc.R')
 rStride_files <- dir('./bin/rstride',recursive = T,pattern = '\\.R',full.names = T)
 rStride_files <- rStride_files[rStride_files != "./bin/rstride/rStride.R"]
 
-# remove 'Factory' files... which are used to pre-process data and files
-rStride_files <- rStride_files[!grepl('Factory',rStride_files)]
-
 # load all (remaining files)
 sapply(rStride_files,source)
 

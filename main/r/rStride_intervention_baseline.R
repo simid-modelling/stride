@@ -27,6 +27,10 @@
 
 # get default parameter values to combine in a full-factorial grid
 get_exp_param_default <- function(bool_child_param = FALSE, bool_min_restrictive = FALSE){
+   
+   # create calendar files
+   create_calendar_files()
+   
    out <- list(r0                            = seq(3.4,3.4,0.1),
                 num_days                      = 196,
                 num_seeds                     = 10,
