@@ -68,8 +68,6 @@ private:
         unsigned int m_delay_isolation_index;         ///< Number of days after symptom onset to perform a clinical test
         unsigned int m_delay_contact_tracing; ///< Number of days after clinical test to start contact tracing
 		double m_test_false_negative;         ///< False negative rate of PCR tests
-
-		bool m_school_system_adjusted;         ///< Apply adjusted school system for pre-, primary and secondary schools?
 };
 
 } // namespace stride
