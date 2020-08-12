@@ -127,11 +127,6 @@ data.table(category = "college",
            stringsAsFactors = F
 ) -> d_college_holidays
 
-# d_calendar_holiday <- rbind(d_calendar_holiday,d_school_holidays[,category := 'preschool'])
-# d_calendar_holiday <- rbind(d_calendar_holiday,d_school_holidays[,category := 'primary_school'])
-# d_calendar_holiday <- rbind(d_calendar_holiday,d_school_holidays[,category := 'secondary_school'])
-# d_calendar_holiday <- rbind(d_calendar_holiday,d_college_holidays)
-
 #K12 school
 tmp_school_holidays <- copy(d_school_holidays)
 tmp_school_holidays[,category:='schools_closed']
@@ -296,51 +291,9 @@ d_calendar_all <- foreach(i_other  = opt_other,
 # open pdf stream
 #pdf(file='./sim_output/calendar_profile.pdf',6,6)
 
-plot_calendar <- function(dt_calendar,b_school_repopening=TRUE){
-  if(show_plots){
-    category_opt <- unique(dt_calendar$category)
-    par(mfrow=c(4,2))
-    
-    x_lim <- range(dt_calendar$date)
-    i_cat <- category_opt[1]
-    for(i_cat in category_opt){
-      plot(x   = dt_calendar[category == i_cat,date],
-           y   = dt_calendar[category == i_cat,value],
-           xlim = x_lim,
-           ylim = range(0,1,dt_calendar$value),
-           col  = 1,
-           pch  = 15,
-           main = i_cat,
-           bty='n',
-           xlab = '',
-           ylab = unique(dt_calendar[,type]),
-           xaxt = 'n'
-      )
-      add_x_axis(x_lim,num_ticks = 12,bool_numeric = T)
-    }
-    
-    if("schools_closed" %in% dt_calendar$category){
-      if(b_school_repopening) x_lim <- range(as.Date(c('2020-05-01','2020-07-01')))
-      i_cat <- "schools_closed"
-      par(mfrow=c(1,1))
-      plot(x   = dt_calendar[category == i_cat & value == 1,date],
-           y   = dt_calendar[category == i_cat & value == 1,age],
-           xlim = x_lim,
-           ylim = range(0,1,dt_calendar$age,na.rm=T),
-           col  = 1,
-           pch  = 15,
-           main = i_cat,
-           bty='n',
-           xlab = '',
-           ylab = 'age',
-           xaxt = 'n'
-      )
-      add_x_axis(x_lim,num_ticks = 12,bool_numeric = T)
-    }
-  }
-}
-plot_calendar(d_calendar_all)
-plot_calendar(d_calendar_holiday,b_school_repopening = F)
+
+plot_calendar(d_calendar_all,show_plots)
+plot_calendar(d_calendar_holiday,show_plots,b_school_repopening = F)
 
 # close pdf stream
 #dev.off()
@@ -379,7 +332,7 @@ unique(d_calendar_all$category)
 ## SPECIAL CASES: COVID19 school reopening May-June 2020	 	      ####
 #################################################################### #
 
-plot_calendar(d_calendar_all)
+plot_calendar(d_calendar_all,show_plots)
 
 # make copy
 d_calendar_exit_school <- copy(d_calendar_all)
@@ -388,7 +341,7 @@ d_calendar_exit_school <- copy(d_calendar_all)
 d_calendar_exit_school[value==0,value := 1]
 
 # no school reopening
-plot_calendar(d_calendar_exit_school)
+plot_calendar(d_calendar_exit_school,show_plots)
 write.table(d_calendar_exit_school,
             file = 'data/calendar_belgium_2020_covid19_exit_schoolsclosed.csv',sep=',',row.names=F,quote=F)
 
@@ -397,7 +350,7 @@ d_calendar_exit_subset <- copy(d_calendar_exit_school)
 d_calendar_exit_subset[date %in% d_school_reopening & age %in% 0:5, value := 0]
 write.table(d_calendar_exit_subset,
             file = 'data/calendar_belgium_2020_covid19_may_preschool.csv',sep=',',row.names=F,quote=F)
-plot_calendar(d_calendar_exit_subset)
+plot_calendar(d_calendar_exit_subset,show_plots)
 
 
 # primary school
@@ -405,7 +358,7 @@ d_calendar_exit_subset <- copy(d_calendar_exit_school)
 d_calendar_exit_subset[date %in% d_school_reopening & age %in% 6:11, value := 0]
 write.table(d_calendar_exit_subset,
             file = 'data/calendar_belgium_2020_covid19_may_primary_school.csv',sep=',',row.names=F,quote=F)
-plot_calendar(d_calendar_exit_subset)
+plot_calendar(d_calendar_exit_subset,show_plots)
 
 # secondary school
 d_calendar_exit_subset <- copy(d_calendar_exit_school)
@@ -419,7 +372,7 @@ d_calendar_exit_subset <- copy(d_calendar_exit_school)
 d_calendar_exit_subset[date %in% d_school_reopening & age %in% 0:11, value := 0]
 write.table(d_calendar_exit_subset,
             file = 'data/calendar_belgium_2020_covid19_may_k6school.csv',sep=',',row.names=F,quote=F)
-plot_calendar(d_calendar_exit_subset)
+plot_calendar(d_calendar_exit_subset,show_plots)
 
 #K12 school
 d_calendar_exit_subset <- copy(d_calendar_exit_school)
@@ -436,8 +389,52 @@ d_calendar_exit_subset[date %in% d_school_reopening_2d & age %in% 6:11, value :=
 d_calendar_exit_subset[date %in% d_school_reopening_1d & age %in% 12:17, value := 0]
 write.table(d_calendar_exit_subset,
             file = 'data/calendar_belgium_2020_covid19_exit_schoolcategory_adjusted.csv',sep=',',row.names=F,quote=F)
-plot_calendar(d_calendar_exit_subset)
+plot_calendar(d_calendar_exit_subset,show_plots)
 
 }
 
+
+plot_calendar <- function(dt_calendar,show_plots = TRUE,b_school_repopening=TRUE){
+  if(show_plots){
+    category_opt <- unique(dt_calendar$category)
+    par(mfrow=c(4,2))
+    
+    x_lim <- range(dt_calendar$date)
+    i_cat <- category_opt[1]
+    for(i_cat in category_opt){
+      plot(x   = dt_calendar[category == i_cat,date],
+           y   = dt_calendar[category == i_cat,value],
+           xlim = x_lim,
+           ylim = range(0,1,dt_calendar$value),
+           col  = 1,
+           pch  = 15,
+           main = i_cat,
+           bty='n',
+           xlab = '',
+           ylab = unique(dt_calendar[,type]),
+           xaxt = 'n'
+      )
+      add_x_axis(x_lim)
+    }
+    
+    if("schools_closed" %in% dt_calendar$category){
+      if(b_school_repopening) x_lim <- range(as.Date(c('2020-05-01','2020-07-01')))
+      i_cat <- "schools_closed"
+      #par(mfrow=c(1,1))
+      plot(x   = dt_calendar[category == i_cat & value == 1,date],
+           y   = dt_calendar[category == i_cat & value == 1,age],
+           xlim = x_lim,
+           ylim = range(0,1,dt_calendar$age,na.rm=T),
+           col  = 1,
+           pch  = 15,
+           main = i_cat,
+           bty='n',
+           xlab = '',
+           ylab = 'age',
+           xaxt = 'n'
+      )
+      add_x_axis(x_lim)
+    }
+  }
+}
 
