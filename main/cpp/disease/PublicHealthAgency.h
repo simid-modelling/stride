@@ -58,6 +58,12 @@ public:
 		/// Is Contact tracing active today?
 		bool IsContactTracingActive(const std::shared_ptr<Calendar> calendar) const;
 
+        /// Trace one individual
+        void Trace(Person& p_case,
+                std::shared_ptr<Population> pop,
+                ContactHandler& cHandler,
+                const std::shared_ptr<Calendar> calendar);
+
 private:
         double m_telework_probability;    ///< Probability to perform telework (or equivalent) //TODO rename "telework"
         //contact tracing configuration
