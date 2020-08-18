@@ -53,6 +53,7 @@ exp_param_list$population_file               = c("pop_belgium3000k_c500_teachers
 exp_param_list$unitest_pool_allocation       = c("./data/pop_belgium3000k_c500_test_allocation_k32.csv")
 exp_param_list$holidays_file                 = holiday_files[1]                                               # use created calendar file
 #exp_param_list$holidays_file                 = "calendar_belgium_covid19_universaltest_d122_import_d178.csv" # hard coded
+
 exp_param_list$unitest_n_tests_per_day       = c(25e3)
 exp_param_list$unitest_fnr                   = c(-1,0.01)
 exp_param_list$unitest_test_compliance       = c(0.9)

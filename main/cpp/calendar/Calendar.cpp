@@ -35,17 +35,17 @@ using boost::property_tree::ptree;
 
 
 Calendar::Calendar(const ptree& configPt,unsigned int num_days) :
-		m_date(), m_date_start(), m_date_end(), m_public_holidays(num_days), m_preschool_holidays(num_days),
-		m_primary_school_holidays(num_days), m_secondary_school_holidays(num_days), m_college_holidays(num_days),
+		m_date(), m_date_start(), m_date_end(), m_public_holidays(num_days),
 		m_workplace_distancing(num_days), m_community_distancing(num_days), m_contact_tracing(num_days),
-		m_universal_testing(num_days), m_household_clustering(num_days), m_imported_cases(num_days,0U)
+		m_universal_testing(num_days), m_household_clustering(num_days), m_imported_cases(num_days,0U),
+		m_school_closures(100, vector<bool>(num_days))
 {
         // Set start date
         m_date = boost::gregorian::from_simple_string(configPt.get<string>("run.start_date", "2020-01-01"));
         m_date_start = m_date;
         m_date_end = m_date + boost::gregorian::days(num_days);
 
-        string holiday_file = configPt.get<string>("run.holidays_file", "holidays_flanders_2020.json");
+        string holiday_file = configPt.get<string>("run.holidays_file", "holidays_belgium_2019_2021.csv");
         string csv_extension = "csv";
 
 		// temporary switch
@@ -54,9 +54,6 @@ Calendar::Calendar(const ptree& configPt,unsigned int num_days) :
 		} else{
 			Initialize(configPt);       // json file => default
 		}
-
-
-
 }
 
 void Calendar::AdvanceDay()
@@ -126,22 +123,27 @@ void Calendar::Initialize(const ptree& configPt)
                 for (const auto& date : holidaysPt.get_child("preschool." + month)) {
                         const auto d_date = string(lead).append(date.second.get_value<string>());
 						if(IsDatePartOfSimulation(d_date)){
-							m_preschool_holidays[GetDayIndex(d_date)] = true;
+							for(int i = 0; i<= 6;i ++){
+								m_school_closures[i][GetDayIndex(d_date)] = true;
+							}
 						}
                 }
                 // read in primary school holidays
 				for (const auto& date : holidaysPt.get_child("primary_school." + month)) {
 						const auto d_date = string(lead).append(date.second.get_value<string>());
 						if(IsDatePartOfSimulation(d_date)){
-							m_primary_school_holidays[GetDayIndex(d_date)] = true;
-						}
+							for(int i = 6; i<= 11;i ++){
+								m_school_closures[i][GetDayIndex(d_date)] = true;
+							}						}
 				}
 
                 // read in secondary school holidays
 				for (const auto& date : holidaysPt.get_child("secondary_school." + month)) {
 						const auto d_date = string(lead).append(date.second.get_value<string>());
 						if(IsDatePartOfSimulation(d_date)){
-							m_secondary_school_holidays[GetDayIndex(d_date)] = true;
+							for(int i = 12; i<= 17;i ++){
+								m_school_closures[i][GetDayIndex(d_date)] = true;
+							}
 						}
 				}
 
@@ -149,7 +151,10 @@ void Calendar::Initialize(const ptree& configPt)
                 for (const auto& date : holidaysPt.get_child("college." + month)) {
 						const auto d_date = string(lead).append(date.second.get_value<string>());
 						if(IsDatePartOfSimulation(d_date)){
-							m_college_holidays[GetDayIndex(d_date)] = true;
+							for(int i = 18; i<= 25;i ++){
+								m_school_closures[i][GetDayIndex(d_date)] = true;
+							}
+
 						}
 
                 }
@@ -228,7 +233,7 @@ void Calendar::Initialize(const ptree& configPt)
 void Calendar::Initialize_csv(const ptree& configPt)
 {
         // Load csv file
-		const auto fileName = configPt.get<string>("run.holidays_file", "holidays_flanders_2020.csv");
+		const auto fileName = configPt.get<string>("run.holidays_file", "holidays_belgium_2019_2021.csv");
 		const filesys::path filePath{FileSys::GetDataDir() /= fileName};
 		if (!is_regular_file(filePath)) {
 				throw runtime_error(string(__func__) + "> Holidays file " + filePath.string() + " not present.");
@@ -259,6 +264,7 @@ void Calendar::Initialize_csv(const ptree& configPt)
 				const auto date_str             = FromString<string>(calendar_item[1]);
 				const auto value                = FromString<bool>(calendar_item[2]);
 				//const auto type                 = FromString<string>(calendar_item[3]);
+				const auto age                  = FromString<unsigned int>(calendar_item[4]);
 
 				// convert date
 				const auto date = boost::gregorian::from_simple_string(date_str);
@@ -269,12 +275,8 @@ void Calendar::Initialize_csv(const ptree& configPt)
 					// convert value into boolean
 					const bool value_boolean = value == 1.0;
 
-					if(category == "general")          {  m_public_holidays[GetDayIndex(date)] = value_boolean; }
-					if(category == "preschool")        {  m_preschool_holidays[GetDayIndex(date)] = value_boolean; }
-					if(category == "primary_school")   {  m_primary_school_holidays[GetDayIndex(date)] = value_boolean; }
-					if(category == "secondary_school") {  m_secondary_school_holidays[GetDayIndex(date)] = value_boolean; }
-					if(category == "college")          {  m_college_holidays[GetDayIndex(date)] = value_boolean; }
-
+					if(category == "general")              {  m_public_holidays[GetDayIndex(date)] = value_boolean; }
+					if(category == "schools_closed")       {  m_school_closures[age][GetDayIndex(date)] = value; }
 					if(category == "workplace_distancing") {  m_workplace_distancing[GetDayIndex(date)] = value_boolean; }
 					if(category == "community_distancing") {  m_community_distancing[GetDayIndex(date)] = value_boolean; }
 					if(category == "household_clustering") {  m_household_clustering[GetDayIndex(date)] = value_boolean; }

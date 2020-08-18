@@ -419,7 +419,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   data_incidence_sel[data_incidence_sel$sim_date %in% max(data_incidence_sel$sim_date,na.rm=T),] <- NA
   
   # set y-lim
-  y_lim <- range(0,max(hosp_adm_data$num_adm)*1.2,max(data_incidence_sel$new_hospital_admissions,na.rm=T),na.rm=T)
+  y_lim <- range(0,pretty(max(hosp_adm_data$num_adm,na.rm=T)*1.1),max(data_incidence_sel$new_hospital_admissions,na.rm=T),na.rm=T)
 
   ## HOSPITAL ADMISSIONS ####
   plot(data_incidence_sel$sim_date,
@@ -455,7 +455,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   if(bool_only_hospital_adm){ return() } # stop
   
   ## CUMULATIVE: HOSPITAL ####
-  y_lim <- range(0,max(hosp_adm_data$cum_adm)*3.5,na.rm=T)
+  y_lim <- range(0,pretty(max(hosp_adm_data$cum_adm,na.rm=T)*2,data_incidence_sel$cumulative_hospital_cases),na.rm=T)
   plot(data_incidence_sel$sim_date,
        data_incidence_sel$cumulative_hospital_cases,
        type='l',
@@ -497,7 +497,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   )
   
   ## INCIDENCE: ALL ####
-  y_lim <- range(0,data_incidence_sel$new_infections,na.rm = T)
+  y_lim <- range(0,pretty(data_incidence_sel$new_infections),na.rm = T)
   plot(data_incidence_sel$sim_date,
        data_incidence_sel$new_infections,
        type='l',
@@ -525,13 +525,14 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   add_legend_incidence(pcolor)
   
   ## CUMULATIVE: ALL STATES ####
-  y_lim <- pretty(data_incidence_sel$cumulative_infections)
+  y_lim <- range(pretty(data_incidence_sel$cumulative_infections))
   plot(data_incidence_sel$sim_date,
        data_incidence_sel$cumulative_infections,
        type='l',
        col=alpha(pcolor$E,pcolor$alpha),
        ylab='Total cases',
        xlab='',
+       ylim=y_lim,
        yaxt='n',
        xaxt='n')
   add_x_axis(data_incidence_sel$sim_date)
