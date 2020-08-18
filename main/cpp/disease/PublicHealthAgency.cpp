@@ -87,8 +87,6 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 
 	//cout << m_detection_probability << " -- "<< m_tracing_efficiency_household << " -- "<< m_tracing_efficiency_other << " ** " << m_case_finding_capacity << endl;
 
-	auto& logger       = pop->RefEventLogger();
-	const auto  simDay = calendar->GetSimulationDay();
 
 	/// Mark index cases for track&trace
 	for (auto& p_case : *pop) {
@@ -107,6 +105,24 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 	for (auto& p_case : *pop) {
 
 		if (p_case.IsTracingIndexCase() && p_case.GetHealth().NumberDaysSymptomatic(m_delay_isolation_index)	) {
+        Trace(p_case, pop, cHandler, calendar);  
+
+        // update index case counter, and terminate if quota is reached
+        num_index_cases++;
+        if(num_index_cases >= m_case_finding_capacity){
+            return;
+        }
+       } 
+	}
+}
+
+void PublicHealthAgency::Trace(Person& p_case, 
+        std::shared_ptr<Population> pop, 
+        ContactHandler& cHandler,
+        const std::shared_ptr<Calendar> calendar)
+{
+	auto& logger       = pop->RefEventLogger();
+	const auto  simDay = calendar->GetSimulationDay();
 
 			// Set index case in quarantine.
 		    // As this individual tested positive, he/she is isolated for 7 days.
@@ -186,15 +202,6 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 						 p_case.GetHealth().IsSymptomatic(),
 						 "Index", p_case.GetId(),
 						 p_case.GetAge(), simDay, cnt_register.size(), num_contacts_tested);
-
-			// update index case counter, and terminate if quota is reached
-			num_index_cases++;
-			if(num_index_cases >= m_case_finding_capacity){
-				return;
-			}
-		}
-	}
 }
-
 
 } // namespace stride
