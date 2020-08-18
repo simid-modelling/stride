@@ -28,11 +28,33 @@ namespace stride {
 using namespace std;
 using namespace stride::ContactType;
 
+void Person::Isolate(unsigned int from, unsigned int to)
+{
+        m_events.push(Person::Event(from, Person::EventType::StartIsolation));
+        m_events.push(Person::Event(to, Person::EventType::EndIsolation));
+}
+
 void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOff,
 		bool isTeleworkEnforced, bool isHouseholdClusteringAllowed,
-		ContactHandler& cHandler)
+		ContactHandler& cHandler,
+        const std::shared_ptr<Calendar> calendar)
 
 {
+        const unsigned int simDay = calendar->GetSimulationDay();
+
+        // Update events
+        while (!m_events.empty() && m_events.top().GetTime() == simDay) {
+            const Event& e = m_events.top();
+            m_events.pop();
+            
+            EventType type = e.GetType();
+            if (type == Person::EventType::StartIsolation) {
+                m_isolated = true;
+            } else if (type == Person::EventType::EndIsolation) {
+                m_isolated = false;
+            }
+        } 
+
         // Update health and disease status
         m_health.Update();
 
@@ -84,8 +106,8 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
 		}
 
         // Update presence in contact pools if person is in quarantine
-        if(m_health.IsInIsolation()){
-        	m_in_pools[Id::Household]          = true;  //TODO: no household transmission in quarantine?
+        if(InIsolation()){
+        	m_in_pools[Id::Household]          = false;  //TODO: no household transmission in quarantine?
         	m_in_pools[Id::K12School]          = false;
 			m_in_pools[Id::College]            = false;
 			m_in_pools[Id::Workplace]          = false;
@@ -95,5 +117,10 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
         }
 
 } // Person::Update()
+
+bool operator<(const Person::Event& lhs, const Person::Event& rhs)
+{
+    return lhs.GetTime() < rhs.GetTime();
+}
 
 } // namespace stride

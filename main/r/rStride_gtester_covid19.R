@@ -53,8 +53,7 @@ exp_design <- expand.grid(r0                            = 2.5,
                           population_file               = 'pop_belgium600k_c500_teachers_censushh.csv',
                           age_contact_matrix_file       = 'contact_matrix_flanders_conditional_teachers.xml',
                           start_date                    = '2020-03-05',
-                          holidays_file                 = 'holidays_flanders_2020.json',
-                          school_system_adjusted        = 0,
+                          holidays_file                 = 'holidays_belgium_2019_2021.csv',
                           telework_probability          = 0,
                           cnt_reduction_workplace       = 0,
                           cnt_reduction_other           = 0,
@@ -88,7 +87,7 @@ exp_design_daily$gtester_label            <- 'covid_daily'
 
 # distancing
 exp_design_dist <- exp_design
-exp_design_dist$holidays_file              <- 'calendar_belgium_2020_covid19_april.json'
+exp_design_dist$holidays_file              <- 'calendar_belgium_2020_covid19_exit_school_adjusted.csv'
 exp_design_dist$cnt_reduction_workplace    <- 0.3;
 exp_design_dist$cnt_reduction_other        <- 0.4;
 exp_design_dist$compliance_delay_workplace <- 3;
@@ -106,26 +105,26 @@ exp_design_15min$gtester_label           <- 'covid_15min'
 exp_design_hhcl <- exp_design
 exp_design_hhcl$population_file       <- 'pop_belgium600k_c500_teachers_censushh_extended3_size2.csv'
 exp_design_hhcl$cnt_intensity_householdCluster <- 4/7
-exp_design_hhcl$holidays_file         <- 'calendar_belgium_2020_covid19_exit_school_adjusted.json'
+exp_design_hhcl$holidays_file         <- 'calendar_belgium_2020_covid19_exit_schoolcategory_adjusted.csv'
 exp_design_hhcl$start_date            <- '2020-06-01'
 exp_design_hhcl$gtester_label         <- 'covid_hhcl'
 
 # contact tracing
 exp_design_cts <- exp_design
 exp_design_cts$detection_probability        <- 0.5
-exp_design_cts$holidays_file                <- 'calendar_belgium_2020_covid19_exit_school_adjusted.json'
+exp_design_cts$holidays_file                <- 'calendar_belgium_2020_covid19_exit_schoolcategory_adjusted.csv'
 exp_design_cts$start_date                   <- '2020-06-01'
 exp_design_cts$tracing_efficiency_household <- 1.0
 exp_design_cts$tracing_efficiency_other     <- 0.7
 exp_design_cts$test_false_negative          <- 0.1
 exp_design_cts$case_finding_capacity        <- 1000
 exp_design_cts$event_log_level              <- 'Transmissions'
-exp_design_cts$gtester_label                <- 'covid_tracing_all'
+exp_design_cts$gtester_label                <- 'covid_tracing'
 
 # contact tracing all
 exp_design_cts_all <- exp_design_cts
 exp_design_cts_all$event_log_level          <- 'ContactTracing'
-exp_design_cts_all$gtester_label            <- 'covid_tracing'
+exp_design_cts_all$gtester_label            <- 'covid_tracing_all'
 
 # rbind all designs
 exp_design <- rbind(exp_design, exp_design_all,
@@ -186,7 +185,8 @@ ref_data_incidence   <- readRDS(file='tests/regression_rstride_incidence.rds')
 ref_data_prevalence  <- readRDS(file='tests/regression_rstride_prevalence.rds')
 
 # plot number of cases
-bplt <- boxplot(num_cases ~ gtester_label,data=project_summary,las=2)
+y_lim <- range(pretty(project_summary$num_cases*0.9,project_summary$num_cases*1.1))
+bplt <- boxplot(num_cases ~ gtester_label,data=project_summary,las=2,ylim=y_lim)
 text(x = 1:ncol(bplt$stats),
      y = bplt$stats[5,],
      labels = bplt$stats[3,],
@@ -204,9 +204,13 @@ if(length(diff_summary)>0){
     project_summary[flag,names(diff_summary)]
     ref_project_summary[flag,names(diff_summary)]
     
-    par(mfrow=c(1,2))
-    boxplot(num_cases ~ gtester_label,data=ref_project_summary)
-    boxplot(num_cases ~ gtester_label,data=project_summary,add=F,col=alpha(2,0.4))   
+    par(mfrow=c(1,1),mar=c(8,4,4,2))
+    y_lim <- range(pretty(ref_project_summary$num_cases,project_summary$num_cases))
+    boxplot(num_cases ~ gtester_label,
+            data=ref_project_summary,main='REFERENCE',ylim=y_lim, las=2);grid()
+    boxplot(num_cases ~ gtester_label,
+            data=project_summary,add=T,
+            col=alpha(2,0.4),main='NEW',ylim=y_lim,las=2)  ;grid() 
 
   }
   #print(head(diff_summary))

@@ -33,16 +33,20 @@ if(0==1){
   # specify delay to import cases
   delay_import_cases <- 8*7
   
+  # inspect calendar files
+  show_plots <- TRUE
+  
   # create calender with switch on the 1th of May
   date_policy_switch <- "2020-05-01"
   create_calenders_universal_testing(date_policy_switch,delay_import_cases)
-  
+
   # create calender with switch on the 1th of July
   create_calenders_universal_testing("2020-07-01",delay_import_cases)
-  
 }
 
-create_calenders_universal_testing <- function(date_policy_switch, delay_import_cases)
+create_calenders_universal_testing <- function(date_policy_switch, 
+                                               delay_import_cases,
+                                               show_plots = FALSE)
 {
   
   ########################################### #
@@ -72,6 +76,7 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
                                   '2020-07-21','2020-08-15','2020-11-01','2020-11-11','2020-12-25')),
              value    = 1,
              type = 'boolean',
+             age = NA_integer_,
              stringsAsFactors = F) -> d_calendar_holiday
   
   summary(d_calendar_holiday)
@@ -89,6 +94,7 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
                           seq(as.Date('2020-12-21'),as.Date('2020-12-31'),1)),
              value    = 1,
              type = 'boolean',
+             age = NA_integer_,
              stringsAsFactors = F
   ) -> d_school_holidays
   
@@ -101,13 +107,23 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
                           seq(as.Date('2020-12-21'),as.Date('2020-12-31'),1)),
              value    = 1,
              type = 'boolean',
+             age = NA_integer_,
              stringsAsFactors = F
   ) -> d_college_holidays
   
-  d_calendar_holiday <- rbind(d_calendar_holiday,d_school_holidays[,category := 'preschool'])
-  d_calendar_holiday <- rbind(d_calendar_holiday,d_school_holidays[,category := 'primary_school'])
-  d_calendar_holiday <- rbind(d_calendar_holiday,d_school_holidays[,category := 'secondary_school'])
-  d_calendar_holiday <- rbind(d_calendar_holiday,d_college_holidays)
+  #K12 school
+  tmp_school_holidays <- copy(d_school_holidays)
+  tmp_school_holidays[,category:='schools_closed']
+  for(i_age in 0:17){
+    d_calendar_holiday <- rbind(d_calendar_holiday,copy(tmp_school_holidays[,age:=i_age]))
+  }
+  
+  # College
+  tmp_college_holidays <- copy(d_college_holidays)
+  tmp_college_holidays[,category:='schools_closed']
+  for(i_age in 18:25){
+    d_calendar_holiday <- rbind(d_calendar_holiday,copy(tmp_college_holidays[,age:=i_age]))
+  }
   
   ########################################################### #
   ##  2a. Contact reductions: school closures              ####
@@ -115,30 +131,27 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
   #       * (pre-, primary and secondary school)
   
   # set default school closure
-  data.table(category = "school_closure",
-             date     = dates_lockdown,
+  sel_ages <- 0:17
+  data.table(category = "schools_closed",
+             date     = rep(dates_lockdown,length(sel_ages)),
              value    = 1,
-             type = 'boolean',
+             type     = 'boolean',
+             age      = rep(sel_ages,each=length(dates_lockdown)),
              stringsAsFactors = F
-  ) -> d_school_closure
-  
-  # preschool
-  dcal_preschool_closure <- copy(d_school_closure)
-  dcal_preschool_closure[,category := 'preschool']
-  
-  # primary school
-  dcal_primary_closure <- copy(d_school_closure)
-  dcal_primary_closure[,category := 'primary_school']
+  ) -> dcal_school_closure
   
   #secondary school
   dcal_secondary_closure <- copy(d_school_closure)
   dcal_secondary_closure[,category := 'secondary_school']
   
   # college (default remains closed)
-  data.table(category = "college",
-             date     = c(dates_lockdown,dates_universal_testing),
+  sel_ages  <- 18:25
+  sel_dates <- c(dates_lockdown,dates_universal_testing)
+  data.table(category = "schools_closed",
+             date     = rep(sel_dates,length(sel_ages)),
              value    = 1,
              type = 'boolean',
+             age = rep(sel_ages,each=length(sel_dates)),
              stringsAsFactors = F
   ) -> dcal_college_closure
 
@@ -155,6 +168,7 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
              date     = dates_lockdown,
              value    = 1,
              type = 'boolean',
+             age = NA_integer_,
              stringsAsFactors = F
   ) -> dcal_workplace_distancing
   
@@ -164,6 +178,7 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
              date     = dates_lockdown,
              value    = 1,
              type = 'boolean',
+             age = NA_integer_,
              stringsAsFactors = F
   ) -> dcal_community_distancing
   
@@ -176,6 +191,7 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
                date     = dates_import_cases,
                value    = 1,
                type = 'boolean',
+               age = NA_integer_,
                stringsAsFactors = F
   ) -> dcal_imported_cases
   
@@ -192,6 +208,7 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
              date     = dates_universal_testing,
              value    = 1,
              type = 'boolean',
+             age = NA_integer_,
              stringsAsFactors = F
   ) -> dcal_universal_testing
   
@@ -218,36 +235,8 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
   ## EXPLORE DATA                         ####
   ########################################### #
   
-  # open pdf stream
-  #pdf(file='./sim_output/calendar_profile.pdf',6,6)
-  
-  plot_calendar <- function(dt_calendar){
-    category_opt <- unique(dt_calendar$category)
-    par(mfrow=c(4,2))
-    
-    x_lim <- range(dt_calendar$date)
-    i_cat <- category_opt[1]
-    for(i_cat in category_opt){
-      plot(x   = dt_calendar[category == i_cat,date],
-           y   = dt_calendar[category == i_cat,value],
-           xlim = x_lim,
-           ylim = range(0,1,dt_calendar$value),
-           col  = 1,
-           pch  = 15,
-           main = i_cat,
-           bty='n',
-           xlab = '',
-           ylab = unique(dt_calendar[,type])
-           #xaxt = 'n'
-      )
-      #add_x_axis(x_lim,num_ticks = 12,bool_numeric = T)      
-    }
-  }
-  plot_calendar(d_calendar_all)
-  
-  # close pdf stream
-  #dev.off()
-  
+  plot_calendar(d_calendar_all,show_plots)
+
   ########################################### #
   ## SAVE AS XML AND CSV	 	         ####
   ########################################### #
@@ -274,7 +263,8 @@ create_calenders_universal_testing <- function(date_policy_switch, delay_import_
               sep=',',row.names=F,quote=F)
 
   # save subset (college reopens)
-  d_calendar_all[date %in% dates_universal_testing & category == "college",value:=0]
+  sel_ages <- unique(dcal_college_closure[date %in% dates_universal_testing,c(age)])
+  d_calendar_all[date %in% dates_universal_testing & category == "schools_closed" & age %in% sel_ages,value:=0]
   write.table(d_calendar_all,
               file = smd_file_path('data',filename_calendar_import_college),
               sep=',',row.names=F,quote=F)

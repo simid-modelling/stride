@@ -27,6 +27,10 @@
 
 # get default parameter values to combine in a full-factorial grid
 get_exp_param_default <- function(bool_child_param = FALSE, bool_min_restrictive = FALSE){
+   
+   # create calendar files
+   create_calendar_files()
+   
    out <- list(r0                            = seq(3.4,3.4,0.1),
                 num_days                      = 196,
                 num_seeds                     = 10,
@@ -36,8 +40,7 @@ get_exp_param_default <- function(bool_child_param = FALSE, bool_min_restrictive
                 population_file               = c("pop_belgium11M_c500_teachers_censushh.csv"),
                 age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                 start_date                    = c('2020-02-17'),
-                holidays_file                 = 'calendar_belgium_2020_covid19_exit_school_adjusted_universal.json',
-                school_system_adjusted        = 1,
+                holidays_file                 = 'calendar_belgium_2020_covid19_exit_school_adjusted.csv',
                 telework_probability          = 0,
                 cnt_reduction_workplace       = 0.8,
                 cnt_reduction_other           = 0.85,

@@ -67,16 +67,21 @@ void Sim::TimeStep()
         // Logic where you compute (on the basis of input/config for initial day or on the basis of
         // number of sick persons, duration of epidemic etc) what kind of DaysOff scheme you apply.
         const bool isRegularWeekday     = m_calendar->IsRegularWeekday();
-        const bool isPreSchoolOff       = m_calendar->IsPreSchoolOff();
-        const bool isPrimarySchoolOff   = m_calendar->IsPrimarySchoolOff();
-        const bool isSecondarySchoolOff = m_calendar->IsSecondarySchoolOff();
-        const bool isCollegeOff         = m_calendar->IsCollegeOff();
         const bool isWorkplaceDistancingEnforced   = m_calendar->IsWorkplaceDistancingEnforced();
         const bool isCommunityDistancingEnforced   = m_calendar->IsCommunityDistancingEnforced();
         const bool isHouseholdClusteringAllowed    = m_calendar->IsHouseholdClusteringAllowed();
 
-        // skip all K12 schools?
-        bool areAllK12SchoolsOff = (isPreSchoolOff && isPrimarySchoolOff && isSecondarySchoolOff);
+//        // skip all K12 schools?
+//        bool areAllK12SchoolsOff = (m_calendar->IsSchoolClosed(1) && m_calendar->IsSchoolClosed(6) && m_calendar->IsSchoolClosed(11));
+//        bool isCollegeOff   = m_calendar->IsSchoolClosed(22);
+
+//        std::cout <<
+//        		isRegularWeekday << " " <<
+//				isWorkplaceDistancingEnforced << " " <<
+//				isCommunityDistancingEnforced << " " <<
+//				m_calendar->IsContactTracingActivated() << " " <<
+//				isHouseholdClusteringAllowed << " " << endl;
+
 
         // increment the number of days in lock-down and account for compliance
 		double workplace_distancing_factor = 0.0;
@@ -129,12 +134,9 @@ void Sim::TimeStep()
 		}
 
         // Import infected cases into the population
-//        if(m_num_daily_imported_cases > 0){
-//        	DiseaseSeeder(m_config, m_rn_man).ImportInfectedCases(m_population, m_num_daily_imported_cases, simDay);
-//        }
         if(m_calendar->GetNumberOfImportedCases() > 0){
         	DiseaseSeeder(m_config, m_rn_man).ImportInfectedCases(m_population, m_calendar->GetNumberOfImportedCases(), simDay);
-        cout << "import cases: " << m_calendar->GetNumberOfImportedCases() << endl;
+//        	cout << "import cases: " << m_calendar->GetNumberOfImportedCases() << endl;
         }
 
 #pragma omp parallel num_threads(m_num_threads)
@@ -147,13 +149,19 @@ void Sim::TimeStep()
 			for (size_t i = 0; i < population.size(); ++i) {
 
 				// adjust K12SchoolOff boolean to school type for individual 'i'
-				bool isK12SchoolOff = m_public_health_agency.IsK12SchoolOff(population[i].GetAge(),isPreSchoolOff,isPrimarySchoolOff,
-						isSecondarySchoolOff, isCollegeOff);
+//				bool isK12SchoolOff = m_public_health_agency.IsK12SchoolOff(population[i].GetAge(),
+//						m_calendar->IsSchoolClosed(0), //isPreSchoolOff,
+//						m_calendar->IsSchoolClosed(6), //isPrimarySchoolOff,
+//						m_calendar->IsSchoolClosed(11), //isSecondarySchoolOff,
+//						m_calendar->IsSchoolClosed(20)); //isCollegeOff);
 
-				// update health and presence at diffent contact pools
+				bool isK12SchoolOff = m_calendar->IsSchoolClosed(population[i].GetAge());
+				bool isCollegeOff   = m_calendar->IsSchoolClosed(population[i].GetAge());
+				// update health and presence at different contact pools
 				population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
 						isWorkplaceDistancingEnforced, isHouseholdClusteringAllowed,
-						m_handlers[thread_num]);
+						m_handlers[thread_num], 
+                        m_calendar);
 			}
         }// end pragma openMP
 
@@ -170,8 +178,8 @@ void Sim::TimeStep()
 			// Skip pools with id = 0, because it means Not Applicable.
 			for (auto typ : ContactType::IdList) {
 					if ((typ == ContactType::Id::Workplace && !isRegularWeekday) ||
-						(typ == ContactType::Id::K12School && areAllK12SchoolsOff) ||
-						(typ == ContactType::Id::College && isCollegeOff) ||
+						(typ == ContactType::Id::K12School && !isRegularWeekday) ||
+						(typ == ContactType::Id::College && !isRegularWeekday) ||
 						(typ == ContactType::Id::HouseholdCluster && !isHouseholdClusteringAllowed)) {
 							continue;
 					}

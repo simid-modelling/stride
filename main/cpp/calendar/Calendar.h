@@ -67,28 +67,14 @@ public:
 			return !(IsWeekend() || IsPublicHoliday());
 		}
 
-		/// Check if today pre-schools are off.
-		bool IsPreSchoolOff() const
+		bool IsSchoolClosed(unsigned int age) const
 		{
-			return IsWeekend() || IsPublicHoliday() || IsPreSchoolClosed();
-		}
+			// if an age is not present in school closure matrix, the age is
+			// not part of school ages so return false
+			if(age >= m_school_closures.size()){ return false; }
 
-		/// Check if today primary schools are off.
-		bool IsPrimarySchoolOff() const
-		{
-			return IsWeekend() || IsPublicHoliday() || IsPrimarySchoolClosed();
-		}
-
-		 /// Check if today secondary schools are off.
-		bool IsSecondarySchoolOff() const
-		{
-			return IsWeekend() || IsPublicHoliday() || IsSecondarySchoolClosed();
-		}
-
-		/// Check if today college is off.
-		bool IsCollegeOff() const
-		{
-			return IsWeekend() || IsPublicHoliday() || IsCollegeClosed();
+			// else check calendar
+			return IsWeekend() || IsPublicHoliday() || m_school_closures[age][GetDayIndex(m_date)];
 		}
 
         /// Check if quarantine measures are in place
@@ -149,30 +135,6 @@ private:
 			return m_public_holidays[GetDayIndex(m_date)];
 		}
 
-		/// Check if pre-schools are closed.
-		bool IsPreSchoolClosed() const
-		{
-			 return m_preschool_holidays[GetDayIndex(m_date)];
-		}
-
-		/// Check if primary schools are closed.
-		bool IsPrimarySchoolClosed() const
-		{
-			 return m_primary_school_holidays[GetDayIndex(m_date)];
-		}
-
-		/// Check if secondary schools are closed.
-		bool IsSecondarySchoolClosed() const
-		{
-			 return m_secondary_school_holidays[GetDayIndex(m_date)];
-		}
-
-		/// Check if Colleges are closed.
-		bool IsCollegeClosed() const
-		{
-			 return m_college_holidays[GetDayIndex(m_date)];
-		}
-
 		/// Check if it's weekend.
 		bool IsWeekend() const
 		{
@@ -190,10 +152,6 @@ private:
         boost::gregorian::date              m_date_start;                 ///< Start simulation.
         boost::gregorian::date              m_date_end;                   ///< End simulation.
         std::vector<bool> m_public_holidays;            ///< Vector of public holidays
-        std::vector<bool> m_preschool_holidays;         ///< Vector of pre-school closure
-        std::vector<bool> m_primary_school_holidays;    ///< Vector of primary school closure
-        std::vector<bool> m_secondary_school_holidays;  ///< Vector of secondary school closure
-        std::vector<bool> m_college_holidays;           ///< Vector of college closure
         std::vector<bool> m_workplace_distancing;       ///< Vector of days with social distancing enforcement for work places
         std::vector<bool> m_community_distancing;       ///< Vector of days with social distancing enforcement in the community
         std::vector<bool> m_contact_tracing;            ///< Vector of days with case finding measures
@@ -201,6 +159,8 @@ private:
         std::vector<bool> m_household_clustering;       ///< Vector of days when household clusters are allowed
 
         std::vector<unsigned int>m_imported_cases; ///<Vector of days when cases are imported (~daily seeding activated)
+
+        std::vector<std::vector<bool>> m_school_closures; /// Matrix for [age x boolean school closure over time]
 
 };
 
