@@ -153,7 +153,8 @@ void Sim::TimeStep()
 				// update health and presence at diffent contact pools
 				population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
 						isWorkplaceDistancingEnforced, isHouseholdClusteringAllowed,
-						m_handlers[thread_num]);
+						m_handlers[thread_num], 
+                        m_calendar);
 			}
         }// end pragma openMP
 

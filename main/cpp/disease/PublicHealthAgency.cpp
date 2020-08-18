@@ -150,8 +150,9 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 
 		if (p_case.IsTracingIndexCase() && p_case.GetHealth().NumberDaysSymptomatic(m_delay_isolation_index)	) {
 
-			// set index case in quarantine
-			p_case.GetHealth().StartIsolation(0);
+			// Set index case in quarantine.
+		    // As this individual tested positive, he/she is isolated for 7 days.
+			p_case.Isolate(simDay, simDay+7);
 
 			// counter for number of contacts tested
 			unsigned int num_contacts_tested = 0;
@@ -203,7 +204,8 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 
 					if(p_contact->GetHealth().IsInfected()){
 						// start isolation over X days
-						p_contact->GetHealth().StartIsolation(m_delay_contact_tracing);
+					    unsigned int start = simDay + m_delay_contact_tracing;
+						p_contact->Isolate(start, start + 7);
 
 						// add to log (TODO: check log_level)
 						logger->info("[TRACE] {} {} {} {} {} {} {} {} {} {}",
