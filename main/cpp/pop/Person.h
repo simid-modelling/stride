@@ -177,9 +177,9 @@ private:
         unsigned int m_isolated;
 
         ///< Event queue
-        std::priority_queue<Event, std::vector<Event>, std::less<Event>> m_events;
+        std::priority_queue<Event, std::vector<Event>, std::greater<Event>> m_events;
 };
 
-bool operator<(const Person::Event& lhs, const Person::Event& rhs);
+bool operator>(const Person::Event& lhs, const Person::Event& rhs);
 
 } // namespace stride
