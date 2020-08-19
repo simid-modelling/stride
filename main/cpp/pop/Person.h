@@ -99,7 +99,7 @@ public:
         void ParticipateInSurvey() { m_is_participant = true; }
 
         //Isolate the individual over an interval of days 
-        void Isolate(unsigned int from, unsigned int to); 
+        void Isolate(unsigned int simDay, unsigned int from, unsigned int to); 
 
         //Is the individual being isolated?
         bool InIsolation() const { return m_isolated; }
@@ -147,6 +147,12 @@ public:
         std::vector<Person*>& GetContactRegister () {
         	return m_contact_tracing_list;
         }
+
+private:
+        ///< Schedule an event, if the event should take place on simDay, it is executed right away.
+        void ScheduleEvent(unsigned int simDay, const Event &event);
+        ///< Check whether there are events to execute, and if so, execute them.
+        void UpdateEvents(unsigned int simDay);
 
 private:
         float        m_age; ///< The age.

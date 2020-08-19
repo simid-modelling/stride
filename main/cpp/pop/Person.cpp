@@ -30,10 +30,39 @@ namespace stride {
 using namespace std;
 using namespace stride::ContactType;
 
-void Person::Isolate(unsigned int from, unsigned int to)
+void Person::UpdateEvents(unsigned int simDay)
 {
-        m_events.push(Person::Event(from, Person::EventType::StartIsolation));
-        m_events.push(Person::Event(to, Person::EventType::EndIsolation));
+    if (!m_events.empty() && m_events.top().GetTime() < simDay) {
+        throw std::runtime_error("Person event scheduled in the past!");
+    }
+
+    // Update events
+    while (!m_events.empty() && m_events.top().GetTime() == simDay) {
+        const Event e = m_events.top();
+        m_events.pop();
+
+        EventType type = e.GetType();
+        if (type == Person::EventType::StartIsolation) {
+            m_isolated = true;
+        } else if (type == Person::EventType::EndIsolation) {
+            m_isolated = false;
+        }
+    }
+}
+
+void Person::ScheduleEvent(unsigned int simDay, const Event &event)
+{
+    m_events.push(event);
+    if (simDay == event.GetTime())
+        UpdateEvents(simDay);
+} 
+
+void Person::Isolate(unsigned int simDay, unsigned int from, unsigned int to)
+{
+    auto start = Person::Event(from, Person::EventType::StartIsolation);
+    ScheduleEvent(simDay, start);
+    auto end = Person::Event(to, Person::EventType::EndIsolation);
+    ScheduleEvent(simDay, end);
 }
 
 //TODO: boolean args can be obtained from the calendar
@@ -46,22 +75,7 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
 {
         const unsigned int simDay = calendar->GetSimulationDay();
 
-        if (!m_events.empty() && m_events.top().GetTime() < simDay) {
-            throw std::runtime_error("Person event scheduled in the past!");
-        }
-
-        // Update events
-        while (!m_events.empty() && m_events.top().GetTime() == simDay) {
-            const Event e = m_events.top();
-            m_events.pop();
-            
-            EventType type = e.GetType();
-            if (type == Person::EventType::StartIsolation) {
-                m_isolated = true;
-            } else if (type == Person::EventType::EndIsolation) {
-                m_isolated = false;
-            }
-        } 
+        UpdateEvents(simDay);
 
         // Update health and disease status
         m_health.Update();
