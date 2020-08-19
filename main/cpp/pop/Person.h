@@ -38,7 +38,7 @@ namespace stride {
 class Person
 {
 public:
-        enum class EventType { StartIsolation, EndIsolation };
+        enum EventType { StartIsolation, EndIsolation };
         class Event 
         {
             public:
