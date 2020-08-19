@@ -118,9 +118,9 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
 
 } // Person::Update()
 
-bool operator<(const Person::Event& lhs, const Person::Event& rhs)
+bool operator>(const Person::Event& lhs, const Person::Event& rhs)
 {
-    return lhs.GetTime() < rhs.GetTime();
+    return lhs.GetTime() > rhs.GetTime();
 }
 
 } // namespace stride
