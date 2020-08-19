@@ -126,7 +126,8 @@ void PublicHealthAgency::Trace(Person& p_case,
 
 			// Set index case in quarantine.
 		    // As this individual tested positive, he/she is isolated for 7 days.
-			p_case.Isolate(simDay, simDay+7);
+		     	unsigned int start = simDay + 1; //start tomorrow
+			p_case.Isolate(start, start+7);
 
 			// counter for number of contacts tested
 			unsigned int num_contacts_tested = 0;
