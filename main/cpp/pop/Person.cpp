@@ -34,6 +34,7 @@ void Person::Isolate(unsigned int from, unsigned int to)
         m_events.push(Person::Event(to, Person::EventType::EndIsolation));
 }
 
+//TODO: boolean args can be obtained from the calendar
 void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOff,
 		bool isTeleworkEnforced, bool isHouseholdClusteringAllowed,
 		ContactHandler& cHandler,
