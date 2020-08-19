@@ -43,6 +43,10 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
 {
         const unsigned int simDay = calendar->GetSimulationDay();
 
+        if (!m_events.empty() && m_events.top().GetTime() < simDay) {
+            throw std::runtime_error("Person event scheduled in the past!");
+        }
+
         // Update events
         while (!m_events.empty() && m_events.top().GetTime() == simDay) {
             const Event e = m_events.top();
