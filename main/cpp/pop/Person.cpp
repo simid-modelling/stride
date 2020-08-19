@@ -23,6 +23,8 @@
 #include "contact/ContactType.h"
 #include "pop/Age.h"
 
+#include <stdexcept>
+
 namespace stride {
 
 using namespace std;
@@ -42,6 +44,10 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
 
 {
         const unsigned int simDay = calendar->GetSimulationDay();
+
+        if (!m_events.empty() && m_events.top().GetTime() < simDay) {
+            throw std::runtime_error("Person event scheduled in the past!");
+        }
 
         // Update events
         while (!m_events.empty() && m_events.top().GetTime() == simDay) {
