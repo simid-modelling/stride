@@ -44,7 +44,7 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
 
         // Update events
         while (!m_events.empty() && m_events.top().GetTime() == simDay) {
-            const Event& e = m_events.top();
+            const Event e = m_events.top();
             m_events.pop();
             
             EventType type = e.GetType();
