@@ -124,6 +124,7 @@ shared_ptr<Sim> SimBuilder::Build(shared_ptr<Sim> sim, shared_ptr<Population> po
 		sim->m_compliance_delay_workplace           = m_config.get<unsigned int>("run.compliance_delay_workplace",0);
 		sim->m_compliance_delay_other               = m_config.get<unsigned int>("run.compliance_delay_other",0);
 		sim->m_cnt_intensity_householdCluster       = m_config.get<double>("run.cnt_intensity_householdCluster",0);
+		sim->m_is_isolated_from_household           = m_config.get<bool>("run.is_isolated_from_household",false);
 
         // --------------------------------------------------------------
         // Seed population with survey participants.

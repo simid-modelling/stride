@@ -107,6 +107,7 @@ public:
         /// Daily update of the isolation status, health status and presence in contact pools.
         void Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOff,
         		bool isWorkplaceDistancingEnforced, bool isHouseholdClusteringAllowed, 
+        		bool isIsolatedFromHousehold, 
                 ContactHandler& cHandler,
                 const std::shared_ptr<Calendar> calendar);
 

@@ -112,6 +112,7 @@ private:
         unsigned int     	        m_day_of_workplace_distancing;
         unsigned int     			m_day_of_community_distancing_exit;
         double                      m_cnt_intensity_householdCluster;
+        bool                        m_is_isolated_from_household;
 
         PublicHealthAgency          m_public_health_agency;
         UniversalTesting            m_universal_testing;
