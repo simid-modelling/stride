@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "PublicHealthAgency.h"
 #include "PCRPool.h"
 #include "contact/ContactPool.h"
 #include "contact/ContactHandler.h"
@@ -47,7 +48,7 @@ public:
 		void Initialize(const boost::property_tree::ptree& config);
 
        /// Public Health Strategy: perform universal testing
-       void PerformUniversalTesting(std::shared_ptr<Population> pop, ContactHandler& cHandler, const std::shared_ptr<Calendar> calendar);
+       void PerformUniversalTesting(std::shared_ptr<Population> pop, ContactHandler& cHandler, const std::shared_ptr<Calendar> calendar, PublicHealthAgency& pha);
 
 private:
         bool Bernoulli(ContactHandler& cHandler, double prob_of_success);
@@ -63,6 +64,7 @@ private:
         double m_unitest_isolation_compliance; ///< Household compliance when isolated (universal testing)
         unsigned int m_unitest_isolation_delay; ///< Delay (in days) after which positive individuals are isolated (universal testing)
         unsigned int m_unitest_detectable_delay; ///< Delay (in days) after which positive individuals become PCR detectable (universal testing)
+        std::string m_unitest_isolation_strategy; ///< Isolation strategy: isolate-pool/trace (universal testing)
         //universal testing planning
         std::vector<std::set<PCRPool>> m_unitest_planning; ///< Vector with at each element, a set of PCR pools, to be performed at one day
         unsigned int m_unitest_day_in_sweep; ///< The n-th day of the current universal testing sweep

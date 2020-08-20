@@ -20,6 +20,8 @@
 
 #include "UniversalTesting.h"
 
+#include "PublicHealthAgency.h"
+
 #include "calendar/Calendar.h"
 #include "pop/Population.h"
 #include "util/Containers.h"
@@ -30,6 +32,7 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <algorithm>
+#include <stdexcept>
 
 namespace stride {
 
@@ -46,6 +49,7 @@ UniversalTesting::UniversalTesting():
 	            m_unitest_test_compliance(0.0), m_unitest_isolation_compliance(0.0),
                 m_unitest_isolation_delay(0),
                 m_unitest_detectable_delay(0),
+                m_unitest_isolation_strategy("isolate-pool"),
 	            m_unitest_planning(),
 	            m_unitest_day_in_sweep(0)
 	{}
@@ -59,6 +63,7 @@ void UniversalTesting::Initialize(const ptree& config){
     m_unitest_isolation_compliance = config.get<double>("run.unitest_isolation_compliance",0.0);
     m_unitest_isolation_delay      = config.get<int>("run.unitest_isolation_delay",1);
     m_unitest_detectable_delay     = config.get<int>("run.unitest_detectable_delay",2);
+    m_unitest_isolation_strategy   = config.get<std::string>("run.unitest_isolation_strategy","isolate-pool");
     const auto prefix = config.get<string>("run.output_prefix");
     m_unitest_planning_output_fn   = FileSys::BuildPath(prefix, "unitest_planning.csv");
 
@@ -72,7 +77,8 @@ bool UniversalTesting::Bernoulli(ContactHandler& cHandler, double prob_of_succes
 }
 
 void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop, 
-        ContactHandler& cHandler, const std::shared_ptr<Calendar> calendar)
+        ContactHandler& cHandler, const std::shared_ptr<Calendar> calendar,
+        PublicHealthAgency& pha)
 {
   if (!calendar->IsUniversalTestingActivated())
     return;
@@ -217,20 +223,33 @@ void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop,
     bool pcr_test_positive = pool_positive_and_detectable && Bernoulli(cHandler, 1-m_unitest_fnr);
     if (pcr_test_positive) {
       for (auto& household : tested_households) {
-        bool isolation_compliance = Bernoulli(cHandler, m_unitest_isolation_compliance);
-        if (isolation_compliance) {
-          for (const auto& indiv : household) {
-              unsigned int start = simDay + 1 + m_unitest_isolation_delay;
-              indiv->Isolate(simDay, start, start + 7);
-              logger->info("[UNITEST-ISOLATE] pool_id={} household_id={} indiv_id={} infected?={} isolation_delay={} sim_day={}",
-              //logger->info("[UNITEST-ISOLATE] {} {} {} {} {} {}",
-            		                             pool.GetId(),
-                                                 indiv->GetPoolId(Id::Household),
-                                                 indiv->GetId(), 
-                                                 indiv->GetHealth().IsInfected(),
-                                                 m_unitest_isolation_delay,
-                                                 simDay);
+        if (m_unitest_isolation_strategy == "isolate-pool") {
+          bool isolation_compliance = Bernoulli(cHandler, m_unitest_isolation_compliance);
+          if (isolation_compliance) {
+            for (const auto& indiv : household) {
+                unsigned int start = simDay + 1 + m_unitest_isolation_delay;
+                indiv->Isolate(simDay, start, start + 7);
+                logger->info("[UNITEST-ISOLATE] pool_id={} household_id={} indiv_id={} infected?={} isolation_delay={} sim_day={}",
+                //logger->info("[UNITEST-ISOLATE] {} {} {} {} {} {}",
+            	  	                               pool.GetId(),
+                                                   indiv->GetPoolId(Id::Household),
+                                                   indiv->GetId(), 
+                                                   indiv->GetHealth().IsInfected(),
+                                                   m_unitest_isolation_delay,
+                                                   simDay);
+            }
           }
+        } else if (m_unitest_isolation_strategy == "trace") {
+          for (Person* indiv : household) {
+            auto h = indiv->GetHealth();
+            if (h.IsInfected() && h.NumberDaysInfected(m_unitest_detectable_delay)) {
+              bool pcr_test_positive = Bernoulli(cHandler, 1-m_unitest_fnr);
+              if (pcr_test_positive)
+                pha.Trace(*indiv, pop, cHandler, calendar);
+            }
+          }
+        } else {
+          throw std::runtime_error("Invalid unitest_isolation_strategy");
         }
       }
     }

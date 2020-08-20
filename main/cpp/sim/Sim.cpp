@@ -171,7 +171,7 @@ void Sim::TimeStep()
 		 m_public_health_agency.PerformContactTracing(m_population, m_handlers[0], m_calendar);
 
 		 // Perform universal testing 
-	     m_universal_testing.PerformUniversalTesting(m_population, m_handlers[0], m_calendar);
+	     m_universal_testing.PerformUniversalTesting(m_population, m_handlers[0], m_calendar,m_public_health_agency);
 
 #pragma omp parallel num_threads(m_num_threads)
         {
