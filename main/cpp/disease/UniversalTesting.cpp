@@ -45,6 +45,7 @@ UniversalTesting::UniversalTesting():
 		        m_unitest_fnr(-1.0), m_unitest_n_tests_per_day(0), m_unitest_pool_size(0),
 	            m_unitest_test_compliance(0.0), m_unitest_isolation_compliance(0.0),
                 m_unitest_isolation_delay(0),
+                m_unitest_detectable_delay(0),
 	            m_unitest_planning(),
 	            m_unitest_day_in_sweep(0)
 	{}
@@ -57,6 +58,7 @@ void UniversalTesting::Initialize(const ptree& config){
     m_unitest_test_compliance      = config.get<double>("run.unitest_test_compliance",0.0);
     m_unitest_isolation_compliance = config.get<double>("run.unitest_isolation_compliance",0.0);
     m_unitest_isolation_delay      = config.get<int>("run.unitest_isolation_delay",1);
+    m_unitest_detectable_delay     = config.get<int>("run.unitest_detectable_delay",2);
     const auto prefix = config.get<string>("run.output_prefix");
     m_unitest_planning_output_fn   = FileSys::BuildPath(prefix, "unitest_planning.csv");
 
@@ -196,7 +198,7 @@ void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop,
   for (const auto& pool : m_unitest_planning[m_unitest_day_in_sweep]) {
     logger->info("[UNITEST] {} {}", simDay, m_unitest_day_in_sweep);
 
-    bool pool_positive = false;
+    bool pool_positive_and_detectable = false;
     std::vector<std::vector<Person*>> tested_households;
     for (const auto& household : pool.GetHouseholds()) {
       bool compliant = Bernoulli(cHandler, m_unitest_test_compliance);
@@ -205,13 +207,14 @@ void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop,
         tested_households.push_back(household);
       
         for (const Person* indiv : household) {
-          if (indiv->GetHealth().IsInfected())
-            pool_positive = true;
+          auto h = indiv->GetHealth();
+          if (h.IsInfected() && h.NumberDaysInfected(m_unitest_detectable_delay))
+            pool_positive_and_detectable = true;
         }
       }
     }
 
-    bool pcr_test_positive = pool_positive && Bernoulli(cHandler, 1-m_unitest_fnr);
+    bool pcr_test_positive = pool_positive_and_detectable && Bernoulli(cHandler, 1-m_unitest_fnr);
     if (pcr_test_positive) {
       for (auto& household : tested_households) {
         bool isolation_compliance = Bernoulli(cHandler, m_unitest_isolation_compliance);
