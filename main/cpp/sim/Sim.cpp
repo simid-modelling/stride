@@ -44,6 +44,7 @@ Sim::Sim()
 	  m_cnt_reduction_workplace_exit(0),m_cnt_reduction_other_exit(0), m_cnt_reduction_school_exit(0), m_cnt_reduction_intergeneration(0),
 	  m_cnt_reduction_intergeneration_cutoff(0), m_compliance_delay_workplace(0), m_compliance_delay_other(0),
 	  m_day_of_community_distancing(0), m_day_of_workplace_distancing(0), m_day_of_community_distancing_exit(0),m_cnt_intensity_householdCluster(0),
+      m_is_isolated_from_household(false),
 	  m_public_health_agency(),m_universal_testing(),m_num_daily_imported_cases(0)
 
 {
@@ -160,7 +161,8 @@ void Sim::TimeStep()
 				// update health and presence at different contact pools
 				population[i].Update(isRegularWeekday, isK12SchoolOff, isCollegeOff,
 						isWorkplaceDistancingEnforced, isHouseholdClusteringAllowed,
-						m_handlers[thread_num], 
+						m_is_isolated_from_household,
+                        m_handlers[thread_num], 
                         m_calendar);
 			}
         }// end pragma openMP
