@@ -116,6 +116,7 @@ void PublicHealthAgency::PerformContactTracing(std::shared_ptr<Population> pop, 
 	}
 }
 
+//TODO: rename IsolateAndTrace()
 void PublicHealthAgency::Trace(Person& p_case, 
         std::shared_ptr<Population> pop, 
         ContactHandler& cHandler,
