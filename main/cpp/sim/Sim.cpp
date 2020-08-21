@@ -121,6 +121,7 @@ void Sim::TimeStep()
 
 		// To be used in update of population & contact pools.
         Population& population    = *m_population;
+        auto&       logger        = population.RefEventLogger();
         auto&       poolSys       = population.RefPoolSys();
         auto        eventLogger   = population.RefEventLogger();
         const auto  simDay        = m_calendar->GetSimulationDay();
@@ -138,6 +139,7 @@ void Sim::TimeStep()
         if(m_calendar->GetNumberOfImportedCases() > 0){
         	DiseaseSeeder(m_config, m_rn_man).ImportInfectedCases(m_population, m_calendar->GetNumberOfImportedCases(), simDay);
 //        	cout << "import cases: " << m_calendar->GetNumberOfImportedCases() << endl;
+            logger->info("[IMPORT-CASES] sim_day={} count={}", simDay, m_calendar->GetNumberOfImportedCases());        	
         }
 
 #pragma omp parallel num_threads(m_num_threads)
