@@ -41,6 +41,8 @@ void Person::UpdateEvents(unsigned int simDay)
         const Event e = m_events.top();
         m_events.pop();
 
+        //TODO: log the execution of events, 
+        //make the logger available through a singleton? 
         EventType type = e.GetType();
         if (type == Person::EventType::StartIsolation) {
             m_isolated = true;
