@@ -141,7 +141,7 @@ create_calenders_universal_testing <- function(date_policy_switch,
   ) -> dcal_school_closure
   
   #secondary school
-  dcal_secondary_closure <- copy(d_school_closure)
+  dcal_secondary_closure <- copy(dcal_school_closure)
   dcal_secondary_closure[,category := 'secondary_school']
   
   # college (default remains closed)
