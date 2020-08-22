@@ -117,6 +117,7 @@ private:
         PublicHealthAgency          m_public_health_agency;
         UniversalTesting            m_universal_testing;
 
+        //TODO: this is not used anymore? remove it?
         // Introduce new infected cases on a daily basis?
         unsigned int                m_num_daily_imported_cases;
 
