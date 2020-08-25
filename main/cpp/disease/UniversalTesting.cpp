@@ -242,7 +242,7 @@ void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop,
         } else if (m_unitest_isolation_strategy == "trace") {
           for (Person* indiv : household) {
             auto h = indiv->GetHealth();
-            if (h.IsInfected() && h.NumberDaysInfected(m_unitest_detectable_delay)) {
+            if (h.IsInfected() && h.IsPcrDetectable(m_unitest_detectable_delay)) {
               bool pcr_test_positive = Bernoulli(cHandler, 1-m_unitest_fnr);
               if (pcr_test_positive)
                 pha.Trace(*indiv, pop, cHandler, calendar);
