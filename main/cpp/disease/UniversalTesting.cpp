@@ -214,7 +214,7 @@ void UniversalTesting::PerformUniversalTesting(std::shared_ptr<Population> pop,
       
         for (const Person* indiv : household) {
           auto h = indiv->GetHealth();
-          if (h.IsInfected() && h.NumberDaysInfected(m_unitest_detectable_delay))
+          if (h.IsInfected() && h.IsPcrDetectable(m_unitest_detectable_delay))
             pool_positive_and_detectable = true;
         }
       }

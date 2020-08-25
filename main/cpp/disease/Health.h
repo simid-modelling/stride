@@ -138,6 +138,9 @@ public:
         	return rel_transmission;
         }
 
+	/// Is this individual PCR detectable?
+	bool IsPcrDetectable(unsigned int detectable_delay) const { return GetDiseaseCounter() >= detectable_delay; } 
+
 private:
         /// Get the disease counter.
         unsigned short int GetDiseaseCounter() const { return m_disease_counter; }
