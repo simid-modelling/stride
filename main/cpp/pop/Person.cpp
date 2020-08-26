@@ -131,7 +131,7 @@ void Person::Update(bool isRegularWeekday, bool isK12SchoolOff, bool isCollegeOf
 
         // Update presence in contact pools if person is in quarantine
         if(InIsolation()){
-        	m_in_pools[Id::Household]          = isIsolatedFromHousehold;  
+        	m_in_pools[Id::Household]          = !isIsolatedFromHousehold;  
         	m_in_pools[Id::K12School]          = false;
 			m_in_pools[Id::College]            = false;
 			m_in_pools[Id::Workplace]          = false;
