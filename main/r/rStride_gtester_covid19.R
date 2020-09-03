@@ -137,6 +137,10 @@ set.seed(125)
 exp_design$rng_seed <- sample(nrow(exp_design))
 dim(exp_design)
 
+# # selection?
+# exp_design <- exp_design[exp_design$gtester_label %in% c('covid_base'),]
+exp_design <- exp_design[exp_design$gtester_label %in% c('covid_base'),]
+
 
 ################################## #
 ## RUN rSTRIDE                  ####
@@ -171,6 +175,33 @@ project_summary$run_tag        <- NULL
 project_summary$run_time       <- NULL
 project_summary$total_time     <- NULL
 
+# CHECK summary: plot number of cases
+y_lim     <- range(pretty(c(project_summary$num_cases*0.9,project_summary$num_cases*1.1)))
+bplt_mean <- aggregate(num_cases ~ gtester_label,data=project_summary,mean)
+bplt_mean$num_cases <- round(bplt_mean$num_cases)
+bplt <- boxplot(num_cases ~ gtester_label,data=project_summary,las=2,ylim=y_lim)
+x_ticks_mean <- (1:ncol(bplt$stats))+0.2
+points(x = x_ticks_mean,
+       y = bplt_mean$num_cases,
+       pch = 8,
+       col = 4)
+arrows(x0 = x_ticks_mean,
+       y0 = bplt_mean$num_cases * 0.9,
+       y1 = bplt_mean$num_cases * 1.1,
+       col = 4, lwd = 2,length = 0
+       )
+text(x = 1:ncol(bplt$stats),
+     y = bplt_mean$num_cases*1.1,
+     labels = bplt_mean$num_cases,
+     pos = 3,
+     col=4)
+legend('topright',
+       c('mean',
+         'mean ± 10%'),
+       pch=c('*','I'),
+       col=4)
+grid()
+
 # load the incidence output
 data_incidence     <- .rstride$load_aggregated_output(project_dir,'data_incidence')
 dim(data_incidence)
@@ -184,13 +215,13 @@ ref_project_summary  <- readRDS(file='tests/regression_rstride_summary.rds')
 ref_data_incidence   <- readRDS(file='tests/regression_rstride_incidence.rds')
 ref_data_prevalence  <- readRDS(file='tests/regression_rstride_prevalence.rds')
 
-# plot number of cases
-y_lim <- range(pretty(project_summary$num_cases*0.9,project_summary$num_cases*1.1))
-bplt <- boxplot(num_cases ~ gtester_label,data=project_summary,las=2,ylim=y_lim)
-text(x = 1:ncol(bplt$stats),
-     y = bplt$stats[5,],
-     labels = bplt$stats[3,],
-     pos = 3)
+# Do we have to select reference scenarios?
+if(nrow(project_summary) != nrow(ref_project_summary)){
+  ref_project_summary <- ref_project_summary[ref_project_summary$gtester_label %in% unique(project_summary$gtester_label),]
+  ref_data_incidence  <- ref_data_incidence[ref_data_incidence$exp_id %in% unique(ref_project_summary$exp_id),]
+  ref_data_prevalence <- ref_data_prevalence[ref_data_prevalence$exp_id %in% unique(ref_project_summary$exp_id),]
+  smd_print("REGRESSION TEST DOES NOT CONTAIN ALL SCENARIOS",WARNING = T)
+}
 
 ## COMPARE SUMMARY
 diff_summary    <- setdiff(project_summary,ref_project_summary)
@@ -265,7 +296,3 @@ rrv_repo <- function(){
   saveRDS(data_prevalence,file=file.path(stride_repo_dir,'regression_rstride_prevalence.rds'))
   smd_print('NEW REFERENCE VALES STORED: IN STRIDE REPOSITORY')
 }
-
-
-
-
