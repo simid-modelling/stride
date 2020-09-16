@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L
 ############################################################################ #
 
 
@@ -45,7 +45,7 @@ inspect_transmission_dynamics <- function(project_dir,save_pdf = TRUE)
   # open pdf stream
   if(save_pdf) .rstride$create_pdf(project_dir,'transmission_inspection',10,7)
 
-  i_config <- 1
+  i_config <- 6
   for(i_config in 1:nrow(input_opt_design)){
     
     # reset figure arrangements... and start new plot
@@ -65,7 +65,11 @@ inspect_transmission_dynamics <- function(project_dir,save_pdf = TRUE)
          type='l',
          col=alpha(1,0.5))
     add_breakpoints()
-    
+    abline(h=3.1,col=4)
+    text(max(data_incidence$sim_date),3.1,'3.1',pos=3)
+    polygon(x=c(data_incidence$sim_date,rev(data_incidence$sim_date)),
+            y = c(rep(2.4,nrow(data_incidence)),rep(4.4,nrow(data_incidence))),
+            col=alpha(4,0.1),border = NA)
     
     ## REPRODUCTION NUMBER ----
     data_incidence$sec_cases[data_incidence$sim_date == min(data_incidence$sim_date,na.rm=T)] <- NA
@@ -80,6 +84,20 @@ inspect_transmission_dynamics <- function(project_dir,save_pdf = TRUE)
     abline(h=1,lty=3)
     add_x_axis(range(data_incidence$sim_date,na.rm = T))
     add_breakpoints()
+    abline(h=3.1,col=4)
+    
+    text(max(data_incidence$sim_date),3.28,'3.28',pos=3)
+    polygon(x=c(data_incidence$sim_date,rev(data_incidence$sim_date)),
+            y = c(rep(3.28-1.16,nrow(data_incidence)),rep(3.28+1.16,nrow(data_incidence))),
+            col=alpha(4,0.1),border = NA)
+    
+    if('r0' %in% names(input_opt_design[i_config,])){
+      points(min(data_incidence$sim_date),input_opt_design[i_config,'r0'],col=4,pch=9)
+      text(min(data_incidence$sim_date),input_opt_design[i_config,'r0'],
+           round(input_opt_design[i_config,'r0'],digits=2),pos=3,cex=0.7)
+    }
+    
+    
     
     ## GENERATION INTERVAL   ----
     # note: the generation interval is the time between the infection time of an infected person and the infection time of his or her infector.
@@ -90,8 +108,11 @@ inspect_transmission_dynamics <- function(project_dir,save_pdf = TRUE)
          xaxt='n',
          col=alpha(1,0.5))
     add_x_axis(range(data_incidence$sim_date))
-    abline(h=5.2)
     text(max(data_incidence$sim_date),5.2,'5.2',pos=3)
+    abline(h=5.2,col=4)
+    polygon(x=c(data_incidence$sim_date,rev(data_incidence$sim_date)),
+            y = c(rep(3.78,nrow(data_incidence)),rep(6.78,nrow(data_incidence))),
+            col=alpha(4,0.1),border = NA)
     
     # AGE: INFECTIONS     ----
     age_breaks <- c(0,18,59,79,110)
@@ -257,30 +278,32 @@ get_transmission_statistics <- function(data_transm)
   data_transm[,age_cat_num := .(cut(part_age,age_breaks,include.lowest = T,right = T)),]
   data_transm[,age_cat := .(paste0('age',as.numeric(age_cat_num))),]
   
+  # set all age categories
+  age_cat_all <- paste0('age',1:(length(age_breaks)-1))
   
   ## INCIDENCE ----
   # infections
-  summary_infections   <- get_summary_table(data_transm,'infection_date','age_cat','new_infections')
+  summary_infections   <- get_summary_table(data_transm,'infection_date','age_cat','new_infections',age_cat_all)
 
   # infectious
   #data_transm$date_infectiousness <- data_transm$infection_date + data_transm$start_infectiousness
   data_transm[, date_infectiousness := infection_date + start_infectiousness]
-  summary_infectious  <- get_summary_table(data_transm,'date_infectiousness','age_cat','new_infectious_cases')
+  summary_infectious  <- get_summary_table(data_transm,'date_infectiousness','age_cat','new_infectious_cases',age_cat_all)
   
   # symptomatic
   #data_transm$date_symptomatic <- data_transm$infection_date + data_transm$start_symptoms
   data_transm[, date_symptomatic := infection_date + start_symptoms]
-  summary_symptomatic <- get_summary_table(data_transm,'date_symptomatic','age_cat','new_symptomatic_cases')
+  summary_symptomatic <- get_summary_table(data_transm,'date_symptomatic','age_cat','new_symptomatic_cases',age_cat_all)
   
   # recovered
   #data_transm$date_recovered <- data_transm$infection_date + data_transm$end_symptoms
   #data_transm[, date_recovered := infection_date + end_infectiousness]
-  summary_recovered   <- get_summary_table(data_transm,'date_recovered','age_cat','new_recovered_cases')
+  summary_recovered   <- get_summary_table(data_transm,'date_recovered','age_cat','new_recovered_cases',age_cat_all)
   
   # hospital admission     
   #data_transm$date_hosp_adm <- data_transm$infection_date + data_transm$hospital_admission_start
   data_transm[, date_hosp_adm := infection_date + hospital_admission_start]
-  summary_hospital          <- get_summary_table(data_transm,'date_hosp_adm','age_cat','new_hospital_admissions')
+  summary_hospital          <- get_summary_table(data_transm,'date_hosp_adm','age_cat','new_hospital_admissions',age_cat_all)
   
   ## DOUBLING TIME      ----
   # calcualate cumulative cases and double time
@@ -303,20 +326,21 @@ get_transmission_statistics <- function(data_transm)
 
   
   ## LOCATION ----
-  summary_location <- get_summary_table(data_transm,'infection_date','pool_type','location')
+  pool_type_opt <- c("College","Household","HouseholdCluster",
+                     "K12School","PrimaryCommunity","SecondaryCommunity","Workplace") # TODO: make this flexible?
+  summary_location <- get_summary_table(data_transm,'infection_date','pool_type','location',pool_type_opt) 
   summary_location$location    <- NULL # remove
   summary_location$location_NA <- NULL # remove
   
-  
-  # make sure HouseholdCluster is present
-  if(!('location_HouseholdCluster'%in%names(summary_location))){
-    summary_location$location_HouseholdCluster <- 0
-  }
-  # make sure College is present 
-  #TODO: find more structured way to check/add location types
-  if(!('location_College'%in%names(summary_location))){
-    summary_location$location_College <- 0
-  }
+  # # make sure HouseholdCluster is present
+  # if(!('location_HouseholdCluster'%in%names(summary_location))){
+  #   summary_location$location_HouseholdCluster <- 0
+  # }
+  # # make sure College is present 
+  # #TODO: find more structured way to check/add location types
+  # if(!('location_College'%in%names(summary_location))){
+  #   summary_location$location_College <- 0
+  # }
   
   # sort
   sorted_names <- (sort(names(summary_location)))
@@ -358,10 +382,10 @@ get_transmission_statistics <- function(data_transm)
 
 # Function to generate summary tables
 # colname_date <- 'infection_date'; colname_value <- 'cnt_location'; prefix <- 'location';
-# colname_date <- 'infection_date'; colname_value <- 'age_cat'; prefix <- 'cases';
+#colname_date <- 'infection_date'; colname_value <- 'age_cat'; prefix <- 'cases';
 # colname_date <- 'infection_date'; colname_value <-'age_cat';prefix <- 'new_infections'
 # data_transm <- ref_case_data_table; colname_date="DATE";colname_value='AGEGROUP';prefix='d'
-get_summary_table <- function(data_transm,colname_date,colname_value,prefix){
+get_summary_table <- function(data_transm,colname_date,colname_value,prefix,colname_opt=NA){
   
   # overal summary
   #summary_table_general        <- as.data.frame(table(data_transm[,colname_date]))
@@ -373,8 +397,18 @@ get_summary_table <- function(data_transm,colname_date,colname_value,prefix){
   # names(summary_table)         <- paste(prefix,names(summary_table),sep='_')
   # summary_table$sim_date       <- as.Date(row.names(summary_table)) 
   summary_table                  <- dcast(data_transm, formula(paste(colname_date, '~' ,colname_value)), value.var='ID', length)
+  
+  # if not all categories were persent, add column with 0's
+  if(all(!is.na(colname_opt)) & any(!colname_opt %in% names(summary_table))){
+    summary_table[,c(colname_opt[!colname_opt %in% names(summary_table)]):=0]
+    setcolorder(summary_table,c(colname_date,colname_opt))# reorder
+  }
+  
+  # update names
   names(summary_table)           <- c('sim_date',paste(prefix,names(summary_table)[-1],sep='_'))
 
+ 
+  
   # merge
   summary_table <- merge(summary_table,summary_table_general)
   
@@ -385,4 +419,45 @@ get_summary_table <- function(data_transm,colname_date,colname_value,prefix){
   return(summary_table)
 }
 
+# get 
+aggregate_transmission_dynamics <- function(project_dir){
+  
+  
+  # load project summary
+  project_summary      <- .rstride$load_project_summary(project_dir)
+  
+  # retrieve all variable model parameters
+  input_opt_design     <- .rstride$get_variable_model_param(project_summary)
+  
+  # get all transmission output
+  data_incidence_all      <- .rstride$load_aggregated_output(project_dir,'data_incidence')
+  
+  if(length(data_incidence_all) == 1 && is.na(data_incidence_all)){
+    smd_print('NO TRANSMISSION DATA AVAILABLE.')
+    return(.rstride$no_return_value())
+  }
+  
+  # select one week, after 10 days
+  sel_period <- seq(min(data_incidence_all$sim_date)+9,min(data_incidence_all$sim_date)+15,1)
+  data_incidence_all <- data_incidence_all[data_incidence_all$sim_date %in% sel_period,]
+  
+  i_config <- 6
+  foreach(i_config = 1:nrow(input_opt_design),
+          .combine = 'rbind') %do%{
+    
+    # subset transmission output corresponding the 'input_opt_design' row
+    flag_exp            <- .rstride$get_equal_rows(project_summary,input_opt_design[i_config,])
+    data_incidence      <- data_incidence_all[data_incidence_all$exp_id %in% project_summary$exp_id[flag_exp],]
+    num_runs_exp        <- sum(flag_exp)
+    num_infected_seeds  <- data_incidence$new_infections[1]
+    
+    return(c(doubling_time = mean(data_incidence$doubling_time,na.rm=TRUE),
+             sec_cases = mean(data_incidence$sec_cases,na.rm=TRUE),
+             gen_interval =mean(data_incidence$gen_interval,na.rm=TRUE),
+             r0 = input_opt_design[i_config,]))
+    
+    
+  } -> transmission_results
 
+  return(transmission_results)
+}

@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L
 ############################################################################ #
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -139,7 +139,7 @@ dim(exp_design)
 
 # # selection?
 # exp_design <- exp_design[exp_design$gtester_label %in% c('covid_base'),]
-exp_design <- exp_design[exp_design$gtester_label %in% c('covid_base'),]
+#exp_design <- exp_design[exp_design$gtester_label %in% c('covid_base'),]
 
 
 ################################## #

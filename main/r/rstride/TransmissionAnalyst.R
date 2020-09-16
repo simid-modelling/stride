@@ -13,12 +13,12 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2019, Willem L, Kuylen E & Broeckhove J
-#############################################################################
+#  Copyright 2012, Willem L
+############################################################################ #
 
-#############################################################################
-# ESTIMATE TRANSMISSION PROBABILITY PARAMETERS TO CALLIBRATE THE MODEL R0  ##
-#############################################################################
+############################################################################ #
+# ESTIMATE TRANSMISSION PROBABILITY PARAMETERS TO CALLIBRATE THE MODEL R0   ##
+############################################################################ #
 
 analyse_transmission_data_for_r0 <- function(project_dir)
 {
@@ -26,9 +26,9 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # terminal message
   smd_print('START TO CALLIBRATE R0')
   
-  ##################################
-  ## REPRODUCTION NUMBER          ##
-  ##################################
+  ################################# #
+  ## REPRODUCTION NUMBER  ----
+  ################################# #
 
   project_summary <- .rstride$load_project_summary(project_dir)
   
@@ -164,9 +164,9 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   legend('left','mean',pch=15,col=4,cex=0.8)
   
   
-  ###############################
-  ## EXPLORE DISEASE FILE       ##
-  ###############################
+  ############################## #
+  ## EXPLORE DISEASE FILE   ----
+  ############################## #
   
   # get disease config filename
   disease_config_file     <- unique(project_summary$disease_config_file)
@@ -202,9 +202,9 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   
   
   
-  ####################################
-  ## DISEASE HISTORY MEASLES        ##
-  ####################################
+  ################################### #
+  ## DISEASE HISTORY MEASLES   ----
+  ################################### # 
   
   if(exists('config_disease$label$pathogen') && config_disease$label$pathogen ==  'measles')
   {
@@ -244,9 +244,9 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # close pdf stream
   dev.off()
   
-  ####################################
-  ## UPDATE DISEASE CONFIG FILE     ##
-  ####################################
+  ################################### #
+  ## UPDATE DISEASE CONFIG FILE  ----
+  ################################### #
  
   variable_param <- .rstride$get_variable_model_param(project_summary)
   
@@ -295,9 +295,9 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # terminal message
   smd_print('NEW DISEASE CONFIG FILE', disease_config_update_file)
   
-  ###############################
-  ## TERMINATE PARALLEL NODES  ##
-  ###############################
+  ############################## #
+  ## TERMINATE PARALLEL NODES ----
+  ############################## #
   smd_stop_cluster()
   
   # command line message
@@ -305,9 +305,9 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   
 }
 
-##################################
-## POLYNOMIAL HELP FUNCTIONS    ##
-##################################
+################################# #
+## POLYNOMIAL HELP FUNCTIONS  ----
+################################# #
 
 .rstride$f_poly        <- function(x,b0,b1,b2) {b0 + b1*x + b2*(x^2)}
 .rstride$f_poly_r0     <- function(x,b0,b1,b2) {b0 + b1*x + b2*(x^2)}
@@ -340,4 +340,148 @@ if(0==1){
   grid()
   abline(h=1)  
 }
+
+###################################### #
+## LITERATURE BASED DISTRIBUTIONS  ----
+###################################### #
+
+update_disease_parameters <- function(disease_filename = 'data/disease_covid19_age.xml',d_infect_mean = 6){
+  
+  # load data
+  disease_data <- xmlToList(disease_filename)
+  
+  # Incubation period ----
+  # from Li et al NEJM 2020
+  # lognormal mean = 5.2; 95% CI = c(4.1, 7.0)
+  ln.par1 = 1.434065
+  ln.par2 = 0.6612
+  
+  # Explore incubation period 
+  curve(dlnorm(x, ln.par1, ln.par2), from=0, to=14, axes=F, ann=F, ylim=c(0,0.3), xlim=c(0,14))
+  axis(2, las=1, at=0:3*0.1, lab=paste0(0:3*10,'%'))
+  axis(1, at=0:5*3, lab=0:5*3, cex.axis=1)
+  mtext('Density', 2, line=3)
+  mtext('Days from infection to symptom onset', 1, line=2.5)
+  
+  # sample for day 0 to 21
+  t_days <- seq(0,21,1)
+  t_symp <- dlnorm(t_days, ln.par1, ln.par2)
+  points(t_days,t_symp)
+  
+  # set total to 1
+  t_symp <- t_symp / sum(t_symp)
+  
+  # add probabilities to disease file
+  # first replicate the list structure, and than add new values
+  disease_data$start_symptomatic <- rep(disease_data$start_symptomatic,5)[1:length(t_days)]
+  disease_data$start_symptomatic[1:length(t_days)] <- cumsum(t_symp)
+  disease_data$start_symptomatic
+  
+  
+  # --- start infectious period ----
+  # He et al
+  inf.par1 = 20.516508
+  inf.par2 = 1.592124
+  inf.par3 = 12.272481
+  plot(NA, axes=F, ann=F, ylim=c(0,0.3), xlim=c(-10,8))
+  axis(2, las=1, at=0:3*0.1, lab=paste0(0:3*10,'%'))
+  abline(v=0, col=gray(0.8))
+  curve(dgamma(x+inf.par3, inf.par1, inf.par2), from=-10, to=8, add=T)
+  axis(1, at=(-5:4)*2, lab=(-5:4)*2, cex.axis=1)
+  mtext('Density', 2, line=3)
+  mtext('Days after symptom onset', 1, line=2.5)
+  
+  t_days <- (-13:30 + inf.par3)
+  d_asymp <- dgamma(t_days, inf.par1, inf.par2)
+  t_days <- t_days - inf.par3
+  points(t_days,d_asymp)
+  
+  # select pre-symptomatic period (at least one day prior symptom onset)
+  sel_t_days <- t_days <=-1
+  d_asymp    <- d_asymp[sel_t_days]
+  t_days     <- t_days[sel_t_days]
+  points(t_days,d_asymp,col=2,pch=20)
+  
+  # set total area under the curve to 1
+  d_asymp <- d_asymp / sum(d_asymp)
+
+  # change time horizon => number of days days prior symptom onset (instead of post symptom onset)
+  t_days <- rev(-t_days)
+  d_asymp <- rev(d_asymp) 
+  
+  plot(t_days,
+       d_asymp)
+  
+  disease_data$time_asymptomatic <- rep(disease_data$time_asymptomatic,5)[1:length(t_days)]
+  disease_data$time_asymptomatic[1:length(t_days)] <- cumsum(d_asymp)
+  disease_data$time_asymptomatic
+  
+  
+  # # duration infectiousness
+
+  ## Lourenço et al (medxriv)
+  ## https://www.medrxiv.org/content/10.1101/2020.03.24.20042291v1.full.pdf
+  ## infectious period (days) 1/ σ
+  # Gaussian distribution G(M=4.5, SD=1) 
+  
+  ## Test distribution with 4:7 days
+  #d_infect_mean <- 6
+  t_days <- 0:15
+  d_infect <- dnorm(t_days,d_infect_mean,1)
+  
+  plot(t_days,d_infect,type='b')
+  
+  disease_data$time_infectious <- rep(disease_data$time_infectious,5)[1:length(t_days)]
+  disease_data$time_infectious[1:length(t_days)] <- cumsum(d_infect)
+  disease_data$time_infectious
+  
+  ######################################### # 
+  # Symptomatic period  ---- (fix to 7 days)
+  disease_data$time_symptomatic <- rep(disease_data$time_symptomatic,2)[1:8]
+  disease_data$time_symptomatic[1:7] <- 0
+  disease_data$time_symptomatic[8] <- 1
+  
+  
+  ######################################### # 
+  # Summary  ----
+ 
+  # sample diseas characteristics 
+  n_sample <- 1e5
+  start_symp  <- sample(1:length(t_symp)-1,size = n_sample, t_symp,replace = T)
+  time_asymp  <- sample(1:length(d_asymp)-1,size = n_sample, d_asymp,replace = T)
+  time_infect <- sample(1:length(d_infect)-1,size = n_sample, d_infect,replace = T)
+  
+  # Remove invalid sample combinations
+  flag_unvalid <- start_symp - time_asymp < 1
+  table(flag_unvalid) / n_sample
+  start_symp <- start_symp[!flag_unvalid]
+  time_asymp <- time_asymp[!flag_unvalid]
+  time_infect <- time_infect[!flag_unvalid]
+  
+  # check infectiousness by days after symptom onset
+  print(round(table(time_infect - time_asymp) / length(time_infect),digits=2))
+  
+  # Save disease info to file ----
+ 
+  # add info to label
+  names(disease_data)
+  disease_data$label$ref_start_symptoms <- 'Li et al NEJM 2020 based on lognormal mean = 5.2; 95% CI = c(4.1, 7.0)'
+  disease_data$label$ref_time_asymptomatic <- 'He et al Nature Med 2020 based on gamma distribution [shape=20.516508, rate = 1.592124, shift = 12.272481]'
+  disease_data$label$ref_time_infectious <- 'Estimation, based on Lourenço et al with N(4.5,1)'
+  disease_data$label$ref_time_symptomatic <- 'Fixed to 7'
+  
+   # save as xml (with meta data)
+  smd_save_as_xml(data_list = disease_data, root_name = 'disease', file_name_prefix = paste0('./data/disease_covid19_age_distr_',d_infect_mean,'d'),
+                  xml_prefix = paste0(' This file is part of the Stride software [', format(Sys.time()), ']'))
+  
+  
+}
+
+if(0==1){
+  update_disease_parameters(d_infect_mean= 4)
+  update_disease_parameters(d_infect_mean= 5)
+  update_disease_parameters(d_infect_mean= 6)
+  update_disease_parameters(d_infect_mean= 7)
+}
+
 
