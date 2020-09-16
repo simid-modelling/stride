@@ -471,7 +471,7 @@ update_disease_parameters <- function(disease_filename = 'data/disease_covid19_a
   disease_data$label$ref_time_symptomatic <- 'Fixed to 7'
   
    # save as xml (with meta data)
-  smd_save_as_xml(data_list = disease_data, root_name = 'disease', file_name_prefix = paste0('./data/disease_covid19_age_distr_',d_infect_mean,'d'),
+  smd_save_as_xml(data_list = disease_data, root_name = 'disease', file_name_prefix = paste0('./data/disease_covid19_age_distr_d',d_infect_mean),
                   xml_prefix = paste0(' This file is part of the Stride software [', format(Sys.time()), ']'))
   
   

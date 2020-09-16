@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L
 #############################################################################
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -54,7 +54,7 @@ exp_design <- expand.grid(r0                            = seq(1,6,length=15),
                           disease_config_file           = "disease_covid19_age.xml",
                           population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
-                          holidays_file                 = "holidays_none.json",
+                          holidays_file                 = "holidays_none.csv",
                           stringsAsFactors = F)
 
 # add a unique seed for each run
@@ -65,7 +65,21 @@ dim(exp_design)
 ##################################
 ## RUN rSTRIDE                  ##
 ##################################
-project_dir <- run_rStride(exp_design,dir_postfix)
+project_dir <- run_rStride(exp_design = exp_design,
+                           dir_postfix = dir_postfix,
+                           ignore_stdout = T,
+                           remove_run_output = T,
+                           get_transmission_rdata = T)
+
+
+############################# #
+## INPUT-OUTPUT BEHAVIOR   ####
+############################# #
+# inspect_summary(project_dir)
+inspect_participant_data(project_dir)
+# inspect_incidence_data(project_dir)
+# inspect_prevalence_data(project_dir)
+inspect_transmission_dynamics(project_dir)
 
 
 ##################################

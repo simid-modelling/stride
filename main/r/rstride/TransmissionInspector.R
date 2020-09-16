@@ -150,20 +150,22 @@ inspect_transmission_dynamics <- function(project_dir,save_pdf = TRUE)
     
     ## RELATIVE HOSPITAL ADMISSIONS OVER TIME BY AGE
     data_incidence[,paste0('relative_hospital_admissions_age',1:length(age_labels))] <- data_incidence[,paste0('new_hospital_admissions_age',1:length(age_labels))] / data_incidence[,paste0('new_hospital_admissions')]
+   if(any(!is.na(data_incidence$relative_hospital_admissions_age1))){
+     plot(aggregate(relative_hospital_admissions_age1 ~ sim_date, data = data_incidence,mean),
+          ylim=0:1,col=1,lwd=2,type='l',
+          xlab='Time',ylab='Proportion hospital admissions')
+     lines(aggregate(relative_hospital_admissions_age2 ~ sim_date, data = data_incidence,mean),col=2,lwd=2)
+     lines(aggregate(relative_hospital_admissions_age3 ~ sim_date, data = data_incidence,mean),col=3,lwd=2)
+     lines(aggregate(relative_hospital_admissions_age4 ~ sim_date, data = data_incidence,mean),col=4,lwd=2)
+     legend('top',
+            age_labels,
+            col = 1:length(age_labels),
+            lwd=2,
+            ncol=length(age_labels),
+            title='Age group (years)',
+            cex=0.5)
+   }
    
-    plot(aggregate(relative_hospital_admissions_age1 ~ sim_date, data = data_incidence,mean),
-         ylim=0:1,col=1,lwd=2,type='l',
-         xlab='Time',ylab='Proportion hospital admissions')
-    lines(aggregate(relative_hospital_admissions_age2 ~ sim_date, data = data_incidence,mean),col=2,lwd=2)
-    lines(aggregate(relative_hospital_admissions_age3 ~ sim_date, data = data_incidence,mean),col=3,lwd=2)
-    lines(aggregate(relative_hospital_admissions_age4 ~ sim_date, data = data_incidence,mean),col=4,lwd=2)
-    legend('top',
-           age_labels,
-           col = 1:length(age_labels),
-           lwd=2,
-           ncol=length(age_labels),
-           title='Age group (years)',
-           cex=0.5)
     
     ## LOCATION       ----
     col_location <- names(data_incidence)[grepl('location_',names(data_incidence))]
@@ -426,6 +428,9 @@ aggregate_transmission_dynamics <- function(project_dir){
   # load project summary
   project_summary      <- .rstride$load_project_summary(project_dir)
   
+  # disable different start date
+  project_summary$start_date <- project_summary$start_date[1]
+  
   # retrieve all variable model parameters
   input_opt_design     <- .rstride$get_variable_model_param(project_summary)
   
@@ -438,7 +443,7 @@ aggregate_transmission_dynamics <- function(project_dir){
   }
   
   # select one week, after 10 days
-  sel_period <- seq(min(data_incidence_all$sim_date)+9,min(data_incidence_all$sim_date)+15,1)
+  sel_period         <- seq(min(data_incidence_all$sim_date)+9,min(data_incidence_all$sim_date)+15,1)
   data_incidence_all <- data_incidence_all[data_incidence_all$sim_date %in% sel_period,]
   
   i_config <- 6

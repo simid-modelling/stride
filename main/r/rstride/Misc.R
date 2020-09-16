@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L
 ############################################################################# #
 #
 # HELP FUNCTIONS FOR rSTRIDE PRE- AND POST-PROCESSING                       
@@ -152,6 +152,11 @@ if(!(exists('.rstride'))){
   # xml prefix
   xml_prefix <- paste0(' This file is part of the Stride software [', format(Sys.time()), ']')
   
+  # check filename XML extension, and add if not present
+  if(!grepl('\\.xml',filename)){
+    paste0(filename,'.xml')
+  }
+  
   # save as XML,
   # note: if we use an XMLdoc to include prefix, the line break dissapears...
   # fix: http://r.789695.n4.nabble.com/saveXML-prefix-argument-td4678407.html
@@ -194,18 +199,17 @@ if(!(exists('.rstride'))){
                             names(readRDS(data_filenames[length(data_filenames)]))))
   
   # loop over the output data types
-  data_type <- data_type_all[6]
+  data_type <- data_type_all[2]
   for(data_type in data_type_all){
 
     # check cluster
     smd_check_cluster()
-      
+     
     # loop over all experiments, rbind
-    i_file <- 1
+    i_file <- 2
     data_all <- foreach(i_file = 1:length(data_filenames),
                         .combine=.rstride$rbind_fill) %do%
     {
- 
       # get file name
       exp_file_name <- data_filenames[i_file]
       
