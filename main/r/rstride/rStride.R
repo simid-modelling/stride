@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L
 ############################################################################ #
 # 
 # R controller for the Stride model
@@ -405,19 +405,44 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
   #                                    age2 = 0.0216,
   #                                    age3 = 0.0855,
   #                                    age4 = 0.423)
-  hospital_probability <- data.frame(age1 = 0.049,
-                                     age2 = 0.03024,
-                                     age3 = 0.1197,
-                                     age4 = 0.5922)
+  # hospital_probability <- data.frame(age1 = 0.049,
+  #                                    age2 = 0.03024,
+  #                                    age3 = 0.1197,
+  #                                    age4 = 0.5922)
+  
+  parse_hospital_input <- function(x){
+    # 1.split string using ','
+    # 2. unlist result
+    # 3. make numeric
+    # 4. reformat into data.frame with 4 columns
+    out <- data.frame(t(as.numeric(unlist(strsplit(x,',')))))
+    # 5. add column names
+    names(out) <- paste0('age',1:4)
+    # 6. return result
+    return(out)
+  }
+  
+  hospital_probability        <- parse_hospital_input(config_exp$hospital_probability_age)
+  
+  # # relative proportions
+  # # reference: hospital survey data by age (faes et al) / observed sympt cases by age R0 callibration 2020-09-17
+  # hospital_probability <- data.frame(age1 = 0.5863577,
+  #                                    age2 = 0.6193339,
+  #                                    age3 = 1.1223633,
+  #                                    age4 = 3.1063142)
+  # 
+  # #rescale 
+  # hospital_probability <- hospital_probability / max(hospital_probability) * 0.6
   
   # adjust probability (for fitting)
   hospital_probability <- hospital_probability * config_exp$hosp_probability_factor
   
-  # set hospital delay for 3 age groups
-  hosp_delay_mean <- data.frame(age1 = 3,
-                                age2 = 7,
-                                age3 = 7,
-                                age4 = 6)
+  # # set hospital delay for 4 age groups
+  # hosp_delay_mean <- data.frame(age1 = 3,
+  #                               age2 = 7,
+  #                               age3 = 6,
+  #                               age4 = 4)
+  hosp_delay_mean      <- parse_hospital_input(config_exp$hospital_mean_delay_age)
   
   # set (uniform) delay  distribution -1, 0, 1
   hosp_delay_variance <- -1:1

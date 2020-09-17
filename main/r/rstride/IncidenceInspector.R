@@ -118,6 +118,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   # create matrix to reformat hospital data
   hosp_data_ls     <- matrix(NA, ncol = 1, nrow = nrow(project_summary))
   hosp_data_tag    <- hosp_data_ls
+  prevalence_total_ls     <- hosp_data_ls
   
   ## PREVALENCE DATA STOCHASTIC MODEL
   prevalence_ref <- readRDS('./data/prevalence_stochastic_model_20200604.rds')
@@ -150,11 +151,24 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     hosp_data_ls[i_exp,] <- sum(ls_score_hosp)
     hosp_data_tag[i_exp,]<- unique(data_incidence_all$config_id[flag_exp])
     
+    # Sum of Squares: incidence
+    ref_date <- "2020-03-14"
+    model_point_incidence <- data_incidence_all$cumulative_infections[ flag_exp & data_incidence_all$sim_date == ref_date]
+    ref_point_incidence   <- prevalence_ref$mean[prevalence_ref$date == ref_date] * pop_size_be
+    prevalence_total_ls[i_exp] <- sum(sqrt((model_point_incidence-ref_point_incidence)^2))
+    
   }
   
   # get mean ls per config id
   ls_summary_config        <- aggregate(hosp_data_ls,list(hosp_data_tag) , mean, na.rm=T)
   names(ls_summary_config) <- c('config_tag','ls_score_hosp')
+  
+  # add prevalence scores
+  ls_prevalence_summary       <- aggregate(prevalence_total_ls,list(hosp_data_tag) , mean, na.rm=T)
+  names(ls_prevalence_summary) <- c('config_tag','ls_score_prevalence')
+  
+  # merge
+  ls_summary_config <- merge(ls_summary_config,ls_prevalence_summary)
   
   # save incidence data and scores
   run_tag           <- unique(project_summary$run_tag)

@@ -73,6 +73,10 @@ exp_design <- expand.grid(r0                            = 2.5,
                           test_false_negative            = 0,
                           gtester_label                  = 'covid_base',
                           event_log_level                = 'Transmissions',
+                          
+                          hospital_probability_age      = paste(0.049,0.03024,0.1197,0.5922,sep=','),
+                          hospital_mean_delay_age       = paste(3,7,7,6,sep=','),
+                          
                           stringsAsFactors = F)
 
 # all contacts

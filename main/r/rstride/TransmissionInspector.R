@@ -442,7 +442,7 @@ aggregate_transmission_dynamics <- function(project_dir){
     return(.rstride$no_return_value())
   }
   
-  # select one week, after 10 days
+  # select one week(7days), after burn in period of 10 days
   sel_period         <- seq(min(data_incidence_all$sim_date)+9,min(data_incidence_all$sim_date)+15,1)
   data_incidence_all <- data_incidence_all[data_incidence_all$sim_date %in% sel_period,]
   

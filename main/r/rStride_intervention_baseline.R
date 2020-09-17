@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L, Libin P
 ############################################################################ #
 #
 # Baseline settings for rStride intervention scenarios
@@ -26,7 +26,9 @@
 ################################## #
 
 # get default parameter values to combine in a full-factorial grid
-get_exp_param_default <- function(bool_child_param = FALSE, bool_min_restrictive = FALSE){
+get_exp_param_default <- function(bool_child_param = FALSE, 
+                                  bool_min_restrictive = FALSE,
+                                  bool_revised_model_param = FALSE){
    
    # create calendar files
    create_calendar_files()
@@ -73,7 +75,12 @@ get_exp_param_default <- function(bool_child_param = FALSE, bool_min_restrictive
                unitest_n_tests_per_day       = c(25000),
                unitest_pool_size             = c(32),
                unitest_test_compliance       = c(0.9),
-               unitest_isolation_compliance  = c(0.8)
+               unitest_isolation_compliance  = c(0.8),
+               
+               # hospital admissions
+               
+               hospital_probability_age      = paste(0.049,0.03024,0.1197,0.5922,sep=','),
+               hospital_mean_delay_age       = paste(3,7,7,6,sep=',')
                
           )
    
@@ -89,6 +96,16 @@ get_exp_param_default <- function(bool_child_param = FALSE, bool_min_restrictive
    if(bool_min_restrictive){
       out$cnt_reduction_workplace_exit <- min(out$cnt_reduction_workplace_exit)
       out$cnt_reduction_other_exit <- min(out$cnt_reduction_other_exit)
+   }
+   
+   if(bool_revised_model_param){
+      # relative proportions
+      # reference: hospital survey data by age (faes et al) / observed sympt cases by age R0 callibration 2020-09-17
+      out$hospital_probability_age      = paste(c(0.5863577,0.6193339,1.1223633,3.1063142)/3.1*0.6,collapse=',') # arbitrary recaling
+      out$hospital_mean_delay_age       = paste(3,7,6,4,sep=',')
+      
+      # disease history: literature based distributions
+      out$disease_config_file <- 'disease_covid19_lognorm.xml'
    }
    
    # return parameters
