@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L
 ############################################################################# #
 #
 # MODEL INCIDENCE EXPLORATION
@@ -40,6 +40,9 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   project_summary$population_file <- gsub('_c500_teachers_censushh','',project_summary$population_file)
   project_summary$population_file <- gsub('.csv','',project_summary$population_file)
 
+  # remove "initially_infected" (copy of num_infected_seeds)
+  project_summary$initially_infected <- NULL
+  
   # retrieve all variable model parameters
   input_opt_design   <- .rstride$get_variable_model_param(project_summary)
   
@@ -169,6 +172,52 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   
   # merge
   ls_summary_config <- merge(ls_summary_config,ls_prevalence_summary)
+  
+  # merge with parameters
+  ls_summary_config <- merge(ls_summary_config,input_opt_design,by.x='config_tag',by.y='config_id')
+
+  # create plot with scores
+  .rstride$create_pdf(project_dir,'parameter_inspection_score',width = 6, height = 7)
+  par(mfrow=c(1,2))
+  plot(ls_summary_config$ls_score_hosp,
+       ls_summary_config$ls_score_prevalence,
+       xlab='LS Hospital admissions',
+       ylab='LS total incidence')
+  
+  x_p20 <- quantile(ls_summary_config$ls_score_hosp,0.2)
+  y_p20 <- quantile(ls_summary_config$ls_score_prevalence,0.2)
+  
+  sel_point <- ls_summary_config$ls_score_hosp < x_p20 &
+    ls_summary_config$ls_score_prevalence < y_p20
+  ls_summary_config$pareto_front <- sel_point
+  points(ls_summary_config$ls_score_hosp[sel_point],
+         ls_summary_config$ls_score_prevalence[sel_point],
+         col = 4,
+         pch=19)
+  plot(ls_summary_config$ls_score_hosp,
+       ls_summary_config$ls_score_prevalence,
+       xlab='LS Hospital admissions',
+       ylab='LS total incidence',
+       xlim=c(0,x_p20*1.2),
+       ylim=c(0,y_p20*1.2))
+  
+  points(ls_summary_config$ls_score_hosp[sel_point],
+         ls_summary_config$ls_score_prevalence[sel_point],
+         col = 4,
+         pch=19)
+  
+  # get names (without ids)
+  param_names <- names(input_opt_design)
+  param_names <- param_names[!grepl('id',param_names)]
+  
+  i_param <- param_names[1]
+  par(mfrow=c(3,3))
+  for(i_param in param_names){
+    boxplot(formula(paste('ls_score_hosp ~ ',i_param)), data = ls_summary_config,xlab=i_param,ylab='LS score',main='LS hospital admissions')
+    boxplot(formula(paste('ls_score_prevalence ~ ',i_param)), data = ls_summary_config,xlab=i_param,ylab='LS score',main='LS total incidence')
+    boxplot(formula(paste(i_param,' ~ pareto_front')), data = ls_summary_config,xlab=i_param,horizontal=T,ylab='Pareto front?',main='Pareto front')
+  }
+  dev.off()
   
   # save incidence data and scores
   run_tag           <- unique(project_summary$run_tag)

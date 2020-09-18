@@ -60,7 +60,7 @@ HealthSeeder::HealthSeeder(const boost::property_tree::ptree& diseasePt)
         m_sympt_cnt_reduction_work_school = diseasePt.get<double>("disease.sympt_cnt_reduction_work_school",1.0);
         m_sympt_cnt_reduction_community   = diseasePt.get<double>("disease.sympt_cnt_reduction_community",1.0);
         m_rel_transmission_asymptomatic   = diseasePt.get<double>("disease.rel_transmission_asymptomatic",1);
-        m_rel_susceptibility_children     = diseasePt.get<double>("disease.m_rel_susceptibility_children",1);
+        m_rel_susceptibility_children     = diseasePt.get<double>("disease.rel_susceptibility_children",1);
 
 }
 

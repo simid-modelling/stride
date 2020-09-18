@@ -101,7 +101,7 @@ get_exp_param_default <- function(bool_child_param = FALSE,
    if(bool_revised_model_param){
       # relative proportions
       # reference: hospital survey data by age (faes et al) / observed sympt cases by age R0 callibration 2020-09-17
-      out$hospital_probability_age      = paste(c(0.5863577,0.6193339,1.1223633,3.1063142)/3.1*0.6,collapse=',') # arbitrary recaling
+      out$hospital_probability_age      = paste(c(0.5863577,0.6193339,1.1223633,3.1063142)/3.1,collapse=',') # still requires rescaling
       out$hospital_mean_delay_age       = paste(3,7,6,4,sep=',')
       
       # disease history: literature based distributions

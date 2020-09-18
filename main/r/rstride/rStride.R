@@ -437,6 +437,9 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
   # adjust probability (for fitting)
   hospital_probability <- hospital_probability * config_exp$hosp_probability_factor
   
+  # defensive programming for fitting ==>> probability cannot be > 1
+  hospital_probability[hospital_probability>1] <- 1
+  
   # # set hospital delay for 4 age groups
   # hosp_delay_mean <- data.frame(age1 = 3,
   #                               age2 = 7,
@@ -453,7 +456,7 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
   }
 
   # sample hospital admission dates
-  i_hosp <- 1
+  i_hosp <- 4
   for(i_hosp in 1:length(hospital_probability)){
     flag_part      <- !is.na(data_transmission$start_symptoms) & data_transmission$part_age %in% hosp_age[[i_hosp]]
     flag_admission <- as.logical(rbinom(n = nrow(data_transmission),size = 1,prob = hospital_probability[[i_hosp]]))
@@ -485,8 +488,8 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
   rbind(estim / sum(estim),
         ref)
   
-  smd_print('AVG. HOSPITAL RATE (age specific)',round(mean(approx(c(0,19,60,80),hospital_probability,0:100,method='constant',rule = 2)$y),digits=3))
-  smd_print('AVG. HOSPITAL RATE (cases)',round(sum(!is.na(data_transmission$hospital_admission_start)) / sum(!is.na(data_transmission$start_symptoms)),digits=3))
+  # smd_print('AVG. HOSPITAL RATE (age specific)',round(mean(approx(c(0,19,60,80),hospital_probability,0:100,method='constant',rule = 2)$y),digits=3))
+  # smd_print('AVG. HOSPITAL RATE (cases)',round(sum(!is.na(data_transmission$hospital_admission_start)) / sum(!is.na(data_transmission$start_symptoms)),digits=3))
 
   # return
   return(data_transmission) 
