@@ -80,7 +80,10 @@ get_exp_param_default <- function(bool_child_param = FALSE,
                # hospital admissions
                
                hospital_probability_age      = paste(0.049,0.03024,0.1197,0.5922,sep=','),
-               hospital_mean_delay_age       = paste(3,7,7,6,sep=',')
+               hospital_mean_delay_age       = paste(3,7,7,6,sep=','),
+               
+               # threshold for log parsing (default is NA == no threshold)
+               logparsing_cases_upperlimit    = NA
                
           )
    

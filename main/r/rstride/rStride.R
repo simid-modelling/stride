@@ -321,6 +321,14 @@ run_rStride <- function(exp_design               = exp_design,
                            return(run_summary)
                        }
 
+                       # if simulated cases > threshold for log parsing ==> stop
+                       if(!is.na(config_exp$logparsing_cases_upperlimit) &
+                          run_summary$num_cases > config_exp$logparsing_cases_upperlimit){
+                         return(run_summary)
+                       }
+                       
+                       
+                       
                        # parse log output (and save as rds file)
                        parse_log_file(config_exp, i_exp, get_burden_rdata, get_transmission_rdata, project_dir_exp)
   

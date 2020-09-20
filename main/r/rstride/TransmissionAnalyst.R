@@ -452,7 +452,7 @@ update_disease_parameters <- function(disease_filename = 'data/disease_covid19_a
   ######################################### # 
   # Summary  ----
  
-  # sample diseas characteristics 
+  # sample disease characteristics 
   n_sample <- 1e5
   start_symp  <- sample(1:length(t_symp)-1,size = n_sample, t_symp,replace = T)
   time_asymp  <- sample(1:length(d_asymp)-1,size = n_sample, d_asymp,replace = T)
