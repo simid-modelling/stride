@@ -124,14 +124,31 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   prevalence_total_ls     <- hosp_data_ls
   
   ## PREVALENCE DATA STOCHASTIC MODEL
-  prevalence_ref <- readRDS('./data/prevalence_stochastic_model_20200604.rds')
-  head(prevalence_ref)
+  prevalence_ref <- read.table('./data/covid19_serology_BE_reference.csv',sep=',',header=T)
+  
+  # reformat
+  prevalence_ref$collection_date_start <- as.Date(prevalence_ref$collection_date_start)
+  prevalence_ref$collection_date_end   <- as.Date(prevalence_ref$collection_date_end)
+  prevalence_ref$collection_days       <- prevalence_ref$collection_date_end - prevalence_ref$collection_date_start
+  prevalence_ref$seroprevalence_date   <- prevalence_ref$collection_date_start - prevalence_ref$days_seroconversion + (prevalence_ref$collection_days/2)
+  
   pop_size_be <- 11e6  #TODO: use universal variable
+  prevalence_ref$point_incidence_mean  <- prevalence_ref$seroprevalence_mean * pop_size_be
+  
+  # select round 1 and 2
+  prevalence_ref <- prevalence_ref[1:2,]
+  
+  # select simulation period
+  sel_ref_dates <- prevalence_ref$seroprevalence_date %in% data_incidence_all$sim_date
+  prevalence_ref <- prevalence_ref[sel_ref_dates,]
+  
+  head(prevalence_ref)
+
   
   i_exp <- 1  
   # loop over each experiment
   for(i_exp in unique(data_incidence_all$exp_id)){
-    
+
     # select one run
     flag_exp       <- data_incidence_all$exp_id == i_exp
     
@@ -155,10 +172,9 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     hosp_data_tag[i_exp,]<- unique(data_incidence_all$config_id[flag_exp])
     
     # Sum of Squares: incidence
-    ref_date <- "2020-03-14"
-    model_point_incidence <- data_incidence_all$cumulative_infections[ flag_exp & data_incidence_all$sim_date == ref_date]
-    ref_point_incidence   <- prevalence_ref$mean[prevalence_ref$date == ref_date] * pop_size_be
-    prevalence_total_ls[i_exp] <- sum(sqrt((model_point_incidence-ref_point_incidence)^2))
+    ref_dates <- prevalence_ref$seroprevalence_date
+    model_point_incidence <- data_incidence_all$cumulative_infections[ flag_exp & data_incidence_all$sim_date %in% ref_dates]
+    prevalence_total_ls[i_exp] <- sum(sqrt((model_point_incidence-prevalence_ref$point_incidence_mean)^2))
     
   }
   
@@ -178,33 +194,13 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
 
   # create plot with scores
   .rstride$create_pdf(project_dir,'parameter_inspection_score',width = 6, height = 7)
-  par(mfrow=c(1,2))
-  plot(ls_summary_config$ls_score_hosp,
-       ls_summary_config$ls_score_prevalence,
-       xlab='LS Hospital admissions',
-       ylab='LS total incidence')
   
-  x_p20 <- quantile(ls_summary_config$ls_score_hosp,0.2)
-  y_p20 <- quantile(ls_summary_config$ls_score_prevalence,0.2)
+  x_p20 <- quantile(ls_summary_config$ls_score_hosp,0.25)
+  y_p20 <- quantile(ls_summary_config$ls_score_prevalence,0.25)
   
-  sel_point <- ls_summary_config$ls_score_hosp < x_p20 &
-    ls_summary_config$ls_score_prevalence < y_p20
-  ls_summary_config$pareto_front <- sel_point
-  points(ls_summary_config$ls_score_hosp[sel_point],
-         ls_summary_config$ls_score_prevalence[sel_point],
-         col = 4,
-         pch=19)
-  plot(ls_summary_config$ls_score_hosp,
-       ls_summary_config$ls_score_prevalence,
-       xlab='LS Hospital admissions',
-       ylab='LS total incidence',
-       xlim=c(0,x_p20*1.2),
-       ylim=c(0,y_p20*1.2))
-  
-  points(ls_summary_config$ls_score_hosp[sel_point],
-         ls_summary_config$ls_score_prevalence[sel_point],
-         col = 4,
-         pch=19)
+  sel_points_pareto <- ls_summary_config$ls_score_hosp <= x_p20 &
+    ls_summary_config$ls_score_prevalence <= y_p20
+  ls_summary_config$pareto_front <- sel_points_pareto
   
   # get names (without ids)
   param_names <- names(input_opt_design)
@@ -215,8 +211,37 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   for(i_param in param_names){
     boxplot(formula(paste('ls_score_hosp ~ ',i_param)), data = ls_summary_config,xlab=i_param,ylab='LS score',main='LS hospital admissions')
     boxplot(formula(paste('ls_score_prevalence ~ ',i_param)), data = ls_summary_config,xlab=i_param,ylab='LS score',main='LS total incidence')
-    boxplot(formula(paste(i_param,' ~ pareto_front')), data = ls_summary_config,xlab=i_param,horizontal=T,ylab='Pareto front?',main='Pareto front')
+    
+    if(is.numeric(ls_summary_config[,i_param])){
+      boxplot(formula(paste(i_param,' ~ pareto_front')), data = ls_summary_config,xlab=i_param,horizontal=T,ylab='Pareto front?',main='Pareto front')
+    } else{
+      boxplot(0,col=0,border=0)
+    }
+    
+  
   }
+  
+  # Show pareto front
+  par(mfrow=c(1,2))
+  plot(ls_summary_config$ls_score_hosp,
+       ls_summary_config$ls_score_prevalence,
+       xlab='LS Hospital admissions',
+       ylab='LS total incidence')
+  points(ls_summary_config$ls_score_hosp[sel_points_pareto],
+         ls_summary_config$ls_score_prevalence[sel_points_pareto],
+         col = 4,
+         pch=19)
+  plot(ls_summary_config$ls_score_hosp,
+       ls_summary_config$ls_score_prevalence,
+       xlab='LS Hospital admissions',
+       ylab='LS total incidence',
+       xlim=c(0,x_p20*1.2),
+       ylim=c(0,y_p20*1.2))
+  
+  points(ls_summary_config$ls_score_hosp[sel_points_pareto],
+         ls_summary_config$ls_score_prevalence[sel_points_pareto],
+         col = 4,
+         pch=19)
   dev.off()
   
   # save incidence data and scores
@@ -265,6 +290,31 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   # close pdf
   dev.off()
   
+  ## PARETO PLOTS ####
+  # select incidence data
+  flag_plot               <- data_incidence_all$config_id %in% ls_summary_config$config_tag[ls_summary_config$pareto_front]
+  data_incidence_pareto   <- data_incidence_all[flag_plot,]
+  
+  .rstride$create_pdf(project_dir,'incidence_pareto',width = 6, height = 7)
+  par(mfrow=c(4,1))
+  # plot temporal patterns (pareto front)
+  plot_incidence_data(data_incidence_pareto,project_summary,
+                      hosp_adm_data,input_opt_design,prevalence_ref,
+                      bool_add_param)
+  
+  ## PARETO (SINGLE RUNS) ####
+  opt_config_id <- unique(data_incidence_pareto$config_id)
+  for(i_config in opt_config_id){
+    
+    # select subset
+    data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
+    
+    # plot
+    plot_incidence_data(data_incidence_sel,project_summary,
+                        hosp_adm_data,input_opt_design,prevalence_ref,
+                        bool_add_param)
+  }
+  dev.off()
   
   ## ALL PLOTS ####
   .rstride$create_pdf(project_dir,'incidence_inspection',width = 6, height = 7)
@@ -622,17 +672,11 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   
 
   ## add reference
-  prevalence_selection <- as.Date(c('2020-03-15','2020-04-1','2020-04-15','2020-05-01'))
-  if(bool_seroprev_limited){
-    prevalence_selection <- as.Date(c('2020-03-30','2020-04-20'))
-  }
-  flag_prevalence <- prevalence_ref$date %in% prevalence_selection
-  #points(prevalence_selection,prevalence_ref$mean[flag_prevalence]*pop_size_be,pch=8)
-  arrows(prevalence_selection,prevalence_ref$min[flag_prevalence]*pop_size_be,
-         prevalence_selection,prevalence_ref$max[flag_prevalence]*pop_size_be,
+  arrows(prevalence_ref$seroprevalence_date,prevalence_ref$seroprevalence_low*pop_size_be,
+         prevalence_ref$seroprevalence_date,prevalence_ref$seroprevalence_high*pop_size_be,
          angle=90,length=0.05)
-  arrows(prevalence_selection,prevalence_ref$max[flag_prevalence]*pop_size_be,
-         prevalence_selection,prevalence_ref$min[flag_prevalence]*pop_size_be,
+  arrows(prevalence_ref$seroprevalence_date,prevalence_ref$seroprevalence_high*pop_size_be,
+         prevalence_ref$seroprevalence_date,prevalence_ref$seroprevalence_low*pop_size_be,
          angle=90,length=0.05)
   
 

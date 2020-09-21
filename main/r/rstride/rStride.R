@@ -48,6 +48,8 @@ source('./bin/rstride/Misc.R')
 # load rStride files (excluding this file)
 rStride_files <- dir('./bin/rstride',recursive = T,pattern = '\\.R',full.names = T)
 rStride_files <- rStride_files[rStride_files != "./bin/rstride/rStride.R"]
+rStride_files <- rStride_files[! grepl('\\.Rmd',rStride_files)]
+
 
 # load all (remaining files)
 sapply(rStride_files,source)
@@ -321,16 +323,14 @@ run_rStride <- function(exp_design               = exp_design,
                            return(run_summary)
                        }
 
-                       # if simulated cases > threshold for log parsing ==> stop
-                       if(!is.na(config_exp$logparsing_cases_upperlimit) &
-                          run_summary$num_cases > config_exp$logparsing_cases_upperlimit){
-                         return(run_summary)
+                       # parse log file if there is no log threshold (NULL or NA) OR if simulated cases < threshold 
+                       if(is.null(config_exp$logparsing_cases_upperlimit) ||
+                          is.na(config_exp$logparsing_cases_upperlimit) ||
+                          run_summary$num_cases < config_exp$logparsing_cases_upperlimit){
+                         
+                         # parse log output (and save as rds file)
+                         parse_log_file(config_exp, i_exp, get_burden_rdata, get_transmission_rdata, project_dir_exp)
                        }
-                       
-                       
-                       
-                       # parse log output (and save as rds file)
-                       parse_log_file(config_exp, i_exp, get_burden_rdata, get_transmission_rdata, project_dir_exp)
   
                        # remove experiment output and config
                        if(remove_run_output){
