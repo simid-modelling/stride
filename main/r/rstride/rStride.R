@@ -34,7 +34,7 @@ library('simid.rtools',quietly = T)
 # doParallel  to use parallel foreach
 # ggplot2     to plot contact matrices
 # gridExtra   to plot contact matrices
-# mgcv        to sample uncertaint parameters from distributions
+# mgcv        to sample uncertain parameters from distributions
 # data.table  to use convenience functions for range subsets (e.g. "between")
 # openxlsx    to read excel files (reference data on incidence)
 # scales      to plot ensembles with transparant colors
@@ -278,7 +278,9 @@ run_rStride <- function(exp_design               = exp_design,
   # run all experiments (in parallel)
   par_out <- foreach(i_exp=1:nrow(exp_design),
                      .combine='rbind',
-                     .packages=c('XML','simid.rtools','data.table'),
+                     .packages=c('XML','simid.rtools','data.table',
+                                 'tidyr', # to use the 'replace_na' function
+                                 'mgcv'), # to use the 'gam' function
                      .export = c('par_nodes_info',
                                  rStride_functions),
                      .verbose=FALSE) %dopar%

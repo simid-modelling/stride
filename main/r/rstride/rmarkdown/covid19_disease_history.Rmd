@@ -9,17 +9,21 @@ toc: yes
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, fig.width = 6, fig.height = 4)
+knitr::opts_chunk$set(echo = FALSE, fig.width = 6, fig.height = 4,out.extra = "",dev=c('pdf'))
+
+# save figures also as pdf
+knitr::opts_chunk$set(dev = c('pdf'), 
+        pdf.options(encoding = "ISOLatin9.enc")) 
 
 
-
+setwd('~/opt/stride-308/')
 # load rStride
 source('./bin/rstride/rStride.R')
 
 # read disease xml
 # plot probabilities
 
-disease_data <- xmlToList('data/disease_covid19_age_distr_d6.xml')
+disease_data <- xmlToList('data/disease_covid19_lognorm.xml')
 
 p_start_symp  <- as.numeric(disease_data$start_symptomatic)
 p_time_asymp  <- as.numeric(disease_data$time_asymptomatic)

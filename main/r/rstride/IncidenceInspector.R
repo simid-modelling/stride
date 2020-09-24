@@ -22,14 +22,12 @@
 
 
 #' @param project_dir   name of the project folder
-#' @param num_selection the number of experiments with minimal LS score to select and present
 inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_param=TRUE)
 {
   # command line message
   smd_print('INSPECT INCIDENCE DATA...')
   
   #debug
-  if(!exists('num_selection')) {num_selection = 4}
   if(!exists('bool_add_param')) {bool_add_param = TRUE}
   
   # load project summary
@@ -53,8 +51,6 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     smd_print('NO INCIDENCE DATA AVAILABLE.')
     return(.rstride$no_return_value())
   }
-  
-  
   
   # add config_id 
   # get variable names of input_opt_design (fix if only one column)
@@ -95,10 +91,15 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     input_opt_design$contact_id <- input_opt_design$config_id
   }
   
-  
   # add config_id and tracing_id to incidence data
   data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id','tracing_id','contact_id')] )
 
+  # remove rows missing sim_date
+  data_incidence_all <- data_incidence_all[!is.na(data_incidence_all$sim_date),]
+  
+  # check for NA's, and replace by 0
+  data_incidence_all[is.na(data_incidence_all)] <- 0
+  
   ## REFERENCE DATA COVID-19: new hospital admissions ----
   # use (local version of) most recent SCIENSANO data (or backup version)
   ref_data          <- get_observed_incidence_data()
@@ -114,209 +115,14 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   flag_compare  <- hosp_adm_data$date %in% data_incidence_all$sim_date
   hosp_adm_data <- hosp_adm_data[flag_compare,]
   
-  # create columns for hospital cases and least square score
-  data_incidence_all$cumulative_hospital_cases <- NA
-  data_incidence_all$ls_score_hosp              <- NA
-  
-  # create matrix to reformat hospital data
-  hosp_data_ls     <- matrix(NA, ncol = 1, nrow = nrow(project_summary))
-  hosp_data_tag    <- hosp_data_ls
-  prevalence_total_ls     <- hosp_data_ls
-  
-  ## PREVALENCE DATA STOCHASTIC MODEL
-  prevalence_ref <- read.table('./data/covid19_serology_BE_reference.csv',sep=',',header=T)
-  
-  # reformat
-  prevalence_ref$collection_date_start <- as.Date(prevalence_ref$collection_date_start)
-  prevalence_ref$collection_date_end   <- as.Date(prevalence_ref$collection_date_end)
-  prevalence_ref$collection_days       <- prevalence_ref$collection_date_end - prevalence_ref$collection_date_start
-  prevalence_ref$seroprevalence_date   <- prevalence_ref$collection_date_start - prevalence_ref$days_seroconversion + (prevalence_ref$collection_days/2)
-  
-  pop_size_be <- 11e6  #TODO: use universal variable
-  prevalence_ref$point_incidence_mean  <- prevalence_ref$seroprevalence_mean * pop_size_be
-  
-  # select round 1 and 2
-  prevalence_ref <- prevalence_ref[1:2,]
+  ## SEROPREVALENCE DATA L
+  prevalence_ref <- load_observed_seroprevalence_data()
   
   # select simulation period
   sel_ref_dates <- prevalence_ref$seroprevalence_date %in% data_incidence_all$sim_date
   prevalence_ref <- prevalence_ref[sel_ref_dates,]
   
-  head(prevalence_ref)
-
-  
-  i_exp <- 1  
-  # loop over each experiment
-  for(i_exp in unique(data_incidence_all$exp_id)){
-
-    # select one run
-    flag_exp       <- data_incidence_all$exp_id == i_exp
-    
-    # calculate cumulative cases
-    data_incidence_all$cumulative_infections[flag_exp]        <- .rstride$cumsum_na(data_incidence_all$new_infections[flag_exp])
-    data_incidence_all$cumulative_infectious_cases[flag_exp]  <- .rstride$cumsum_na(data_incidence_all$new_infectious_cases[flag_exp])
-    data_incidence_all$cumulative_symptomatic_cases[flag_exp] <- .rstride$cumsum_na(data_incidence_all$new_symptomatic_cases[flag_exp])
-    data_incidence_all$cumulative_hospital_cases[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions[flag_exp])
-    
-    # age specific hospital admissions
-    data_incidence_all$cumulative_hospital_cases_age1[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age1[flag_exp])
-    data_incidence_all$cumulative_hospital_cases_age2[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age2[flag_exp])
-    data_incidence_all$cumulative_hospital_cases_age3[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age3[flag_exp])
-    data_incidence_all$cumulative_hospital_cases_age4[flag_exp]    <- .rstride$cumsum_na(data_incidence_all$new_hospital_admissions_age4[flag_exp])
-    
-    # Sum of Squares: score
-    flag_hosp_data       <- flag_exp & data_incidence_all$sim_date %in% hosp_adm_data$date
-    flag_hosp_ref        <- hosp_adm_data$date %in% data_incidence_all$sim_date[flag_exp]
-    ls_score_hosp        <- sum(sqrt((data_incidence_all$new_hospital_admissions[flag_hosp_data] - hosp_adm_data$num_adm[flag_hosp_ref])^2),na.rm = T)
-    hosp_data_ls[i_exp,] <- sum(ls_score_hosp)
-    hosp_data_tag[i_exp,]<- unique(data_incidence_all$config_id[flag_exp])
-    
-    # Sum of Squares: incidence
-    ref_dates <- prevalence_ref$seroprevalence_date
-    model_point_incidence <- data_incidence_all$cumulative_infections[ flag_exp & data_incidence_all$sim_date %in% ref_dates]
-    prevalence_total_ls[i_exp] <- sum(sqrt((model_point_incidence-prevalence_ref$point_incidence_mean)^2))
-    
-  }
-  
-  # get mean ls per config id
-  ls_summary_config        <- aggregate(hosp_data_ls,list(hosp_data_tag) , mean, na.rm=T)
-  names(ls_summary_config) <- c('config_tag','ls_score_hosp')
-  
-  # add prevalence scores
-  ls_prevalence_summary       <- aggregate(prevalence_total_ls,list(hosp_data_tag) , mean, na.rm=T)
-  names(ls_prevalence_summary) <- c('config_tag','ls_score_prevalence')
-  
-  # merge
-  ls_summary_config <- merge(ls_summary_config,ls_prevalence_summary)
-  
-  # merge with parameters
-  ls_summary_config <- merge(ls_summary_config,input_opt_design,by.x='config_tag',by.y='config_id')
-
-  # create plot with scores
-  .rstride$create_pdf(project_dir,'parameter_inspection_score',width = 6, height = 7)
-  
-  x_p20 <- quantile(ls_summary_config$ls_score_hosp,0.25)
-  y_p20 <- quantile(ls_summary_config$ls_score_prevalence,0.25)
-  
-  sel_points_pareto <- ls_summary_config$ls_score_hosp <= x_p20 &
-    ls_summary_config$ls_score_prevalence <= y_p20
-  ls_summary_config$pareto_front <- sel_points_pareto
-  
-  # get names (without ids)
-  param_names <- names(input_opt_design)
-  param_names <- param_names[!grepl('id',param_names)]
-  
-  i_param <- param_names[1]
-  par(mfrow=c(3,3))
-  for(i_param in param_names){
-    boxplot(formula(paste('ls_score_hosp ~ ',i_param)), data = ls_summary_config,xlab=i_param,ylab='LS score',main='LS hospital admissions')
-    boxplot(formula(paste('ls_score_prevalence ~ ',i_param)), data = ls_summary_config,xlab=i_param,ylab='LS score',main='LS total incidence')
-    
-    if(is.numeric(ls_summary_config[,i_param])){
-      boxplot(formula(paste(i_param,' ~ pareto_front')), data = ls_summary_config,xlab=i_param,horizontal=T,ylab='Pareto front?',main='Pareto front')
-    } else{
-      boxplot(0,col=0,border=0)
-    }
-    
-  
-  }
-  
-  # Show pareto front
-  par(mfrow=c(1,2))
-  plot(ls_summary_config$ls_score_hosp,
-       ls_summary_config$ls_score_prevalence,
-       xlab='LS Hospital admissions',
-       ylab='LS total incidence')
-  points(ls_summary_config$ls_score_hosp[sel_points_pareto],
-         ls_summary_config$ls_score_prevalence[sel_points_pareto],
-         col = 4,
-         pch=19)
-  plot(ls_summary_config$ls_score_hosp,
-       ls_summary_config$ls_score_prevalence,
-       xlab='LS Hospital admissions',
-       ylab='LS total incidence',
-       xlim=c(0,x_p20*1.2),
-       ylim=c(0,y_p20*1.2))
-  
-  points(ls_summary_config$ls_score_hosp[sel_points_pareto],
-         ls_summary_config$ls_score_prevalence[sel_points_pareto],
-         col = 4,
-         pch=19)
-  dev.off()
-  
-  # save incidence data and scores
-  run_tag           <- unique(project_summary$run_tag)
-  file_name_path    <- file.path(project_dir,paste0(run_tag,'_incidence_processed.RData'))
-  save(data_incidence_all,ls_summary_config,file=file_name_path)
-  
-  # select the 'num_selection' best parameter sets
-  num_selection  <- min(num_selection,length(ls_summary_config$ls_score_hosp))
-  ls_order       <- order(ls_summary_config$ls_score_hosp,decreasing = F)
-  config_tag_sel <- ls_summary_config[ls_order[1:num_selection],]
-  
-  # select incidence data
-  flag_plot               <- data_incidence_all$config_id %in% config_tag_sel$config_tag
-  data_incidence_ensemble <- data_incidence_all[flag_plot,]
-  
-  # check hospital admission data
-  if(all(is.na(data_incidence_all$new_hospital_admissions))){
-    smd_print("NO HOSPITAL ADMISSION DATA", WARNING = TRUE)
-    return(NULL)
-  }
-  
-  ## ENSEMBLE  ####
-  .rstride$create_pdf(project_dir,'incidence_ensemble',width = 6, height = 7)
-  par(mfrow=c(4,1))
-  
-  # plot temporal patterns (ensemble)
-  plot_incidence_data(data_incidence_ensemble,project_summary,
-                      hosp_adm_data,input_opt_design,prevalence_ref,
-                      bool_add_param)
-  
-  ## ENSEMBLE (SINGLE RUNS) ####
-  opt_config_id <- config_tag_sel$config_tag
-  i_config <- opt_config_id[1]
-  for(i_config in opt_config_id){
-    
-    # select subset
-    data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
-    
-    # plot
-    plot_incidence_data(data_incidence_sel,project_summary,
-                        hosp_adm_data,input_opt_design,prevalence_ref,
-                        bool_add_param)
-  }
-  
-  # close pdf
-  dev.off()
-  
-  ## PARETO PLOTS ####
-  # select incidence data
-  flag_plot               <- data_incidence_all$config_id %in% ls_summary_config$config_tag[ls_summary_config$pareto_front]
-  data_incidence_pareto   <- data_incidence_all[flag_plot,]
-  
-  .rstride$create_pdf(project_dir,'incidence_pareto',width = 6, height = 7)
-  par(mfrow=c(4,1))
-  # plot temporal patterns (pareto front)
-  plot_incidence_data(data_incidence_pareto,project_summary,
-                      hosp_adm_data,input_opt_design,prevalence_ref,
-                      bool_add_param)
-  
-  ## PARETO (SINGLE RUNS) ####
-  opt_config_id <- unique(data_incidence_pareto$config_id)
-  for(i_config in opt_config_id){
-    
-    # select subset
-    data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
-    
-    # plot
-    plot_incidence_data(data_incidence_sel,project_summary,
-                        hosp_adm_data,input_opt_design,prevalence_ref,
-                        bool_add_param)
-  }
-  dev.off()
-  
-  ## ALL PLOTS ####
+  ## ALL PLOTS  ----
   .rstride$create_pdf(project_dir,'incidence_inspection',width = 6, height = 7)
   par(mfrow=c(4,1))
   
@@ -326,6 +132,8 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     
     # select subset
     data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
+    
+    cumsum_na(data_incidence_sel$new_hospital_admissions)
     
     # plot
     plot_incidence_data(data_incidence_sel,project_summary,
@@ -413,7 +221,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
       par(mfrow=c(4,1))
       
       
-      i_detection <- opt_tracing[1]
+      i_tracing <- opt_tracing[1]
       for(i_tracing in opt_tracing){
         
         # select config_id
@@ -480,18 +288,6 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   dev.off()
   
   
-   #--------------------------#
-  # parameters
-  
-  if(nrow(input_opt_design)>1){
-    flag_param   <- input_opt_design$config_id %in% config_tag_sel$config_tag
-    print(input_opt_design[flag_param,-ncol(input_opt_design)])
-    
-    # flag_param <- project_summary$config_id %in% config_tag_sel$config_tag
-    # project_summary[flag_param,]
-  }
-  
-  
    # command line message
   smd_print('INSPECTION OF INCIDENCE DATA COMPLETE')
   
@@ -502,7 +298,8 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
                                 bool_add_param,
                                 bool_add_axis4 = TRUE,
                                 bool_only_hospital_adm = FALSE,
-                                bool_seroprev_limited = FALSE){
+                                bool_seroprev_limited = FALSE,
+                                bool_add_doubling_time = FALSE){
 
   # change figure margins
   if(!bool_only_hospital_adm){
@@ -551,7 +348,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   add_legend_hosp(pcolor)
   
   # add config tag
-  adm_mean_final <- aggregate(new_hospital_admissions ~ sim_date + config_id + contact_id, data=data_incidence_sel,mean)
+  adm_mean_final <- aggregate(new_hospital_admissions ~ sim_date + config_id, data=data_incidence_sel,mean)
   adm_mean_final <- adm_mean_final[adm_mean_final$sim_date == max(adm_mean_final$sim_date),]
   # text(adm_mean_final$sim_date,adm_mean_final$new_hospital_admissions,adm_mean_final$config_id,
   #      pos=4,xpd=TRUE,cex=0.4)
@@ -562,7 +359,6 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
       axis(4,adm_mean_final$new_hospital_admissions,adm_mean_final$config_id,las=2,cex.axis=0.4) # add full config id
     }  
   }
-  
   
   
   if(bool_only_hospital_adm){ return() } # stop
@@ -637,6 +433,22 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   add_breakpoints()
   add_legend_incidence(pcolor)
   
+  if(bool_add_doubling_time){
+    flag_dates <- !is.na(data_incidence_sel$doubling_time)
+    y_tick    <- quantile(y_lim,0.7)
+    x_centre  <- mean(data_incidence_sel$sim_date[flag_dates])
+    doubling_time <- round(mean(data_incidence_sel$doubling_time_march,na.rm=T),digits = 2)
+    lines(data_incidence_sel$sim_date[flag_dates],
+          rep(y_tick,sum(flag_dates)),
+          lty=3)
+    text(x_centre,
+         y_tick,
+         paste('DT:',doubling_time),
+         pos=3,
+         cex=0.8)
+  }
+  
+  
   ## CUMULATIVE: ALL STATES ####
   y_lim <- range(pretty(data_incidence_sel$cumulative_infections))
   plot(data_incidence_sel$sim_date,
@@ -678,6 +490,9 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   arrows(prevalence_ref$seroprevalence_date,prevalence_ref$seroprevalence_high*pop_size_be,
          prevalence_ref$seroprevalence_date,prevalence_ref$seroprevalence_low*pop_size_be,
          angle=90,length=0.05)
+  points(prevalence_ref$seroprevalence_date,
+         prevalence_ref$seroprevalence_mean*pop_size_be,
+         pch=8)
   
 
 } # end function to plot figure
@@ -905,7 +720,7 @@ add_polygon_incidence <- function(data_incidence,colname_burden, scen_color){
 plot_incidence_reproduction <- function(data_incidence,hosp_adm_data,scen_color,plot_main='')
 {
   y_lim  <- c(0,700)
-  x_lim  <- range(data_incidence$sim_date)
+  x_lim  <- range(data_incidence$sim_date,na.rm = T)
   
   scen_color <- alpha(scen_color,0.4)
   

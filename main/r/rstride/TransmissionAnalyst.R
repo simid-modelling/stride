@@ -466,7 +466,7 @@ update_disease_parameters <- function(disease_filename = 'data/disease_covid19_a
   time_infect <- time_infect[!flag_unvalid]
   
   # check infectiousness by days after symptom onset
-  print(round(table(time_infect - time_asymp) / length(time_infect),digits=2))
+  print(round(table(time_infect - time_asymp) / length(time_infect),digits=3))
   
   # Save disease info to file ----
  

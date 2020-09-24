@@ -85,4 +85,31 @@ download_ref_file <- function(cases_ref_url,data_dir = 'data'){
   return(case_ref_file)
 }
 
+load_observed_seroprevalence_data <- function(subset_serology_samples = 0:2)
+{
+  
+  ## SERO-PREVALENCE DATA ----
+  prevalence_ref <- read.table('./data/covid19_serology_BE_reference.csv',sep=',',header=T)
+  
+  # reformat
+  prevalence_ref$collection_date_start <- as.Date(prevalence_ref$collection_date_start)
+  prevalence_ref$collection_date_end   <- as.Date(prevalence_ref$collection_date_end)
+  prevalence_ref$collection_days       <- prevalence_ref$collection_date_end - prevalence_ref$collection_date_start
+  prevalence_ref$seroprevalence_date   <- prevalence_ref$collection_date_start - prevalence_ref$days_seroconversion + (prevalence_ref$collection_days/2)
+  
+  # calculate total incidence
+  pop_size_be <- 11e6  
+  prevalence_ref$point_incidence_mean  <- prevalence_ref$seroprevalence_mean * pop_size_be
+  prevalence_ref$point_incidence_low   <- prevalence_ref$seroprevalence_low  * pop_size_be
+  prevalence_ref$point_incidence_high  <- prevalence_ref$seroprevalence_high * pop_size_be
+  
+  # select 'X' sample rounds
+  prevalence_ref <- prevalence_ref[subset_serology_samples,]
+  
+  # return
+  return(prevalence_ref)
+  
+}
+
+
 

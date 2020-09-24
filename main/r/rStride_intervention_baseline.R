@@ -36,7 +36,7 @@ get_exp_param_default <- function(bool_child_param = FALSE,
    out <- list(r0                            = seq(3.4,3.4,0.1),
                 num_days                      = 196,
                 num_seeds                     = 10,
-                num_participants_survey       = 300,
+                num_participants_survey       = 30,
                 num_infected_seeds            = 510,
                 disease_config_file           = "disease_covid19_age.xml",
                 population_file               = c("pop_belgium11M_c500_teachers_censushh.csv"),
@@ -65,6 +65,7 @@ get_exp_param_default <- function(bool_child_param = FALSE,
                
                # log level
                event_log_level                 = "Transmissions",
+               participant_log_level           = 'Survey', # or 'All'
                 
                 # factor for parameter estimation and fitting
                 hosp_probability_factor        = 1,

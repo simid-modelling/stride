@@ -63,6 +63,11 @@ inspect_participant_data <- function(project_dir, save_pdf = TRUE)
     data_part           <- .rstride$load_aggregated_output(project_dir,'data_participants',project_summary$exp_id[flag_exp])
     num_runs_exp        <- sum(flag_exp)
 
+    # check if participant data is avaiable, if not, go to next iteration
+    if(nrow(data_part)==0){
+      next
+    }
+    
     # adjust type of column
     data_part$start_symptomatic  <- as.numeric(data_part$start_symptomatic)
     data_part$end_infectiousness <- as.numeric(data_part$end_infectiousness)

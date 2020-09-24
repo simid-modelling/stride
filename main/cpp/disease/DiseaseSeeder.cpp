@@ -93,14 +93,14 @@ void DiseaseSeeder::ImportInfectedCases(std::shared_ptr<Population> pop, unsigne
         auto         generator   = m_rn_man.GetUniformIntGenerator(0, maxPopIndex, 0U);
         auto&        logger      = pop->RefEventLogger();
         const string log_level   = m_config.get<string>("run.event_log_level", "None");
-
+        const string part_log_level   = m_config.get<string>("run.participant_log_level", "Survey");
 
         while (numInfected > 0) {
                 Person& p = pop->at(static_cast<size_t>(generator()));
                 if (p.GetHealth().IsSusceptible() && (p.GetAge() >= sAgeMin) && (p.GetAge() <= sAgeMax)) {
                         p.GetHealth().StartInfection(p.GetId(),0);
                         numInfected--;
-                        if (log_level != "None") {
+                        if (log_level != "None" && part_log_level == "All") {
                                 logger->info("[PRIM] {} {} {} {} {} {} {} {} {} {} {} {}",
                                 		p.GetId(), -1, p.GetAge(), -1, -1, simDay, p.GetId(),
 										p.GetHealth().GetStartInfectiousness(),p.GetHealth().GetEndInfectiousness(),
