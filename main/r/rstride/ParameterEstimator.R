@@ -206,10 +206,18 @@ estimate_parameters <- function(project_dir)
   i_param <- param_names[1]
   par(mfrow=c(3,4))
   for(i_param in param_names){
-    boxplot(formula(paste('hospital_pois ~ ',i_param)), data = df_loglike,xlab=i_param,ylab='Pois neg log like',main='Hospital Admissions')
-    boxplot(formula(paste('incidence_pois ~ ',i_param)), data = df_loglike,xlab=i_param,ylab='Pois neg log like',main='Total Incidence')
-    boxplot(formula(paste('doubling_pois ~ ',i_param)), data = df_loglike,xlab=i_param,ylab='Pois neg log like',main='Doubling Time')
-    
+  
+    if(length(unique(df_loglike[,i_param]))>10){
+      plot(formula(paste('hospital_pois ~ ',i_param)), data = df_loglike, xlab=i_param,ylab='Pois neg log like',main='Hospital Admissions')
+      plot(formula(paste('incidence_pois ~ ',i_param)), data = df_loglike,xlab=i_param,ylab='Pois neg log like',main='Total Incidence')
+      plot(formula(paste('doubling_pois ~ ',i_param)), data = df_loglike, xlab=i_param,ylab='Pois neg log like',main='Doubling Time')
+    } else{
+      boxplot(formula(paste('hospital_pois ~ ',i_param)), data = df_loglike,xlab=i_param,ylab='Pois neg log like',main='Hospital Admissions')
+      boxplot(formula(paste('incidence_pois ~ ',i_param)), data = df_loglike,xlab=i_param,ylab='Pois neg log like',main='Total Incidence')
+      boxplot(formula(paste('doubling_pois ~ ',i_param)), data = df_loglike,xlab=i_param,ylab='Pois neg log like',main='Doubling Time')
+      
+    }
+     
     if(is.numeric(df_loglike[,i_param])){
       boxplot(formula(paste(i_param,' ~ pareto_front')), data = df_loglike,xlab=i_param,horizontal=T,ylab='Pareto front?',main=paste0('Pareto front\n(Q',q_value,')'))
       title(sub=)

@@ -27,6 +27,8 @@
 # Clear work environment
 rm(list=ls())
 
+library(lhs)
+
 # Load rStride
 source('./bin/rstride/rStride.R')
 
@@ -40,22 +42,63 @@ dir_postfix <- '_int'
 ## DESIGN OF EXPERIMENTS        ####
 ################################## #
 
-# add default parameters and values to combine in a full-factorial grid
-exp_param_list <- get_exp_param_default()
+# set number of experiments
+num_experiments     <- 32
+
+# add default parameters and values to combine in a LHS
+exp_param_list <- get_exp_param_default(bool_min_restrictive = T,
+                                        bool_revised_model_param = T)
 
 # change parameters and values to combine in a full-factorial grid
+exp_param_list$population_file <- 'pop_belgium600k_c500_teachers_censushh.csv'
+exp_param_list$num_days <- 40
+exp_param_list$num_seeds <- 2
+exp_param_list$r0 <- c(3,3.5)
+exp_param_list$logparsing_cases_upperlimit <- 3e5
+# exp_param_list$r0 <- seq(3,3.4,0.2)
+exp_param_list$hosp_probability_factor <- c(0.1,0.25)
+exp_param_list$num_infected_seeds <- c(210,460)
+# exp_param_list$disease_config_file <- 'disease_covid19_lognorm_child.xml'
+
+#exp_param_list$start_date <- '2020-02-21'
+
+
+
 
 
 ################################################ #
 ## GENERATE DESIGN OF EXPERIMENT GRID         ####
 ################################################ #
 
-# add sequence with all rng seeds
-exp_param_list$rng_seed = seq(exp_param_list$num_seeds)
+# get number of values per parameter
+num_param_values <- unlist(lapply(exp_param_list,length))
 
-# generate grid
-exp_design <- expand.grid(exp_param_list,
-                          stringsAsFactors = F)
+# select the parameters with at least 2 values
+sel_param     <- names(num_param_values[num_param_values>1])
+
+# setup latin hypercube design (and add parameter names)
+lhs_design <- data.frame(randomLHS(num_experiments,length(sel_param)))
+names(lhs_design) <- sel_param
+
+# rescale LHS to given parameter range
+for(i_param in sel_param){
+  param_range <- range(exp_param_list[i_param])
+  lhs_design[,i_param] <- lhs_design[,i_param] * diff(param_range) + param_range[1]
+}
+
+# copy lhs design into 'exp_design' and add other parameters
+exp_design <- lhs_design
+exp_param_names <- names(exp_param_list)
+exp_param_names <- exp_param_names[!exp_param_names %in% sel_param]
+i_param = exp_param_names[1]
+for(i_param in exp_param_names){
+  exp_design[,i_param] <- exp_param_list[i_param]
+}
+
+
+# fix for parameters that are a (non-decimal) number
+sel_param_num <- names(exp_design)[grepl('num',names(exp_design))]
+exp_design[,sel_param_num] <- round(exp_design[,sel_param_num])
 
 # add a unique seed for each run
 set.seed(125)
@@ -63,9 +106,9 @@ exp_design$rng_seed <- sample(nrow(exp_design))
 dim(exp_design)
 
 # check period
-range(as.Date(exp_design$start_date), as.Date(exp_design$start_date)+ exp_design$num_days)
+range(as.Date(exp_param_list$start_date), as.Date(exp_param_list$start_date)+ exp_param_list$num_days)
 
-
+#exp_design <- exp_design[sample(nrow(exp_design),20),]
 ################################## #
 ## RUN rSTRIDE                  ####
 ################################## #

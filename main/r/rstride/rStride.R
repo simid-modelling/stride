@@ -40,7 +40,8 @@ library('simid.rtools',quietly = T)
 # scales      to plot ensembles with transparant colors
 # tidyr       to easily replace na's by 0 (replace_na)
 # data.table  to process (large) transmission data sets, much better performance!! 
-smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table','openxlsx','tidyr','data.table'))
+# lhs         to sample from a latin hypercube design (instead of using a full factorial grid)
+smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table','openxlsx','tidyr','data.table','lhs'))
 
 # load general help functions
 source('./bin/rstride/Misc.R')

@@ -185,13 +185,14 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   
   ## R0     ####
   ## PER R0: plot temporal patterns
+  input_opt_design$r0 <- round(input_opt_design$r0,digits=1)
   opt_r0 <- unique(input_opt_design$r0)
   if(length(opt_r0)>0){
     .rstride$create_pdf(project_dir,'incidence_R0',width = 6, height = 7)
     par(mfrow=c(4,1))
     
     
-    i_r0 <- opt_r0[13]
+    i_r0 <- opt_r0[1]
     for(i_r0 in opt_r0){
       
       # select config_id
@@ -592,11 +593,23 @@ add_legend_runinfo <- function(project_summary,input_opt_design,
   names_exp_param <- colnames(input_opt_design)
   flag_col        <- names_exp_param %in% c('config_id','contact_id','tracing_id')
   names_exp_param <- names_exp_param[!flag_col]
+  project_summary_sel[,names_exp_param] <- round(project_summary_sel[,names_exp_param],digits = 2)
+  
   if(length(names_exp_param)>0){
     for(i_name in names_exp_param){
-      run_info <- c(run_info,
-                    paste0(i_name, ' = ',paste(unique(project_summary_sel[,i_name]),collapse=', '))
-                    )
+    
+      if(length(unique(project_summary_sel[,i_name]))<4){
+        run_info <- c(run_info,
+                      paste0(i_name, ' = ',paste(unique(project_summary_sel[,i_name]),collapse=', '))
+        )
+      } else{
+        run_info <- c(run_info,
+                      paste0(i_name, ' = ',paste(range(project_summary_sel[,i_name]),collapse='-'))
+        )      
+      }
+
+      
+      
     }
     
   }
