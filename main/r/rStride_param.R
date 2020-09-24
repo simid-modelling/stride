@@ -20,7 +20,7 @@
 # Call this script from the main project folder (containing bin, config, lib, ...)
 # to get all relative data links right. 
 #
-# E.g.: path/to/stride $ ./bin/rStride_explore.R 
+# E.g.: path/to/stride $ ./bin/rStride_param.R 
 #
 ############################################################################ #
 
@@ -50,20 +50,13 @@ exp_param_list <- get_exp_param_default(bool_min_restrictive = T,
                                         bool_revised_model_param = T)
 
 # change parameters and values to combine in a full-factorial grid
-exp_param_list$population_file <- 'pop_belgium600k_c500_teachers_censushh.csv'
-exp_param_list$num_days <- 40
-exp_param_list$num_seeds <- 2
-exp_param_list$r0 <- c(3,3.5)
-exp_param_list$logparsing_cases_upperlimit <- 3e5
-# exp_param_list$r0 <- seq(3,3.4,0.2)
-exp_param_list$hosp_probability_factor <- c(0.1,0.25)
-exp_param_list$num_infected_seeds <- c(210,460)
-# exp_param_list$disease_config_file <- 'disease_covid19_lognorm_child.xml'
-
-#exp_param_list$start_date <- '2020-02-21'
-
-
-
+# exp_param_list$population_file <- 'pop_belgium600k_c500_teachers_censushh.csv'
+ exp_param_list$num_days <- 40      #74 # 150
+ exp_param_list$r0 <- c(1.5,4)
+ exp_param_list$logparsing_cases_upperlimit <- 3e5
+ exp_param_list$hosp_probability_factor <- c(0.05,0.7)
+ exp_param_list$num_infected_seeds <- c(210,560)
+ # exp_param_list$num_seeds <- 2
 
 
 ################################################ #
