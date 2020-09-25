@@ -438,7 +438,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
     flag_dates <- !is.na(data_incidence_sel$doubling_time)
     y_tick    <- quantile(y_lim,0.7)
     x_centre  <- mean(data_incidence_sel$sim_date[flag_dates])
-    doubling_time <- round(mean(data_incidence_sel$doubling_time_march,na.rm=T),digits = 2)
+    doubling_time <- round(mean(data_incidence_sel$doubling_time,na.rm=T),digits = 2)
     lines(data_incidence_sel$sim_date[flag_dates],
           rep(y_tick,sum(flag_dates)),
           lty=3)

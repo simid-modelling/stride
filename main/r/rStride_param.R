@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L
 ############################################################################ #
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -27,8 +27,6 @@
 # Clear work environment
 rm(list=ls())
 
-library(lhs)
-
 # Load rStride
 source('./bin/rstride/rStride.R')
 
@@ -36,7 +34,7 @@ source('./bin/rstride/rStride.R')
 source('./bin/rStride_intervention_baseline.R')
 
 # set directory postfix (optional)
-dir_postfix <- '_int'
+dir_postfix <- '_param'
 
 ################################## #
 ## DESIGN OF EXPERIMENTS        ####
@@ -51,14 +49,17 @@ exp_param_list <- get_exp_param_default(bool_min_restrictive = T,
 
 # change parameters and values to combine in a full-factorial grid
 # exp_param_list$population_file <- 'pop_belgium600k_c500_teachers_censushh.csv'
- exp_param_list$num_days <- 40      #74 # 150
+ exp_param_list$num_days <- 34      #34, 74, 134
  exp_param_list$r0 <- c(1.5,4)
- exp_param_list$logparsing_cases_upperlimit <- 3e5
  exp_param_list$hosp_probability_factor <- c(0.05,0.7)
  exp_param_list$num_infected_seeds <- c(210,560)
  # exp_param_list$num_seeds <- 2
+ 
+ exp_param_list$logparsing_cases_upperlimit <- 1.5e6
 
-
+ # check period
+ range(as.Date(exp_param_list$start_date), as.Date(exp_param_list$start_date)+ exp_param_list$num_days)
+ 
 ################################################ #
 ## GENERATE DESIGN OF EXPERIMENT GRID         ####
 ################################################ #
@@ -98,8 +99,7 @@ set.seed(125)
 exp_design$rng_seed <- sample(nrow(exp_design))
 dim(exp_design)
 
-# check period
-range(as.Date(exp_param_list$start_date), as.Date(exp_param_list$start_date)+ exp_param_list$num_days)
+
 
 #exp_design <- exp_design[sample(nrow(exp_design),20),]
 ################################## #

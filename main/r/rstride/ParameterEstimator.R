@@ -176,9 +176,6 @@ estimate_parameters <- function(project_dir)
   # merge with parameters
   df_loglike <- merge(df_loglike,input_opt_design,by.x='config_id',by.y='config_id')
   
-  # create plot with scores
-  .rstride$create_pdf(project_dir,'parameter_inspection',width = 6, height = 7)
-  
   df_loglike$pareto_front <- FALSE
   q_value <- 0.13
   q_increase <- 0.02
@@ -202,6 +199,9 @@ estimate_parameters <- function(project_dir)
   # get names (without ids)
   param_names <- names(input_opt_design)
   param_names <- param_names[!grepl('id',param_names)]
+  
+  # create plot with scores
+  .rstride$create_pdf(project_dir,'parameter_inspection',width = 6, height = 7)
   
   i_param <- param_names[1]
   par(mfrow=c(3,4))
@@ -236,6 +236,9 @@ estimate_parameters <- function(project_dir)
          df_loglike$doubling_pois[df_loglike$pareto_front],
          col = 4,
          pch=19)
+  legend('topright',
+         paste(c('N_total','N_output','N_pareto'),c(nrow(project_summary),nrow(df_loglike),sum(df_loglike$pareto_front)),sep=': '),
+         cex=0.8)
   plot(df_loglike$incidence_pois,
        df_loglike$doubling_pois,
        xlab='Pois negloglike (total_incidence)',
@@ -283,7 +286,7 @@ estimate_parameters <- function(project_dir)
     
     # select subset
     data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
-    
+    data_incidence_sel$cumulative_hospital_cases <- data_incidence_sel$cumulative_hospital_cases - data_incidence_sel$cumulative_hospital_cases[1]
     # plot
     plot_incidence_data(data_incidence_sel,project_summary,
                         hosp_adm_data,input_opt_design,prevalence_ref,
@@ -352,6 +355,7 @@ get_binom_poisson <- function(incidence_observed,incidence_predicted){
 }
 
 
+# vpois_negloglike <- df_loglike$hospital_pois; num_obs <- nrow(df_loglike)
 get_normal_negloglike <- function(num_obs,vpois_negloglike){
   
   ################################################################################# #
@@ -363,11 +367,16 @@ get_normal_negloglike <- function(num_obs,vpois_negloglike){
   # (the Normal negative log likelihood in this case)
   ##################################################################################
   lmin = which.min(vpois_negloglike)
-  a = min(vpois_negloglike)
-  b = min(vpois_negloglike)+0.5
-  c = min(vpois_negloglike)+1.96^2/2
+  a = min(vpois_negloglike,na.rm=T)
+  b = min(vpois_negloglike,na.rm=T)+0.5
+  c = min(vpois_negloglike,na.rm=T)+1.96^2/2
   ib = which(vpois_negloglike<=b)
   ic = which(vpois_negloglike<=c)
+  
+  R0_best  <- df_loglike$r0[vpois_negloglike == a]
+  vR0      <- df_loglike$r0
+  t0_best  <- df_loglike$num_infected_seeds[which(vpois_negloglike == a)]
+  vt0      <- df_loglike$num_infected_seeds
   
   around = 3
   eR0_best_1stddev = round((range(vR0[ib])[2]-range(vR0[ib])[1])/2,around)

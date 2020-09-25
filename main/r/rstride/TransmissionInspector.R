@@ -392,22 +392,22 @@ get_transmission_statistics <- function(data_transm)
 }
 
 # Function to generate summary tables
-# colname_date <- 'infection_date'; colname_value <- 'cnt_location'; prefix <- 'location';
-#colname_date <- 'infection_date'; colname_value <- 'age_cat'; prefix <- 'cases';
+ #colname_date <- 'infection_date'; colname_value <- 'cnt_location'; prefix <- 'location';
+#colname_date <- 'date_hosp_adm'; colname_value <- 'age_cat'; prefix <- 'hosp';
 # colname_date <- 'infection_date'; colname_value <-'age_cat';prefix <- 'new_infections'
 # data_transm <- ref_case_data_table; colname_date="DATE";colname_value='AGEGROUP';prefix='d'
 get_summary_table <- function(data_transm,colname_date,colname_value,prefix,colname_opt=NA){
   
+  # omit NA's (default on LW's MACOS but not on VSC cluster)
+  # R versions: 3.5.3 (MACOS) vs. 3.5.1 (VSC)
+  data_transm_clean <- na.omit(data_transm,cols=colname_date)
+
   # overal summary
-  #summary_table_general        <- as.data.frame(table(data_transm[,colname_date]))
-  summary_table_general         <- data_transm[,.N,by=colname_date]
+  summary_table_general         <- data_transm_clean[,.N,by=colname_date]
   names(summary_table_general)  <- c('sim_date',prefix)
 
   # specific summary
-  # summary_table                <- as.data.frame.matrix(table(data_transm[,colname_date],data_transm[,colname_value]))
-  # names(summary_table)         <- paste(prefix,names(summary_table),sep='_')
-  # summary_table$sim_date       <- as.Date(row.names(summary_table)) 
-  summary_table                  <- dcast(data_transm, formula(paste(colname_date, '~' ,colname_value)), value.var='ID', length)
+  summary_table                  <- dcast(data_transm_clean, formula(paste(colname_date, '~' ,colname_value)), value.var='ID', length)
   
   # if not all categories were persent, add column with 0's
   if(all(!is.na(colname_opt)) & any(!colname_opt %in% names(summary_table))){
@@ -418,8 +418,6 @@ get_summary_table <- function(data_transm,colname_date,colname_value,prefix,coln
   # update names
   names(summary_table)           <- c('sim_date',paste(prefix,names(summary_table)[-1],sep='_'))
 
- 
-  
   # merge
   summary_table <- merge(summary_table,summary_table_general)
   
