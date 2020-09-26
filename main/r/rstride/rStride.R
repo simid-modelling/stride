@@ -422,6 +422,12 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
   #                                    age4 = 0.5922)
   
   parse_hospital_input <- function(x){
+    
+    # defensive programming: if x is not present
+    if(is.null(x) || !grepl(',',x)){
+      x <- '0,0,0,0'
+    }
+    
     # 1.split string using ','
     # 2. unlist result
     # 3. make numeric
