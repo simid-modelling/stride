@@ -457,6 +457,12 @@ get_longitudinal_doubling_time <- function(dat){
   
   npts <- length(dat)
   n_knots <- min(10,length(dat))
+  
+  # fix if number of new infections is almost zero
+  if(n_knots <= 2){
+    return(data.frame(mean=NA,sd=NA))
+  }
+  
   res<- data.frame(sdt=rep(0,npts),sdtup=rep(0,npts),sdtlow=rep(0,npts))#,expdt=rep(0,3))
   Tv <- seq(1,length(dat),1)
   MGAM <- gam(dat~s(Tv,k=n_knots), family=quasipoisson)

@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L, Libin P
 ############################################################################ #
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -45,26 +45,17 @@ exp_param_list <- get_exp_param_default()
 
 # change parameters and values to combine in a full-factorial grid
 
+# check period
+range(as.Date(exp_design$start_date), as.Date(exp_design$start_date)+ exp_design$num_days)
 
 ################################################ #
 ## GENERATE DESIGN OF EXPERIMENT GRID         ####
 ################################################ #
 
-# add sequence with all rng seeds
-exp_param_list$rng_seed = seq(exp_param_list$num_seeds)
-
-# generate grid
-exp_design <- expand.grid(exp_param_list,
-                          stringsAsFactors = F)
-
-# add a unique seed for each run
-set.seed(125)
-exp_design$rng_seed <- sample(nrow(exp_design))
+# get grid-based design of experiments
+exp_design <- .rstride$get_grid_exp_design(exp_param_list = exp_param_list,
+                                           num_seeds      = exp_param_list$num_seeds)
 dim(exp_design)
-
-# check period
-range(as.Date(exp_design$start_date), as.Date(exp_design$start_date)+ exp_design$num_days)
-
 
 ################################## #
 ## RUN rSTRIDE                  ####

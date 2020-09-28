@@ -401,29 +401,6 @@ get_counts <- function(all_data,sim_day_max,output_col = "counts"){
 #data_transmission <- rstride_out$data_transmission
 add_hospital_admission_time <- function(data_transmission,config_exp){
   
-  # set hospital age groups (age groups for hospital admission)
-  hosp_age <- list(age1 = 0:18,   # 0:16
-                   age2 = 19:59,  # 16:59
-                   age3 = 60:79,  # 60:80
-                   age4 = 80:110) # 80+
-  
-  # create columns for hospital admission start (by age)
-  data_transmission[, hospital_admission_start      := as.numeric(NA)]
-  data_transmission[, hospital_admission_start_age1 := as.numeric(NA)]
-  data_transmission[, hospital_admission_start_age2 := as.numeric(NA)]
-  data_transmission[, hospital_admission_start_age3 := as.numeric(NA)]
-  data_transmission[, hospital_admission_start_age4 := as.numeric(NA)]
-  
-  # hospital probability
-  # hospital_probability <- data.frame(age1 = 0.035,
-  #                                    age2 = 0.0216,
-  #                                    age3 = 0.0855,
-  #                                    age4 = 0.423)
-  # hospital_probability <- data.frame(age1 = 0.049,
-  #                                    age2 = 0.03024,
-  #                                    age3 = 0.1197,
-  #                                    age4 = 0.5922)
-  
   parse_hospital_input <- function(x){
     
     # defensive programming: if x is not present
@@ -441,6 +418,39 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
     # 6. return result
     return(out)
   }
+  
+  if(is.null(config_exp$hospital_category_age)){
+    config_exp$hospital_category_age  = paste(0,19,60,80,sep=',')
+  }
+  
+  age_cat_breaks    <- parse_hospital_input(config_exp$hospital_category_age)
+  hosp_age <- list(age1 = age_cat_breaks$age1:(age_cat_breaks$age2-1),
+                   age2 = age_cat_breaks$age2:(age_cat_breaks$age3-1),
+                   age3 = age_cat_breaks$age3:(age_cat_breaks$age4-1),
+                   age4 = age_cat_breaks$age4:110)
+  
+  # # set hospital age groups (age groups for hospital admission)
+  # hosp_age <- list(age1 = 0:18,   # 0:16
+  #                  age2 = 19:59,  # 16:59
+  #                  age3 = 60:79,  # 60:80
+  #                  age4 = 80:110) # 80+
+  
+  # create columns for hospital admission start (by age)
+  data_transmission[, hospital_admission_start      := as.numeric(NA)]
+  data_transmission[, hospital_admission_start_age1 := as.numeric(NA)]
+  data_transmission[, hospital_admission_start_age2 := as.numeric(NA)]
+  data_transmission[, hospital_admission_start_age3 := as.numeric(NA)]
+  data_transmission[, hospital_admission_start_age4 := as.numeric(NA)]
+  
+  # hospital probability
+  # hospital_probability <- data.frame(age1 = 0.035,
+  #                                    age2 = 0.0216,
+  #                                    age3 = 0.0855,
+  #                                    age4 = 0.423)
+  # hospital_probability <- data.frame(age1 = 0.049,
+  #                                    age2 = 0.03024,
+  #                                    age3 = 0.1197,
+  #                                    age4 = 0.5922)
   
   hospital_probability        <- parse_hospital_input(config_exp$hospital_probability_age)
   

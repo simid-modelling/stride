@@ -63,26 +63,25 @@ get_exp_param_default <- function(bool_child_param = FALSE,
                 delay_contact_tracing          = 3,
                 test_false_negative            = 0.1,
                
-               # log level
-               event_log_level                 = "Transmissions",
-               participant_log_level           = 'Survey', # or 'All'
-                
+                # log level
+                event_log_level                 = "Transmissions",
+
                 # factor for parameter estimation and fitting
                 hosp_probability_factor        = 1,
                
-               # unversal testing
-               unitest_pool_allocation       = c("data/pop_belgium11M_c500_pool_allocation_$unitest_pool_size.csv"),
-               unitest_fnr                   = c(0.01),
-               unitest_n_tests_per_day       = c(25000),
-               unitest_pool_size             = c(32),
-               unitest_test_compliance       = c(0.9),
-               unitest_isolation_compliance  = c(0.8),
+                # unversal testing
+                unitest_pool_allocation       = c("data/pop_belgium11M_c500_pool_allocation_$unitest_pool_size.csv"),
+                unitest_fnr                   = c(0.01),
+                unitest_n_tests_per_day       = c(25000),
+                unitest_pool_size             = c(32),
+                unitest_test_compliance       = c(0.9),
+                unitest_isolation_compliance  = c(0.8),
                
                # hospital admissions
-               
-               hospital_probability_age      = paste(0.049,0.03024,0.1197,0.5922,sep=','),
-               hospital_mean_delay_age       = paste(3,7,7,6,sep=','),
-               
+                hospital_category_age         = paste(0,19,60,80,sep=','),
+                hospital_probability_age      = paste(0.049,0.03024,0.1197,0.5922,sep=','),
+                hospital_mean_delay_age       = paste(3,7,7,6,sep=','),
+                
                # threshold for log parsing (default is NA == no threshold)
                logparsing_cases_upperlimit    = NA
                

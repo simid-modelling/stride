@@ -51,7 +51,7 @@ exp_design <- expand.grid(r0                            = sort(c(seq(1,6,length=
                           num_infected_seeds            = 20,
                           seeding_age_min               = 1,
                           seeding_age_max               = 99,
-                          disease_config_file           = "disease_covid19_age_distr_d6.xml",
+                          disease_config_file           = "disease_covid19_age.xml",
                           population_file               = "pop_belgium600k_c500_teachers_censushh.csv",
                           age_contact_matrix_file       = "contact_matrix_flanders_conditional_teachers.xml",
                           holidays_file                 = "holidays_none.csv",

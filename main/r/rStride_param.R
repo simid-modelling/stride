@@ -47,61 +47,28 @@ num_experiments     <- 32
 exp_param_list <- get_exp_param_default(bool_min_restrictive = T,
                                         bool_revised_model_param = T)
 
-# change parameters and values to combine in a full-factorial grid
+# # option to change parameter values
 # exp_param_list$population_file <- 'pop_belgium600k_c500_teachers_censushh.csv'
- exp_param_list$num_days <- 34      #34, 74, 134
- exp_param_list$r0 <- c(1.5,4)
- exp_param_list$hosp_probability_factor <- c(0.05,0.7)
- exp_param_list$num_infected_seeds <- c(210,560)
- # exp_param_list$num_seeds <- 2
- 
- exp_param_list$logparsing_cases_upperlimit <- 1.5e6
+# exp_param_list$num_days <- 34      #34, 74, 134
+# exp_param_list$r0 <- c(0.5,4)
+# exp_param_list$hosp_probability_factor <- c(0,0.7)
+# exp_param_list$num_infected_seeds <- c(0,560)
+# exp_param_list$num_seeds <- NA
+# 
+# # add maximum for log parsing (memory boudaries)
+# exp_param_list$logparsing_cases_upperlimit <- 1.5e6
 
- # check period
- range(as.Date(exp_param_list$start_date), as.Date(exp_param_list$start_date)+ exp_param_list$num_days)
- 
+# check period
+range(as.Date(exp_param_list$start_date), as.Date(exp_param_list$start_date)+ exp_param_list$num_days)
+
 ################################################ #
 ## GENERATE DESIGN OF EXPERIMENT GRID         ####
 ################################################ #
 
-# get number of values per parameter
-num_param_values <- unlist(lapply(exp_param_list,length))
-
-# select the parameters with at least 2 values
-sel_param     <- names(num_param_values[num_param_values>1])
-
-# setup latin hypercube design (and add parameter names)
-lhs_design <- data.frame(randomLHS(num_experiments,length(sel_param)))
-names(lhs_design) <- sel_param
-
-# rescale LHS to given parameter range
-for(i_param in sel_param){
-  param_range <- range(exp_param_list[i_param])
-  lhs_design[,i_param] <- lhs_design[,i_param] * diff(param_range) + param_range[1]
-}
-
-# copy lhs design into 'exp_design' and add other parameters
-exp_design <- lhs_design
-exp_param_names <- names(exp_param_list)
-exp_param_names <- exp_param_names[!exp_param_names %in% sel_param]
-i_param = exp_param_names[1]
-for(i_param in exp_param_names){
-  exp_design[,i_param] <- exp_param_list[i_param]
-}
+# get LHS design of experiments
+exp_design <- .rstride$get_lhs_exp_design(exp_param_list,num_experiments)
 
 
-# fix for parameters that are a (non-decimal) number
-sel_param_num <- names(exp_design)[grepl('num',names(exp_design))]
-exp_design[,sel_param_num] <- round(exp_design[,sel_param_num])
-
-# add a unique seed for each run
-set.seed(125)
-exp_design$rng_seed <- sample(nrow(exp_design))
-dim(exp_design)
-
-
-
-#exp_design <- exp_design[sample(nrow(exp_design),20),]
 ################################## #
 ## RUN rSTRIDE                  ####
 ################################## #
@@ -119,6 +86,13 @@ inspect_summary(project_dir)
 ## SURVEY PARTICIPANT DATA ####
 ############################# #
 inspect_participant_data(project_dir)
+
+
+
+################################# #
+## PARAMETER ESTIMATION        ####
+################################# #
+estimate_parameters(project_dir)
 
 
 ############################# #
@@ -145,10 +119,6 @@ inspect_transmission_dynamics(project_dir)
 inspect_tracing_data(project_dir)
 
 
-########################################### #
-## PARAMETER ESTIMATION (optional)       ####
-########################################### #
-estimate_parameters(project_dir)
 
 
  

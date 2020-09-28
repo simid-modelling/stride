@@ -560,3 +560,71 @@ cumsum_na <- function(x){
   }
 }
 
+############################### #
+## DESIGN OF EXPERIMENT      ####
+############################### #
+
+.rstride$get_full_grid_exp_design <- function(exp_param_list,num_seeds){
+  
+  # add sequence with all rng seeds
+  exp_param_list$rng_seed = seq(num_seeds)
+  
+  # generate grid with all combinations
+  exp_design <- expand.grid(exp_param_list,
+                            stringsAsFactors = F)
+  
+  # add a unique seed for each run
+  set.seed(125)  #TODO
+  exp_design$rng_seed <- sample(nrow(exp_design))
+  dim(exp_design)
+  
+  # return
+  return(exp_design)
+}
+  
+.rstride$get_lhs_exp_design <- function(exp_param_list,num_experiments){
+  
+  # get number of values per parameter
+  num_param_values <- unlist(lapply(exp_param_list,length))
+  
+  # select the parameters with at least 2 values
+  sel_param     <- names(num_param_values[num_param_values>1])
+  
+  # set rng seed for LHS 
+  rng_seed_lhs <- round(mean(exp_param_list$num_infected_seeds))
+  set.seed(ifelse(is.na(rng_seed_lhs),1234,rng_seed_lhs))
+    
+  # setup latin hypercube design (and add parameter names)
+  lhs_design <- data.frame(randomLHS(num_experiments,length(sel_param)))
+  names(lhs_design) <- sel_param
+  
+  # rescale LHS to given parameter range
+  for(i_param in sel_param){
+    param_range <- range(exp_param_list[i_param])
+    lhs_design[,i_param] <- lhs_design[,i_param] * diff(param_range) + param_range[1]
+  }
+  
+  # fix for parameters that are a (non-decimal) number
+  sel_param_num <- names(lhs_design)[grepl('num',names(lhs_design))]
+  lhs_design[,sel_param_num] <- round(lhs_design[,sel_param_num])
+  
+  # copy lhs design into 'exp_design' and add other parameters
+  exp_design <- lhs_design
+  exp_param_names <- names(exp_param_list)
+  exp_param_names <- exp_param_names[!exp_param_names %in% sel_param]
+  i_param = exp_param_names[1]
+  for(i_param in exp_param_names){
+    exp_design[,i_param] <- exp_param_list[i_param]
+  }
+  
+  # add a unique seed for each run
+  set.seed(125)  #TODO
+  exp_design$rng_seed <- sample(nrow(exp_design))
+  dim(exp_design)
+  
+  # return
+  return(exp_design)
+}
+
+
+
