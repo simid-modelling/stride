@@ -297,6 +297,9 @@ run_rStride <- function(exp_design               = exp_design,
                        config_exp_filename = paste0(output_prefix,".xml")
                        config_exp          = create_config_exp(config_default, output_prefix, exp_design, i_exp)
                        
+                       # # to debug
+                       # config_exp          = .rstride$read_config_xml(config_exp_filename)
+                       
                        #save the config as XML file
                        save_config_xml(config_exp, config_exp_filename)
 

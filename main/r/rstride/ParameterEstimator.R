@@ -257,8 +257,6 @@ estimate_parameters <- function(project_dir)
          pch=19)
   dev.off()
   
-  #
-  
   # select incidence data
   config_tag_sel          <- unique(df_loglike$config_id[df_loglike$pareto_front])
   flag_plot               <- data_incidence_all$config_id %in% config_tag_sel
@@ -297,7 +295,41 @@ estimate_parameters <- function(project_dir)
   # close pdf
   dev.off()
   
-   # command line message
+  ## save scores ----
+  df_loglike_summary <- merge(project_summary,df_loglike)
+  saveRDS(df_loglike_summary,smd_file_path(project_dir,paste0(dirname(project_dir),'_poison_neg_loglikelihood_scores.RData')))
+  
+  
+  
+  # PARETO FRONT PARAMETERS
+  param_design <- names(input_opt_design)
+  param_design <- param_design[param_design != 'config_id']
+  param_design
+  
+  ## PARETO PLOTS ####
+  .rstride$create_pdf(project_dir,'parameter_pareto_config',width = 6, height = 7)
+  par(mfrow=c(4,1))
+  par(mfrow=c(3,3))
+  for(i_param in 1:length(param_design))
+  for(j_param in i_param:length(param_design)){
+    if(i_param != j_param)
+      plot(df_loglike_summary[df_loglike_summary$pareto_front,param_design[i_param]],
+         df_loglike_summary[df_loglike_summary$pareto_front,param_design[j_param]])
+  }
+  
+  df_loglike_cor <- cor(df_loglike_summary[df_loglike_summary$pareto_front,param_design])
+  
+  par(mfrow=c(1,1))
+  #install.packages("corrplot")
+  library(corrplot)
+  corrplot(df_loglike_cor)
+  
+  palette = colorRampPalette(c("green", "white", "red")) (20)
+  heatmap(x = df_loglike_cor, col = palette, symm = TRUE)
+  
+  dev.off()
+  
+  # command line message
   smd_print('PARAMETER ESTIMATION COMPLETE')
   
 } # end function
@@ -420,12 +452,14 @@ get_doubling_time <- function(dat, npts=200,bool_confidence=FALSE){
   return(doubling)
 }
 
-get_longitudinal_doubling_time <- function(dat, npts=200){
+# dat <- summary_infections$new_infections
+get_longitudinal_doubling_time <- function(dat){
   
   npts <- length(dat)
+  n_knots <- min(10,length(dat))
   res<- data.frame(sdt=rep(0,npts),sdtup=rep(0,npts),sdtlow=rep(0,npts))#,expdt=rep(0,3))
   Tv <- seq(1,length(dat),1)
-  MGAM <- gam(dat~s(Tv), family=quasipoisson)
+  MGAM <- gam(dat~s(Tv,k=n_knots), family=quasipoisson)
   
   xv<-seq(1,length(dat), length=npts)
   newd <- data.frame(Tv=xv)
@@ -439,7 +473,7 @@ get_longitudinal_doubling_time <- function(dat, npts=200){
   Xp <- (X1-X0)/eps ## maps coefficients to (fd approx.) derivatives
   
   Xi <- Xp*0 
-  Xi[,1:9+1] <- Xp[,1:9+1] ## Xi%*%coef(MGAM) = smooth deriv i
+  Xi[,-1] <- Xp[,-1] ## Xi%*%coef(MGAM) = smooth deriv i
   df <- Xi%*%coef(MGAM)              ## ith smooth derivative 
   df.sd <- rowSums(Xi%*%MGAM$Vp*Xi)^.5 ## cheap diag(Xi%*%b$Vp%*%t(Xi))^.5
   

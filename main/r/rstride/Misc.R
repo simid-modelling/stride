@@ -73,11 +73,8 @@ if(!(exists('.rstride'))){
 
 .rstride$create_pdf <- function(project_dir,file_name,width=7,height=7){
   
-  # load project summary
-  project_summary   <- .rstride$load_project_summary(project_dir)
-  
   # get run_tag
-  run_tag           <- unique(project_summary$run_tag)
+  run_tag           <- basename(project_dir)
   
   # get file name with path
   file_name_path    <- file.path(project_dir,paste0(run_tag,'_',file_name,'.pdf'))
@@ -92,11 +89,8 @@ if(!(exists('.rstride'))){
 ############################# #
 .rstride$create_jpg <- function(project_dir,file_name,width=7,height=7){
   
-  # load project summary
-  project_summary   <- .rstride$load_project_summary(project_dir)
-  
   # get run_tag
-  run_tag           <- unique(project_summary$run_tag)
+  run_tag           <- basename(project_dir)
   
   # get file name with path
   file_name_path    <- file.path(project_dir,paste0(run_tag,'_',file_name,'.jpg'))
@@ -162,6 +156,24 @@ if(!(exists('.rstride'))){
   # fix: http://r.789695.n4.nabble.com/saveXML-prefix-argument-td4678407.html
   cat( saveXML( xml_doc, indent = TRUE, prefix = newXMLCommentNode(xml_prefix)),  file = filename) 
 }
+
+
+# Read XML and reformat numeric values
+.rstride$read_config_xml <- function(config_exp_filename){
+
+  # read xml file  
+  config_exp <- xmlToList(config_exp_filename)
+
+  # find numeric parameters
+  bool_is_numeric <- suppressWarnings(!is.na(as.numeric(config_exp)))
+  
+  # convert string into numeric
+  config_exp[bool_is_numeric] <- as.numeric(config_exp[bool_is_numeric])
+  
+  # return
+  return(config_exp)
+}
+
 
 ############################# #
 ## MATRIX OPERATIONS       ####

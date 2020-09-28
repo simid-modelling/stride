@@ -115,7 +115,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   flag_compare  <- hosp_adm_data$date %in% data_incidence_all$sim_date
   hosp_adm_data <- hosp_adm_data[flag_compare,]
   
-  ## SEROPREVALENCE DATA L
+  ## SEROPREVALENCE DATA
   prevalence_ref <- load_observed_seroprevalence_data()
   
   # select simulation period
@@ -132,8 +132,6 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     
     # select subset
     data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
-    
-    cumsum_na(data_incidence_sel$new_hospital_admissions)
     
     # plot
     plot_incidence_data(data_incidence_sel,project_summary,
@@ -184,6 +182,11 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   #--------------------------#
   
   ## R0     ####
+  # add R0 to input opt design if not present
+  if(any(is.null(input_opt_design$r0))){ 
+    input_opt_design$r0 <- unique(project_summary$r0)
+  }
+  
   ## PER R0: plot temporal patterns
   input_opt_design$r0 <- round(input_opt_design$r0,digits=1)
   opt_r0 <- unique(input_opt_design$r0)
@@ -287,6 +290,43 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   
   # close pdf
   dev.off()
+  
+  ## PARETO ENSEMBLE
+  filename_summary_score <- smd_file_path(project_dir,'poison_neg_loglikelihood_scores.RData')
+  if(file.exists(filename_summary_score)){
+    
+    
+    summary_score      <- readRDS(filename_summary_score)
+    config_selection   <- summary_score$config_id[summary_score$pareto_front]
+    data_incidence_sel <- data_incidence_all[data_incidence_all$config_id %in% config_selection,]
+    
+    ## PARETO (PDF) ####
+    
+    # all
+    .rstride$create_pdf(project_dir,'incidence_pareto_all',width = 6, height = 2.5)
+    par(mfrow=c(4,1))
+    plot_incidence_data(data_incidence_sel,project_summary,
+                        hosp_adm_data,input_opt_design,prevalence_ref,
+                        bool_add_param,bool_only_hospital_adm = FALSE) 
+    dev.off()
+    
+    # hospital admissions
+    .rstride$create_pdf(project_dir,'incidence_pareto_hosp',width = 6, height = 2.5)
+    par(mar=c(3,5,1,3))
+    plot_incidence_data(data_incidence_sel,project_summary,
+                        hosp_adm_data,input_opt_design,prevalence_ref,
+                        bool_add_param,bool_only_hospital_adm = TRUE) 
+    dev.off()
+    
+    # polygon
+    .rstride$create_pdf(project_dir,'incidence_pareto_reproduction',width = 5, height = 5)
+    plot_incidence_reproduction(data_incidence = data_incidence_sel,
+                                hosp_adm_data = hosp_adm_data,
+                                scen_color = 1)
+    dev.off()
+    
+    
+  }
   
   
    # command line message
@@ -589,12 +629,14 @@ add_legend_runinfo <- function(project_summary,input_opt_design,
   # get run info: population
   run_info <- c(paste0('pop_size = ',unique(project_summary_sel$population_size)/1e3,'k'))
 
-  # add other exp_design parameters (excl. ids)
+  # add other exp_design parameters (excl. id and non-numeric parameters)
   names_exp_param <- colnames(input_opt_design)
-  flag_col        <- names_exp_param %in% c('config_id','contact_id','tracing_id')
-  names_exp_param <- names_exp_param[!flag_col]
+  bool_no_id      <- !names_exp_param %in% c('config_id','contact_id','tracing_id')
+  bool_numeric    <- unlist(lapply(input_opt_design[1,],is.numeric))
+  names_exp_param <- names_exp_param[bool_no_id & bool_numeric]
   project_summary_sel[,names_exp_param] <- round(project_summary_sel[,names_exp_param],digits = 2)
   
+  i_name <- names_exp_param[2]
   if(length(names_exp_param)>0){
     for(i_name in names_exp_param){
     
