@@ -319,11 +319,11 @@ estimate_parameters <- function(project_dir)
   
   df_loglike_cor <- cor(df_loglike_summary[df_loglike_summary$pareto_front,param_design])
   
+  # parameter correlation?
   par(mfrow=c(1,1))
-  #install.packages("corrplot")
-  library(corrplot)
-  corrplot(df_loglike_cor)
+  corrplot(df_loglike_cor)  # using function from 'corrplot' library
   
+  # add heatmap
   palette = colorRampPalette(c("green", "white", "red")) (20)
   heatmap(x = df_loglike_cor, col = palette, symm = TRUE)
   

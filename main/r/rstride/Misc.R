@@ -574,7 +574,6 @@ cumsum_na <- function(x){
                             stringsAsFactors = F)
   
   # add a unique seed for each run
-  set.seed(125)  #TODO
   exp_design$rng_seed <- sample(nrow(exp_design))
   dim(exp_design)
   
@@ -618,7 +617,6 @@ cumsum_na <- function(x){
   }
   
   # add a unique seed for each run
-  set.seed(125)  #TODO
   exp_design$rng_seed <- sample(nrow(exp_design))
   dim(exp_design)
   

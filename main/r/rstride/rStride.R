@@ -41,6 +41,7 @@ library('simid.rtools',quietly = T)
 # tidyr       to easily replace na's by 0 (replace_na)
 # data.table  to process (large) transmission data sets, much better performance!! 
 # lhs         to sample from a latin hypercube design (instead of using a full factorial grid)
+# corrplot    to visualise the parameter correlations in the paretor front selection
 smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table','openxlsx','tidyr','data.table','lhs'))
 
 # load general help functions
