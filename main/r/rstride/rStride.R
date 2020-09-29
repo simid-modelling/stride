@@ -29,20 +29,18 @@ if(!'simid.rtools' %in% installed.packages()[,1]){
 library('simid.rtools',quietly = T)
 
 # LOAD R PACKAGES
-# 
-# XML         to parse and write XML files
-# doParallel  to use parallel foreach
-# ggplot2     to plot contact matrices
-# gridExtra   to plot contact matrices
-# mgcv        to sample uncertain parameters from distributions
-# data.table  to use convenience functions for range subsets (e.g. "between")
-# openxlsx    to read excel files (reference data on incidence)
-# scales      to plot ensembles with transparant colors
-# tidyr       to easily replace na's by 0 (replace_na)
-# data.table  to process (large) transmission data sets, much better performance!! 
-# lhs         to sample from a latin hypercube design (instead of using a full factorial grid)
-# corrplot    to visualise the parameter correlations in the paretor front selection
-smd_load_packages(c('XML','doParallel','ggplot2','gridExtra','mgcv','data.table','openxlsx','tidyr','data.table','lhs'))
+smd_load_packages(c('XML',           # to parse and write XML files
+                    'doParallel',    # to use parallel foreach
+                    'ggplot2',       # to plot contact matrices
+                    'gridExtra',     # to plot contact matrices
+                    'mgcv',          # to sample uncertain parameters from distributions
+                    'data.table',    # to use convenience functions for range subsets (e.g. "between") and to process (large) transmission data sets, much better performance!! 
+                    'openxlsx',      # to read excel files (reference data on incidence)
+                    'scales',        # to plot ensembles with transparant colors
+                    'tidyr',         # to easily replace na's by 0 (replace_na)
+                    'lhs',           # to sample from a latin hypercube design (instead of using a full factorial grid)
+                    'corrplot'       # to visualise the parameter correlations in the paretor front selection
+                    ))
 
 # load general help functions
 source('./bin/rstride/Misc.R')
@@ -216,9 +214,10 @@ run_rStride <- function(exp_design               = exp_design,
      .rstride$log_levels_exist(exp_design) == FALSE ||
      .rstride$valid_r0_values(exp_design)  == FALSE ||
      .rstride$valid_immunity_profiles(exp_design)  == FALSE ||
-     .rstride$valid_seed_infected(exp_design) == FALSE){
+     .rstride$valid_seed_infected(exp_design) == FALSE ||
+     .rstride$valid_cnt_param(exp_design) == FALSE){
     
-    .rstride$cli_abort()
+    .rstride$cli_abort('design of experiment is not valid')
     return(.rstride$no_return_value())
   }
   

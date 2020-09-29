@@ -36,8 +36,11 @@ if(!(exists('.rstride'))){
 # ############################# #
 
 # terminate rStride
-.rstride$cli_abort <- function()
+.rstride$cli_abort <- function(message='')
 {
+  if(nchar(message)>0)
+    smd_print(message,WARNING=T)
+  
   smd_print('!! TERMINATE rSTRIDE CONTROLLER !!',WARNING=T)
 }
 
@@ -159,7 +162,7 @@ if(!(exists('.rstride'))){
 
 
 # Read XML and reformat numeric values
-.rstride$read_config_xml <- function(config_exp_filename){
+.rstride$read_config_xml <- function(config_exp_filename,sel_exp=NA){
 
   # read xml file  
   config_exp <- xmlToList(config_exp_filename)
@@ -169,6 +172,10 @@ if(!(exists('.rstride'))){
   
   # convert string into numeric
   config_exp[bool_is_numeric] <- as.numeric(config_exp[bool_is_numeric])
+  
+  if(!is.na(sel_exp)){
+    config_exp <- config_exp[sel_exp,]
+  }
   
   # return
   return(config_exp)
@@ -467,7 +474,31 @@ if(!(exists('.rstride'))){
   
 }
 
-
+.rstride$valid_cnt_param <- function(design_of_experiment = exp_design){
+ 
+  names(exp_design)[grepl('cnt',names(exp_design))]
+  
+  # contact reduction should be between 0 and 1
+  colname_cnt_reduction <- grepl('cnt_reduction',names(exp_design)) & !grepl('cutoff',names(exp_design))
+  if(any(exp_design[,colname_cnt_reduction]>1 | exp_design[,colname_cnt_reduction]<0)){
+    smd_print('CONTACT REDUCTIONS SHOULD ALL BE BETWEEN [0,1]',WARNING=T)
+    return(false)
+  }
+     
+  # compliance delay should be an integer
+  colname_compliance <- grepl('compliance_delay',names(exp_design))
+  if(any(exp_design[,colname_compliance] != round(exp_design[,colname_compliance]))){
+    smd_print('CONTACT COMPLIANCE DELAY IS NOT AN INTEGER',WARNING=T)
+    return(FALSE)
+  }
+  
+  if(any(exp_design$cnt_intensity_householdCluster>1 | exp_design$cnt_intensity_householdCluster<0)){
+    smd_print('CONTACT INTENSITY IN HOUSEHOLD CLUSTER SHOULD BE BETWEEN [0,1]',WARNING=T)
+    return(false)
+  }
+  
+  return(TRUE)
+}
 
 ############################### #
 ## DEVELOPMENT FUNCTIONS     ####
@@ -604,7 +635,7 @@ cumsum_na <- function(x){
   }
   
   # fix for parameters that are a (non-decimal) number
-  sel_param_num <- names(lhs_design)[grepl('num',names(lhs_design))]
+  sel_param_num <- names(lhs_design)[grepl('num',names(lhs_design)) | grepl('compliance_delay',names(lhs_design))]
   lhs_design[,sel_param_num] <- round(lhs_design[,sel_param_num])
   
   # copy lhs design into 'exp_design' and add other parameters

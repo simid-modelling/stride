@@ -292,7 +292,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   dev.off()
   
   ## PARETO ENSEMBLE
-  filename_summary_score <- smd_file_path(project_dir,'poison_neg_loglikelihood_scores.RData')
+  filename_summary_score <- smd_file_path(project_dir,basename(project_dir),'_poison_neg_loglikelihood_scores.RData')
   if(file.exists(filename_summary_score)){
     
     
