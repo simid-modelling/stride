@@ -188,8 +188,8 @@ estimate_parameters <- function(project_dir)
     z_pq <- quantile(df_loglike$doubling_pois,q_value,na.rm=T)
     
     bool_pareto_front <- df_loglike$hospital_pois <= x_pq &
-      df_loglike$incidence_pois <= y_pq &
-      df_loglike$doubling_pois <= z_pq
+                          df_loglike$incidence_pois <= y_pq &
+                          df_loglike$doubling_pois <= z_pq
     bool_pareto_front[is.na(bool_pareto_front)] <- FALSE
     df_loglike$pareto_front <- bool_pareto_front
     #print(length(unique(df_loglike$config_id[df_loglike$pareto_front])))
@@ -226,35 +226,45 @@ estimate_parameters <- function(project_dir)
     }
   }
   
-  # Show pareto front
-  par(mfrow=c(2,2))
-  plot(df_loglike$hospital_pois,
-       df_loglike$doubling_pois,
-       xlab='Pois negloglike (hospital admissions)',
-       ylab='Pois negloglike (doubling time)')
-  points(df_loglike$hospital_pois[df_loglike$pareto_front],
-         df_loglike$doubling_pois[df_loglike$pareto_front],
-         col = 4,
-         pch=19)
-  legend('topright',
-         paste(c('N_total','N_output','N_pareto'),c(nrow(project_summary),nrow(df_loglike),sum(df_loglike$pareto_front)),sep=': '),
-         cex=0.8)
-  plot(df_loglike$incidence_pois,
-       df_loglike$doubling_pois,
-       xlab='Pois negloglike (total_incidence)',
-       ylab='Pois negloglike (doubling time)')
-  points(df_loglike$incidence_pois[df_loglike$pareto_front],
-         df_loglike$doubling_pois[df_loglike$pareto_front],
-         col = 4,
-         pch=19)
-  plot(df_loglike$hospital_pois,
-       df_loglike$incidence_pois,
-       xlab='Pois negloglike (hospital admissions)',
-       ylab='Pois negloglike (total incidence)')
-  points(df_loglike$hospital_pois[df_loglike$pareto_front],
-         df_loglike$incidence_pois[df_loglike$pareto_front],
-         col = 4,
-         pch=19)
+  # Show pareto front (using 2 scales)
+  plot_range_q <- 0.4
+  for(plot_range_q in c(1,0.4)){
+    par(mfrow=c(2,2))
+    plot(df_loglike$hospital_pois,
+         df_loglike$doubling_pois,
+         xlab='Pois negloglike (hospital admissions)',
+         ylab='Pois negloglike (doubling time)',
+         xlim=quantile(df_loglike$hospital_pois,c(0,plot_range_q),na.rm=T),
+         ylim=quantile(df_loglike$doubling_pois,c(0,plot_range_q),na.rm=T))
+    points(df_loglike$hospital_pois[df_loglike$pareto_front],
+           df_loglike$doubling_pois[df_loglike$pareto_front],
+           col = 4,
+           pch=19)
+    legend('topright',
+           paste(c('N_total','N_output','N_pareto'),c(nrow(project_summary),nrow(df_loglike),sum(df_loglike$pareto_front)),sep=': '),
+           cex=0.8,
+           bg='white')
+    plot(df_loglike$incidence_pois,
+         df_loglike$doubling_pois,
+         xlab='Pois negloglike (total_incidence)',
+         ylab='Pois negloglike (doubling time)',
+         xlim=quantile(df_loglike$incidence_pois,c(0,plot_range_q),na.rm=T),
+         ylim=quantile(df_loglike$doubling_pois,c(0,plot_range_q),na.rm=T))
+    points(df_loglike$incidence_pois[df_loglike$pareto_front],
+           df_loglike$doubling_pois[df_loglike$pareto_front],
+           col = 4,
+           pch=19)
+    plot(df_loglike$hospital_pois,
+         df_loglike$incidence_pois,
+         xlab='Pois negloglike (hospital admissions)',
+         ylab='Pois negloglike (total incidence)',
+         xlim=quantile(df_loglike$hospital_pois,c(0,plot_range_q),na.rm=T),
+         ylim=quantile(df_loglike$incidence_pois,c(0,plot_range_q),na.rm=T))
+    points(df_loglike$hospital_pois[df_loglike$pareto_front],
+           df_loglike$incidence_pois[df_loglike$pareto_front],
+           col = 4,
+           pch=19)
+  }
   dev.off()
   
   # select incidence data
@@ -295,11 +305,37 @@ estimate_parameters <- function(project_dir)
   # close pdf
   dev.off()
   
+  ## SINGLE BEST ----
+  order_table   <- data.frame(hosp = order(df_loglike$hospital_pois),
+                              inc = order(df_loglike$incidence_pois),
+                              double = order(df_loglike$doubling_pois))
+  
+  i_row <- 2
+  tbl <- table(unlist(order_table[1:i_row,]))
+  while(!any(tbl>1)){
+    i_row <- i_row+1
+    tbl <- table(unlist(order_table[1:i_row,]))
+    print(i_row)
+  }
+  
+  # select subset
+  i_config <- df_loglike$config_id[as.numeric(names(which(tbl>1)))[1]]
+  data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
+  data_incidence_sel$cumulative_hospital_cases <- data_incidence_sel$cumulative_hospital_cases - data_incidence_sel$cumulative_hospital_cases[1]
+  
+  .rstride$create_pdf(project_dir,'parameter_pareto_incidence_single',width = 6, height = 7)
+  par(mfrow=c(4,1))
+  # plot
+  plot_incidence_data(data_incidence_sel,project_summary,
+                      hosp_adm_data,input_opt_design,prevalence_ref,
+                      bool_add_param = bool_add_param,
+                      bool_add_doubling_time = TRUE)
+  dev.off()
+  
+  
   ## save scores ----
   df_loglike_summary <- merge(project_summary,df_loglike)
-  saveRDS(df_loglike_summary,smd_file_path(project_dir,paste0(dirname(project_dir),'_poison_neg_loglikelihood_scores.RData')))
-  
-  
+  saveRDS(df_loglike_summary,smd_file_path(project_dir,paste0(basename(project_dir),'_poison_neg_loglikelihood_scores.RData')))
   
   # PARETO FRONT PARAMETERS
   param_design <- names(input_opt_design)
@@ -308,7 +344,6 @@ estimate_parameters <- function(project_dir)
   
   ## PARETO PLOTS ####
   .rstride$create_pdf(project_dir,'parameter_pareto_config',width = 6, height = 7)
-  par(mfrow=c(4,1))
   par(mfrow=c(3,3))
   for(i_param in 1:length(param_design))
   for(j_param in i_param:length(param_design)){
@@ -358,15 +393,19 @@ get_lsq_score <- function(incidence_observed,incidence_predicted){
   }
 }
 #incidence_observed <- doubling_time_observed;incidence_predicted <- doubling_time_model
+#incidence_observed <- hosp_adm_observed; incidence_predicted <- hosp_adm_model    
 get_binom_poisson <- function(incidence_observed,incidence_predicted){
 
   # # from the model estimate of the incidence and the data, we can 
   # # estimate the fraction of cases that were confirmed
-  # frac_confirmed = sum(incidence_observed,na.rm = T)/sum(incidence_predicted,na.rm = T)
+  #frac_confirmed = sum(incidence_observed,na.rm = T)/sum(incidence_predicted,na.rm = T)
   # 
   # # normalize the model prediction so area under curve
   # # equals the sum of the data incidence
-  # incidence_predicted = incidence_predicted*frac_confirmed 
+  #incidence_predicted = incidence_predicted*frac_confirmed 
+  
+  # adjust
+  incidence_predicted[incidence_predicted==0] <- 1
   
   # now calculate the Poisson neglog likelihood
   # statistic that compares the data to this model calculated
@@ -387,7 +426,8 @@ get_binom_poisson <- function(incidence_observed,incidence_predicted){
 }
 
 
-# vpois_negloglike <- df_loglike$hospital_pois; num_obs <- nrow(df_loglike)
+#vpois_negloglike <- df_loglike$hospital_pois; num_obs <- nrow(df_loglike)
+#vpois_negloglike <- df_loglike$doubling_pois; num_obs <- nrow(df_loglike)
 get_normal_negloglike <- function(num_obs,vpois_negloglike){
   
   ################################################################################# #
@@ -409,6 +449,8 @@ get_normal_negloglike <- function(num_obs,vpois_negloglike){
   vR0      <- df_loglike$r0
   t0_best  <- df_loglike$num_infected_seeds[which(vpois_negloglike == a)]
   vt0      <- df_loglike$num_infected_seeds
+  
+  plot(vR0,vpois_negloglike)
   
   around = 3
   eR0_best_1stddev = round((range(vR0[ib])[2]-range(vR0[ib])[1])/2,around)

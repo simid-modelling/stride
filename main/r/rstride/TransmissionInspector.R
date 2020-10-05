@@ -450,7 +450,7 @@ aggregate_transmission_dynamics <- function(project_dir){
   }
   
   # select one week(7days), after burn in period of 10 days
-  sel_period         <- seq(min(data_incidence_all$sim_date)+9,min(data_incidence_all$sim_date)+15,1)
+  sel_period         <- seq(min(data_incidence_all$sim_date,na.rm=T)+9,min(data_incidence_all$sim_date,na.rm=T)+15,1)
   data_incidence_all <- data_incidence_all[data_incidence_all$sim_date %in% sel_period,]
   
   i_config <- 6
@@ -462,10 +462,10 @@ aggregate_transmission_dynamics <- function(project_dir){
     data_incidence      <- data_incidence_all[data_incidence_all$exp_id %in% project_summary$exp_id[flag_exp],]
     num_runs_exp        <- sum(flag_exp)
     num_infected_seeds  <- data_incidence$new_infections[1]
-    
+
     return(c(doubling_time = mean(data_incidence$doubling_time,na.rm=TRUE),
-             sec_cases = mean(data_incidence$sec_cases,na.rm=TRUE),
-             gen_interval =mean(data_incidence$gen_interval,na.rm=TRUE),
+             sec_cases     = mean(data_incidence$sec_cases,na.rm=TRUE),
+             gen_interval  = mean(data_incidence$gen_interval,na.rm=TRUE),
              r0 = input_opt_design[i_config,]))
     
     

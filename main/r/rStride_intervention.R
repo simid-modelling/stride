@@ -41,20 +41,20 @@ dir_postfix <- '_int'
 ################################## #
 
 # add default parameters and values to combine in a full-factorial grid
-exp_param_list <- get_exp_param_default()
+exp_param_list <- get_exp_param_default(bool_revised_model_param = T)
 
 # change parameters and values to combine in a full-factorial grid
 
 # check period
-range(as.Date(exp_design$start_date), as.Date(exp_design$start_date)+ exp_design$num_days)
+range(as.Date(exp_param_list$start_date), as.Date(exp_param_list$start_date)+ exp_param_list$num_days)
 
 ################################################ #
 ## GENERATE DESIGN OF EXPERIMENT GRID         ####
 ################################################ #
 
 # get grid-based design of experiments
-exp_design <- .rstride$get_grid_exp_design(exp_param_list = exp_param_list,
-                                           num_seeds      = exp_param_list$num_seeds)
+exp_design <- .rstride$get_full_grid_exp_design(exp_param_list = exp_param_list,
+                                                num_seeds      = exp_param_list$num_seeds)
 dim(exp_design)
 
 ################################## #
@@ -74,6 +74,12 @@ inspect_summary(project_dir)
 ## SURVEY PARTICIPANT DATA ####
 ############################# #
 inspect_participant_data(project_dir)
+
+
+########################################### #
+## PARAMETER ESTIMATION (optional)       ####
+########################################### #
+estimate_parameters(project_dir)
 
 
 ############################# #
@@ -100,10 +106,7 @@ inspect_transmission_dynamics(project_dir)
 inspect_tracing_data(project_dir)
 
 
-########################################### #
-## PARAMETER ESTIMATION (optional)       ####
-########################################### #
-estimate_parameters(project_dir)
+
 
 
  

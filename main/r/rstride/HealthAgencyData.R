@@ -38,9 +38,9 @@ get_observed_incidence_data <- function(num_samples = 1)
   cases_ref_file <- download_ref_file('https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv')
   tests_ref_file <- download_ref_file('https://epistat.sciensano.be/Data/COVID19BE_tests.csv')
   
-  # if any download gave NA => use defaults
+  # if any download failed => use defaults
   if(any(is.na(c(hosp_ref_file,cases_ref_file,tests_ref_file)))){
-    return(read.table(ref_data_file_name,sep=',',header=T))
+    return(read.table(backup_file,sep=',',header=T))
   }
 
   # load reference hospital data
