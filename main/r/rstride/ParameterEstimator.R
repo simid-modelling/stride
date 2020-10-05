@@ -343,26 +343,29 @@ estimate_parameters <- function(project_dir)
   param_design
   
   ## PARETO PLOTS ####
-  .rstride$create_pdf(project_dir,'parameter_pareto_config',width = 6, height = 7)
-  par(mfrow=c(3,3))
-  for(i_param in 1:length(param_design))
-  for(j_param in i_param:length(param_design)){
-    if(i_param != j_param)
-      plot(df_loglike_summary[df_loglike_summary$pareto_front,param_design[i_param]],
-         df_loglike_summary[df_loglike_summary$pareto_front,param_design[j_param]])
+  if(length(param_design)>1){
+    .rstride$create_pdf(project_dir,'parameter_pareto_config',width = 6, height = 7)
+    par(mfrow=c(3,3))
+    for(i_param in 1:length(param_design))
+      for(j_param in i_param:length(param_design)){
+        if(i_param != j_param)
+          plot(df_loglike_summary[df_loglike_summary$pareto_front,param_design[i_param]],
+               df_loglike_summary[df_loglike_summary$pareto_front,param_design[j_param]])
+      }
+    
+    df_loglike_cor <- cor(df_loglike_summary[df_loglike_summary$pareto_front,param_design])
+    
+    # parameter correlation?
+    par(mfrow=c(1,1))
+    corrplot(df_loglike_cor)  # using function from 'corrplot' library
+    
+    # add heatmap
+    palette = colorRampPalette(c("green", "white", "red")) (20)
+    heatmap(x = df_loglike_cor, col = palette, symm = TRUE)
+    
+    dev.off()
   }
   
-  df_loglike_cor <- cor(df_loglike_summary[df_loglike_summary$pareto_front,param_design])
-  
-  # parameter correlation?
-  par(mfrow=c(1,1))
-  corrplot(df_loglike_cor)  # using function from 'corrplot' library
-  
-  # add heatmap
-  palette = colorRampPalette(c("green", "white", "red")) (20)
-  heatmap(x = df_loglike_cor, col = palette, symm = TRUE)
-  
-  dev.off()
   
   # command line message
   smd_print('PARAMETER ESTIMATION COMPLETE')

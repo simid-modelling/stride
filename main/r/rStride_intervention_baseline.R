@@ -87,21 +87,7 @@ get_exp_param_default <- function(bool_child_param = FALSE,
                
           )
    
-   # change parameters if childrens infectiousness is 1/2 compared to adults
-   if(bool_child_param){ #best fit on 2020-06-07
-     out$disease_config_file <- "disease_covid19_child.xml"
-     out$cnt_reduction_workplace <- 0.85
-     out$cnt_reduction_other     <- 0.87
-     out$hosp_probability_factor <- 0.80
-   }
-   
-   # select least stringent social mixing assumptions
-   if(bool_min_restrictive){
-      out$cnt_reduction_workplace_exit <- min(out$cnt_reduction_workplace_exit)
-      out$cnt_reduction_other_exit <- min(out$cnt_reduction_other_exit)
-   }
-   
-   if(bool_revised_model_param){
+    if(bool_revised_model_param){
       # relative proportions
       # reference: hospital survey data by age (faes et al) / observed sympt cases by age R0 callibration 2020-09-17
       out$hospital_probability_age      = paste(c(0.5863577,0.6193339,1.1223633,3.1063142)/3.1,collapse=',') # still requires rescaling
@@ -123,6 +109,19 @@ get_exp_param_default <- function(bool_child_param = FALSE,
       
    }
    
+   # change parameters if childrens infectiousness is 1/2 compared to adults
+   if(bool_child_param){ 
+      out$disease_config_file <- "disease_covid19_lognorm_child.xml"
+      # out$cnt_reduction_workplace <- 0.85
+      # out$cnt_reduction_other     <- 0.87
+      # out$hosp_probability_factor <- 0.80
+   }
+   
+   # select least stringent social mixing assumptions
+   if(bool_min_restrictive){
+      out$cnt_reduction_workplace_exit <- min(out$cnt_reduction_workplace_exit)
+      out$cnt_reduction_other_exit <- min(out$cnt_reduction_other_exit)
+   }  
    # return parameters
    return(out)
 }
