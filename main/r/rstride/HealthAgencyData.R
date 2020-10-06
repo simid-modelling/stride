@@ -80,9 +80,9 @@ get_observed_incidence_data <- function(num_samples = 1)
 # if connection is not possible: return NA
 download_ref_file <- function(cases_ref_url,data_dir = 'data'){
   case_ref_file   <- file.path(data_dir,basename(cases_ref_url))
-  tryCatch(download.file(cases_ref_url,case_ref_file,quiet=TRUE),
-           error = function(e){return(NA)})
-  return(case_ref_file)
+  exit_status     <- tryCatch(download.file(cases_ref_url,case_ref_file,quiet=TRUE),
+                          error = function(e){return(-1)})
+  return(ifelse(exit_status==0,case_ref_file,NA))
 }
 
 load_observed_seroprevalence_data <- function(subset_serology_samples = 0:2)
