@@ -72,7 +72,7 @@ get_exp_param_default <- function(bool_child_param = FALSE,
                 # unversal testing
                 unitest_pool_allocation       = c("data/pop_belgium11M_c500_pool_allocation_$unitest_pool_size.csv"),
                 unitest_fnr                   = c(0.01),
-                unitest_n_tests_per_day       = c(25000),
+                unitest_n_tests_per_day       = 0, #c(25000),
                 unitest_pool_size             = c(32),
                 unitest_test_compliance       = c(0.9),
                 unitest_isolation_compliance  = c(0.8),

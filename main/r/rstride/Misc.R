@@ -351,6 +351,9 @@ if(!(exists('.rstride'))){
 # check file presence
 .rstride$data_files_exist <- function(design_of_experiment = exp_design){
   
+  # #TODO: scan automaticaly for .csv or .json or .xml files and check presence
+  # c(design_of_experiment)[grepl('\\.csv',c(design_of_experiment))]
+  
   # get the unique file names
   file_names <- unique(c(design_of_experiment$age_contact_matrix_file,
                          design_of_experiment$disease_config_file,
@@ -570,8 +573,7 @@ if(!(exists('.rstride'))){
 }
 
 .rstride$is_ua_cluster <- function(){
-  return(grepl('leibniz',system('hostname -A',intern = T))||
-           grepl('vaughan',system('hostname -A',intern = T)))
+  return(any(grepl('vsc',dir('~',full.names=T))))
 }
 
 
