@@ -570,7 +570,8 @@ if(!(exists('.rstride'))){
 }
 
 .rstride$is_ua_cluster <- function(){
-  return(grepl('leibniz',system('hostname',intern = T)))
+  return(grepl('leibniz',system('hostname -A',intern = T))||
+           grepl('vaughan',system('hostname -A',intern = T)))
 }
 
 
