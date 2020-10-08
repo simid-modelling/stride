@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L et al.
 ############################################################################# #
 #
 # MODEL INCIDENCE EXPLORATION
@@ -33,10 +33,13 @@ library('Rmisc')
 # set directory name with results and get output files
 #dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200601_results'
 #dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200606_results'
-dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200608_results'
+#dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200608_results'
 #dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200608_results_bis'
+dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201006_results'
 
-file_name_incidence <- dir(dir_results,pattern='incidence_processed.RData',recursive = T,full.names = T)
+
+file_name_incidence <- dir(dir_results,pattern='incidence.RData',recursive = T,full.names = T)
+#file_name_incidence <- dir(dir_results,recursive = T,full.names = T)
 
 # output tag
 output_tag <- paste0(format(Sys.Date(),'%Y%m%d'),'_results')
@@ -48,18 +51,19 @@ file_name_incidence <- file_name_incidence[!grepl('_tracing',file_name_incidence
 file_name_incidence <- file_name_incidence[!grepl('_fitting',file_name_incidence)]
 
 ## LOAD DATA ----
-i_file <- 
+i_file <- 1
 # load and aggregate results
 foreach(i_file = 1:length(file_name_incidence),
         .combine = rbind) %do% {
   
           # load results
           load(file_name_incidence[i_file])
+          data_incidence_all <- data_all
           names(data_incidence_all)
           
           # parse scenario name
           scenario_name <- substr(basename(file_name_incidence[i_file]),16,100)
-          scenario_name <- gsub('_incidence_processed.RData','',scenario_name)
+          scenario_name <- gsub('_data_incidence.RData','',scenario_name)
           scenario_name <- gsub('_int','scen',scenario_name)
           
           # fix single digit numbers
@@ -77,9 +81,27 @@ foreach(i_file = 1:length(file_name_incidence),
           data_incidence_all$location_NA <- NULL
           
           # add scenario name
-          data_incidence_all$scenario <- scenario_name
-          
+          data_incidence_all$scenario    <- scenario_name
           data_incidence_all$scenario_id <- as.numeric(substr(scenario_name,5,6))
+          
+          # add project_dir
+          project_dir <- dirname(file_name_incidence[i_file])
+          data_incidence_all$project_dir <- project_dir
+          
+          # config_id
+          project_summary <- .rstride$load_project_summary(project_dir)
+          input_opt       <- .rstride$get_variable_model_param(project_summary)
+          
+          # add config_id 
+          # get variable names of input_opt_design (fix if only one column)
+          if(ncol(input_opt) == 1) {
+            project_summary$config_id  <- project_summary[,colnames(input_opt)]
+          } else{
+            project_summary$config_id  <- apply(project_summary[,names(input_opt)],1,paste, collapse='_')
+          }
+          
+          # add config_id and tracing_id to incidence data
+          data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id')] )
           
           # check
           smd_print(i_file,scenario_name)
@@ -89,11 +111,13 @@ foreach(i_file = 1:length(file_name_incidence),
           data_incidence_all
 } -> data_incidence_scenario
 
-# remove delay of 14 days
-unique(data_incidence_scenario$config_id)
-data_incidence_scenario <- data_incidence_scenario[!grepl('_14',data_incidence_scenario$config_id),]
-data_incidence_scenario$config_id <- gsub('_21','',data_incidence_scenario$config_id)
-data_incidence_scenario$tracing_id <- gsub('_21','',data_incidence_scenario$tracing_id)
+names(data_incidence_scenario)
+table(data_incidence_scenario$config_id)
+# # remove delay of 14 days
+# unique(data_incidence_scenario$config_id)
+# data_incidence_scenario <- data_incidence_scenario[!grepl('_14',data_incidence_scenario$config_id),]
+# data_incidence_scenario$config_id <- gsub('_21','',data_incidence_scenario$config_id)
+# data_incidence_scenario$tracing_id <- gsub('_21','',data_incidence_scenario$tracing_id)
 
 # make copy and add month
 data_incidence <- data_incidence_scenario
@@ -172,7 +196,6 @@ head(opt_scenario)
 # add scenario config to incidence data
 data_incidence <- merge(data_incidence,opt_scenario)
 
-
 ## REFERENCE DATA COVID-19: new hospitalisation ----
 hosp_adm_data      <- get_observed_incidence_data()
 hosp_adm_data$date <- as.Date(hosp_adm_data$sim_date)
@@ -180,7 +203,8 @@ hosp_adm_data$num_adm <- hosp_adm_data$hospital_admissions
 hosp_adm_data$cum_adm <- hosp_adm_data$cumulative_hospital_admissions
 
 ## PREVALENCE DATA STOCHASTIC MODEL
-prevalence_ref <- readRDS('./data/prevalence_stochastic_model_20200604.rds')
+#prevalence_ref <- readRDS('./data/prevalence_stochastic_model_20200604.rds')
+prevalence_ref <- load_observed_seroprevalence_data()
 head(prevalence_ref)
 pop_size_be <- 11e6  #TODO: use universal variable
 
@@ -305,19 +329,34 @@ add_polygon <- function(scen_tag,colname_burden, scen_color,data_incidence){
 # scen_color <- 7
 get_incidence_reproduction_plot <- function(hosp_adm_data,plot_main,scen_tag,scen_color,data_incidence)
 {
-  y_lim  <- c(0,700)
+  y_lim  <- c(0,750)
   x_lim  <- range(data_incidence_scenario$sim_date)
   
+  sim_date_fitting     <- hosp_adm_data$date < as.Date('2020-05-01')
+  sim_date_validation  <- !sim_date_fitting & hosp_adm_data$date < as.Date('2020-06-01')
+  sim_data_scenario    <- hosp_adm_data$date >= as.Date('2020-06-01')
+  
   par(fig=c(0,1,0.35,1),mar=c(0,5,2,1))
-  plot(hosp_adm_data$date,hosp_adm_data$num_adm,pch=20,
+  plot(hosp_adm_data$date[sim_date_fitting],
+       hosp_adm_data$num_adm[sim_date_fitting],
+       pch=20,
        xaxt='n', yaxt='n',
        xlab = '',ylab='Hospital admissions',
        ylim = y_lim,
        xlim = x_lim,
        main=plot_main)
+  points(hosp_adm_data$date[sim_date_validation],
+       hosp_adm_data$num_adm[sim_date_validation],
+       pch=1,
+       cex=0.6)
   sum_scen1 <- add_polygon(scen_tag,'new_hospital_admissions',scen_color,data_incidence)
   add_y_axis(y_lim)
   add_breakpoints()
+  legend('topright',
+         c('Training data',
+           'Spare data'),
+         pch=c(20,1),
+         cex=0.6)
   
   par(fig=c(0,1,0,0.34),mar=c(3,5,0,1), new=TRUE)
   plot(0,0,pch=20,
@@ -330,7 +369,6 @@ get_incidence_reproduction_plot <- function(hosp_adm_data,plot_main,scen_tag,sce
   add_x_axis(data_incidence$sim_date)
   add_y_axis(0:4)
   add_breakpoints(bool_text=FALSE)
-  
 }
 
 
@@ -753,7 +791,8 @@ dev.off()
 
 
 ## BASELINE ADULT ----
-project_dir_base     <- smd_file_path(dir_results,'20200615_175553_int1_baseline')
+project_dir_base<- unique(data_incidence$project_dir[data_incidence$scenario == 'scen01_baseline'])
+# project_dir_base     <- smd_file_path(dir_results,'20200615_175553_int1_baseline')
 project_summary_base <- .rstride$load_project_summary(project_dir_base)
 input_opt_base       <- .rstride$get_variable_model_param(project_summary_base)
 data_incidence_base  <- data_incidence_scenario[grepl('scen01',data_incidence_scenario$scenario),]
@@ -767,15 +806,18 @@ print_transmission_summary(data_incidence_base,date_summary_start,date_summary_e
 
 bool_fitting <- TRUE
 
-# add config_id 
-# get variable names of input_opt_design (fix if only one column)
-if(ncol(input_opt_base) == 1) {
-  project_summary_base$config_id  <- project_summary_base[,colnames(input_opt_base)]
-  input_opt_base           <- data.frame(input_opt_base,config_id = c(input_opt_base))
-} else{
-  project_summary_base$config_id  <- apply(project_summary_base[,names(input_opt_base)],1,paste, collapse='_')
-  input_opt_base$config_id <- apply(input_opt_base,1,paste, collapse='_')
-}
+# # add config_id 
+# # get variable names of input_opt_design (fix if only one column)
+# if(ncol(input_opt_base) == 1) {
+#   project_summary_base$config_id  <- project_summary_base[,colnames(input_opt_base)]
+#   input_opt_base                  <- data.frame(input_opt_base,config_id = c(input_opt_base))
+# } else{
+#   project_summary_base$config_id  <- apply(project_summary_base[,names(input_opt_base)],1,paste, collapse='_')
+#   input_opt_base$config_id <- apply(input_opt_base,1,paste, collapse='_')
+# }
+# 
+# # add config_id and tracing_id to incidence data
+# data_incidence_base         <- merge(data_incidence_base,project_summary_base[,c('exp_id','config_id')] )
 
 # select period
 if(bool_fitting) data_incidence_base <- data_incidence_base[data_incidence_base$sim_date < as.Date('2020-06-07'),]
@@ -814,7 +856,8 @@ dev.off()
 
 
 ## BASELINE CHILD ----
-project_dir_base     <- smd_file_path(dir_results,'20200615_175609_int21_child_base')
+project_dir_base<- unique(data_incidence$project_dir[data_incidence$scenario == 'scen21'])
+#project_dir_base     <- smd_file_path(dir_results,'20200615_175609_int21_child_base')
 project_summary_base <- .rstride$load_project_summary(project_dir_base)
 input_opt_base       <- .rstride$get_variable_model_param(project_summary_base)
 data_incidence_base  <- data_incidence_scenario[grepl('scen21',data_incidence_scenario$scenario),]
@@ -825,15 +868,19 @@ print_transmission_summary(data_incidence_base,date_summary_start,date_summary_e
 
 bool_fitting <- TRUE
 
-# add config_id 
-# get variable names of input_opt_design (fix if only one column)
-if(ncol(input_opt_base) == 1) {
-  project_summary_base$config_id  <- project_summary_base[,colnames(input_opt_base)]
-  input_opt_base           <- data.frame(input_opt_base,config_id = c(input_opt_base))
-} else{
-  project_summary_base$config_id  <- apply(project_summary_base[,names(input_opt_base)],1,paste, collapse='_')
-  input_opt_base$config_id <- apply(input_opt_base,1,paste, collapse='_')
-}
+# # add config_id 
+# # get variable names of input_opt_design (fix if only one column)
+# if(ncol(input_opt_base) == 1) {
+#   project_summary_base$config_id  <- project_summary_base[,colnames(input_opt_base)]
+#   input_opt_base           <- data.frame(input_opt_base,config_id = c(input_opt_base))
+# } else{
+#   project_summary_base$config_id  <- apply(project_summary_base[,names(input_opt_base)],1,paste, collapse='_')
+#   input_opt_base$config_id <- apply(input_opt_base,1,paste, collapse='_')
+# }
+# 
+# # add config_id and tracing_id to incidence data
+# data_incidence_base         <- merge(data_incidence_base,project_summary_base[,c('exp_id','config_id')] )
+
 
 # select period
 if(bool_fitting) data_incidence_base <- data_incidence_base[data_incidence_base$sim_date < as.Date('2020-06-07'),]
@@ -873,14 +920,12 @@ dev.off()
 ### RELATIVE DIFFERENCE ---- 
 #par(mfrow=c(1,2))
 flag_dates = data_incidence_scenario$sim_date > as.Date('2020-05-01')
-flag_comp = data_incidence_scenario$scenario_id == 1 & flag_dates
-flag_scen = data_incidence_scenario$scenario_id == 10 & flag_dates
+flag_comp  = data_incidence_scenario$scenario_id == 1 & flag_dates
+flag_scen  = data_incidence_scenario$scenario_id == 10 & flag_dates
 names(data_incidence_scenario)
 
-data_incidence$config_id
-
-hosp_adm_comp <- aggregate(cumulative_hospital_cases ~ sim_date + config_id, data= data_incidence_scenario[flag_comp,],mean)
-hosp_adm_scen <- aggregate(cumulative_hospital_cases ~ sim_date + config_id, data= data_incidence_scenario[flag_scen,],mean)
+hosp_adm_comp <- aggregate(cumulative_hospital_cases ~ sim_date + scenario_id, data= data_incidence_scenario[flag_comp,],mean)
+hosp_adm_scen <- aggregate(cumulative_hospital_cases ~ sim_date + scenario_id, data= data_incidence_scenario[flag_scen,],mean)
 
 names(hosp_adm_comp)[3] <- 'comparator'
 names(hosp_adm_scen)[3] <- 'scenario'

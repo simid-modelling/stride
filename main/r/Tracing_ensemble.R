@@ -13,7 +13,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L et al.
 ############################################################################# #
 #
 # CONTACT TRACING ENSEMBLE
@@ -27,10 +27,10 @@ source('./bin/rstride/rStride.R')
 # set directory name with results and get output files
 # dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200518_results'
 # dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200531_results_cts/'
-dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200618_cts_optim/'
+#dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200618_cts_optim/'
+dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201006_results_cts'
 
-
-file_name_incidence <- dir(dir_results,pattern='incidence_processed.RData',recursive = T,full.names = T)
+file_name_incidence <- dir(dir_results,pattern='incidence.RData',recursive = T,full.names = T)
 
 # output tag
 output_tag <- paste0(format(Sys.Date(),'%Y%m%d'),'_results')
@@ -39,41 +39,44 @@ output_tag <- paste0(format(Sys.Date(),'%Y%m%d'),'_results')
 i_file <- 1
 # load and aggregate results
 foreach(i_file = 1:length(file_name_incidence),
-        .combine = rbind) %do% {
-          
-          # load results
-          load(file_name_incidence[i_file])
-          names(data_incidence_all)
-          
-          # parse scenario name
-          scenario_name <- substr(basename(file_name_incidence[i_file]),16,100)
-          scenario_name <- gsub('_incidence_processed.RData','',scenario_name)
-          scenario_name <- gsub('_int','scen',scenario_name)
-          
-          # fix single digit numbers
-          if(grepl('scen._',scenario_name)){
-            scenario_name <- gsub('scen','scen0',scenario_name)
-          }
-          
-          scenario_name
-          
-          if(!'location_HouseholdCluster' %in% names(data_incidence_all)){
-            data_incidence_all$location_HouseholdCluster <- 0
-          }
-          
-          # add scenario name
-          data_incidence_all$scenario <- scenario_name
-          
-          data_incidence_all$scenario_id <- as.numeric(substr(scenario_name,5,6))
-          
-          # check
-          smd_print(i_file,scenario_name)
-          smd_print(dim(data_incidence_all))
-          
-          # return
-          data_incidence_all
-        } -> data_incidence_scenario
-
+.combine = rbind) %do% {
+        
+        # load results
+        load(file_name_incidence[i_file])
+        data_incidence_all <- data_all
+        names(data_incidence_all)
+        
+        # parse scenario name
+        scenario_name <- substr(basename(file_name_incidence[i_file]),16,100)
+        scenario_name <- gsub('_incidence.RData','',scenario_name)
+        scenario_name <- gsub('_int','scen',scenario_name)
+        
+        # fix single digit numbers
+        if(grepl('scen._',scenario_name)){
+                scenario_name <- gsub('scen','scen0',scenario_name)
+        }
+        
+        scenario_name
+        
+        if(!'location_HouseholdCluster' %in% names(data_incidence_all)){
+                data_incidence_all$location_HouseholdCluster <- 0
+        }
+        
+        # remove location NA
+        data_incidence_all$location_NA <- NULL
+        
+        # add scenario name
+        data_incidence_all$scenario <- scenario_name
+        
+        data_incidence_all$scenario_id <- as.numeric(substr(scenario_name,5,6))
+        
+        # check
+        smd_print(i_file,scenario_name)
+        smd_print(dim(data_incidence_all))
+        
+        # return
+        data_incidence_all
+} -> data_incidence_scenario
 
 # make copy and add month
 data_incidence <- data_incidence_scenario
@@ -84,7 +87,7 @@ table(data_incidence$scenario)
 ## CONFIG FILE ----
 file_name_summary <- dir(dir_results,pattern='_summary.csv',recursive = T,full.names = T)
 
-i_file <- 1
+i_file <- 3
 # load and aggregate results
 foreach(i_file = 1:length(file_name_summary),
         .combine = rbind) %do% {
@@ -104,9 +107,18 @@ foreach(i_file = 1:length(file_name_summary),
           project_summary$scenario <- scenario_name
           
           names(project_summary)
+          if(!any(grepl('tracing_efficency_household',names(project_summary)))){
+                  project_summary$tracing_efficency_household <- 0.9
+          }
+          if(!any(grepl('tracing_efficency_other',names(project_summary)))){
+                  project_summary$tracing_efficency_other <- 0.5
+          }
+          
           
           # retrieve all variable model parameters
           input_opt_design   <- .rstride$get_variable_model_param(project_summary)
+          
+          names(input_opt_design)
           
           # to generate contact tracing id
           flag_opt_input_tracing <- !(grepl('cnt_reduction',names(input_opt_design)) | grepl('config_id',names(input_opt_design)))
@@ -130,11 +142,15 @@ foreach(i_file = 1:length(file_name_summary),
           }
           
           # fix for typo "efficency"
-          names(project_summary) <- gsub('efficency','efficiency',names(project_summary))
-         
+#          names(project_summary) <- gsub('efficency','efficiency',names(project_summary))
+          #project_summary$school_system_adjusted <- NULL
+          print(dim(project_summary))
+          
           # return
           project_summary
         } -> project_summary_scenario
+
+project_summary_scenario$tracing
 
 dim(project_summary_scenario)
 dim(data_incidence)

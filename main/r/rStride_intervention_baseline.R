@@ -111,10 +111,15 @@ get_exp_param_default <- function(bool_child_param = FALSE,
    
    # change parameters if childrens infectiousness is 1/2 compared to adults
    if(bool_child_param){ 
+      # parameters from 20201007_100823_param5child_d73_2k_vh_parameter_pareto_incidence_single
       out$disease_config_file <- "disease_covid19_lognorm_child.xml"
-      # out$cnt_reduction_workplace <- 0.85
-      # out$cnt_reduction_other     <- 0.87
-      # out$hosp_probability_factor <- 0.80
+      out$r0 <- 3.38
+      out$hosp_probability_factor <- 0.19
+      out$num_infected_seeds <- 259
+      out$cnt_reduction_workplace <- 0.82
+      out$cnt_reduction_other     <- 0.87
+      out$compliance_delay_other  <- 7
+      out$compliance_delay_workplace <- 7
    }
    
    # select least stringent social mixing assumptions
