@@ -337,6 +337,18 @@ estimate_parameters <- function(project_dir)
   df_loglike_summary <- merge(project_summary,df_loglike)
   saveRDS(df_loglike_summary,smd_file_path(project_dir,paste0(basename(project_dir),'_poison_neg_loglikelihood_scores.RData')))
   
+  ## get parameter configuration of the pareto ensemble
+  pareto_param <- .rstride$get_variable_model_param(df_loglike_summary[df_loglike_summary$pareto_front,])
+  
+  # add paretor number and project_dir as run info
+  # note: columns with "num" will be handled as integers in a LHS
+  pareto_param$pareto_num <- 1:nrow(pareto_param)
+  pareto_param$run_info   <- basename(project_dir)
+  
+  # save as .RData and csv
+  saveRDS(pareto_param,smd_file_path(project_dir,paste0(basename(project_dir),'_config_pareto_ensemble.RData')))
+  write.table(pareto_param,smd_file_path(project_dir,paste0(basename(project_dir),'_config_pareto_ensemble.csv')),sep=',',row.names=F)
+  
   # PARETO FRONT PARAMETERS
   param_design <- names(input_opt_design)
   param_design <- param_design[param_design != 'config_id']

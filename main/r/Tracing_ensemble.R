@@ -28,9 +28,19 @@ source('./bin/rstride/rStride.R')
 # dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200518_results'
 # dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200531_results_cts/'
 #dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200618_cts_optim/'
-dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201006_results_cts'
+dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201006_results'
 
 file_name_incidence <- dir(dir_results,pattern='incidence.RData',recursive = T,full.names = T)
+
+select_cts_results <- function(file_names){
+        flag_files <- grepl('int1_',file_names) |
+                grepl('int17',file_names) |
+                grepl('int18',file_names) |
+                grepl('int19',file_names)
+        return(file_names[flag_files])
+}
+
+file_name_incidence <- select_cts_results(file_name_incidence)
 
 # output tag
 output_tag <- paste0(format(Sys.Date(),'%Y%m%d'),'_results')
@@ -48,7 +58,7 @@ foreach(i_file = 1:length(file_name_incidence),
         
         # parse scenario name
         scenario_name <- substr(basename(file_name_incidence[i_file]),16,100)
-        scenario_name <- gsub('_incidence.RData','',scenario_name)
+        scenario_name <- gsub('_data_incidence.RData','',scenario_name)
         scenario_name <- gsub('_int','scen',scenario_name)
         
         # fix single digit numbers
@@ -67,8 +77,45 @@ foreach(i_file = 1:length(file_name_incidence),
         
         # add scenario name
         data_incidence_all$scenario <- scenario_name
-        
         data_incidence_all$scenario_id <- as.numeric(substr(scenario_name,5,6))
+        
+        # add project_dir
+        project_dir <- dirname(file_name_incidence[i_file])
+        data_incidence_all$project_dir <- project_dir
+        
+        # config_id
+        project_summary <- .rstride$load_project_summary(project_dir)
+        input_opt       <- .rstride$get_variable_model_param(project_summary)
+        
+        # add config_id 
+        # get variable names of input_opt_design (fix if only one column)
+        if(ncol(input_opt) == 1) {
+                project_summary$config_id  <- project_summary[,colnames(input_opt)]
+        } else{
+                project_summary$config_id  <- apply(project_summary[,names(input_opt)],1,paste, collapse='_')
+        }
+        
+        # to generate contact tracing id
+        flag_opt_input_tracing <- !(grepl('cnt_reduction',names(input_opt)) | grepl('config_id',names(input_opt)))
+        colnames_tracing           <- names(input_opt)[flag_opt_input_tracing]
+        if(length(colnames_tracing) == 1) {
+                project_summary$tracing_id  <- project_summary[,colnames_tracing]
+        } else{
+                project_summary$tracing_id  <- apply(project_summary[,colnames_tracing],1,paste, collapse='_')
+        }
+        
+        # add contact id
+        flag_opt_input_tracing <- (grepl('cnt_reduction',names(project_summary)) & grepl('exit',names(project_summary)))
+        if(any(flag_opt_input_tracing)){
+                colnames_contact           <- names(project_summary)[flag_opt_input_tracing]
+                project_summary$contact_id  <- apply((1-project_summary[,colnames_contact])*100,1,paste, collapse=',')
+        } else{
+                project_summary$contact_id <- NA
+        }
+        
+        # add config_id and tracing_id to incidence data
+        data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id','tracing_id','contact_id')] )
+        
         
         # check
         smd_print(i_file,scenario_name)
@@ -86,6 +133,7 @@ table(data_incidence$scenario)
 
 ## CONFIG FILE ----
 file_name_summary <- dir(dir_results,pattern='_summary.csv',recursive = T,full.names = T)
+file_name_summary <- select_cts_results(file_name_summary)
 
 i_file <- 3
 # load and aggregate results
@@ -97,7 +145,7 @@ foreach(i_file = 1:length(file_name_summary),
 
           # parse scenario name
           scenario_name <- substr(basename(file_name_incidence[i_file]),16,100)
-          scenario_name <- gsub('_incidence_processed.RData','',scenario_name)
+          scenario_name <- gsub('_data_incidence.RData','',scenario_name)
           scenario_name <- gsub('_int','scen',scenario_name)
           
           # fix single digit numbers
@@ -144,7 +192,8 @@ foreach(i_file = 1:length(file_name_summary),
           # fix for typo "efficency"
 #          names(project_summary) <- gsub('efficency','efficiency',names(project_summary))
           #project_summary$school_system_adjusted <- NULL
-          print(dim(project_summary))
+          smd_print(i_file,scenario_name)
+          smd_print(dim(project_summary))
           
           # return
           project_summary
@@ -166,17 +215,27 @@ mean_hosp_adm <- aggregate(new_hospital_admissions ~ contact_id + tracing_id + s
 names(data_incidence)
 
 table(mean_hosp_adm$contact_id)
-table(mean_hosp_adm$contact_id)
+table(project_summary_scenario$contact_id)
+table(mean_hosp_adm$tracing_id)
+table(project_summary_scenario$tracing_id)
+table(mean_hosp_adm$scenario)
+table(project_summary_scenario$scenario)
 
+names(mean_hosp_adm)
+names(project_summary_scenario)
 
-mean_hosp_adm <- merge(mean_hosp_adm,unique(project_summary_scenario[,c('scenario','tracing_id','detection_probability','tracing_efficiency_household',
-                                             'tracing_efficiency_other','case_finding_capacity','delay_isolation_index',
-                                             'delay_contact_tracing','test_false_negative')]))
+tmp_summary <- unique(project_summary_scenario[,c('scenario','tracing_id','detection_probability','tracing_efficiency_household',
+                                                  'tracing_efficiency_other','case_finding_capacity','delay_isolation_index',
+                                                  'delay_contact_tracing','test_false_negative')])
+names(mean_hosp_adm)
+names(tmp_summary)
+
+mean_hosp_adm <- merge(mean_hosp_adm,tmp_summary)
 head(mean_hosp_adm)
 
 ## REFERENCE ----
 flag_reference  <- data_incidence$tracing_id == "" & flag_date & data_incidence$contact_id == "40,30"
-flag_reference <- grepl('scen01',mean_hosp_adm$scenario) &  mean_hosp_adm$contact_id == "40,30"
+flag_reference <- grepl('scen01',mean_hosp_adm$scenario) &  mean_hosp_adm$contact_id == "40,30,50"
 #flag_reference  <- data_incidence$scenario_id == 1 & data_incidence$contact_id == '40,30,-1300' & data_incidence$sim_date == max(data_incidence$sim_date)
 #mean_hosp_adm_ref <- aggregate(cumulative_hospital_cases ~ tracing_id + scenario, data_incidence[flag_reference,], mean)
 mean_hosp_adm_ref <- mean_hosp_adm[flag_reference,]
@@ -184,7 +243,7 @@ mean_hosp_adm_ref
 
 mean_hosp_adm$relative_hospital_admissions <- mean_hosp_adm$new_hospital_admissions / mean_hosp_adm_ref$new_hospital_admissions
 
-flag_baseline <- grepl('scen17',mean_hosp_adm$scenario) &  mean_hosp_adm$contact_id == "40,30"
+flag_baseline <- grepl('scen17',mean_hosp_adm$scenario) &  mean_hosp_adm$contact_id == "40,30,50"
 mean_hosp_adm$relative_hosp_baseline <- mean_hosp_adm$relative_hospital_admissions[flag_baseline] 
 
 ## PLOT FUNCTION: MATRIX FORMAT ----
@@ -270,17 +329,19 @@ flag_scen <- grepl('scen18_',mean_hosp_adm$scenario)
 mean_hosp_adm_scen <- mean_hosp_adm[flag_scen,]
 
 
-
-## GENERAL ----
-flag_scen <- grepl('scen181',mean_hosp_adm$scenario)
-mean_hosp_adm_scen <- mean_hosp_adm[flag_scen,]
+# 
+# ## GENERAL ----
+# flag_scen <- grepl('scen181',mean_hosp_adm$scenario)
+# mean_hosp_adm_scen <- mean_hosp_adm[flag_scen,]
 
 
 
 
 ####################################################### #
 ## TRACING VS FALSE NEGATIVE TEST RATE
-mean_hosp_adm_sel <- mean_hosp_adm_scen[mean_hosp_adm_scen$tracing_efficiency_household ==  0.9,]
+# mean_hosp_adm_sel <- mean_hosp_adm_scen[mean_hosp_adm_scen$tracing_efficiency_household ==  0.9,]
+mean_hosp_adm_sel <- mean_hosp_adm_scen
+
 
 col1_name   <- 'test_false_negative'
 col1_tag    <- "False negative predictive value"
