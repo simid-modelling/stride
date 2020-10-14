@@ -154,13 +154,15 @@ foreach(i_file = 1:length(file_name_summary),
           }
           project_summary$scenario <- scenario_name
           
-          names(project_summary)
-          if(!any(grepl('tracing_efficency_household',names(project_summary)))){
-                  project_summary$tracing_efficency_household <- 0.9
-          }
-          if(!any(grepl('tracing_efficency_other',names(project_summary)))){
-                  project_summary$tracing_efficency_other <- 0.5
-          }
+          # names(project_summary)
+          # if(!any(grepl('tracing_efficency_household',names(project_summary)))){
+          #         print('typo!')
+          #         project_summary$tracing_efficency_household <- 0.9
+          # }
+          # if(!any(grepl('tracing_efficency_other',names(project_summary)))){
+          #         print('typo!')
+          #         project_summary$tracing_efficency_other <- 0.5
+          # }
           
           
           # retrieve all variable model parameters
@@ -281,9 +283,9 @@ plot_cts_matrix_avg <- function(mean_hosp_adm_sel,
         redc <- rev(colorspace::sequential_hcl(10))
         
         legend_range <- range(pretty(cts_matrix))
-        if(! 1 %in% legend_range){
-                legend_range <- c(0.3,0.6)
-        }
+        # if(! 1 %in% legend_range){
+        #         legend_range <- c(0.3,0.8)
+        # }
         
         # set figure margins
         par(mar=c(5, 6, 2, 7),mgp=c(3,0.5,0))

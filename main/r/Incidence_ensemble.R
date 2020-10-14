@@ -36,6 +36,7 @@ library('Rmisc')
 #dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200608_results'
 #dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200608_results_bis'
 dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201006_results'
+dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201014_results_ensemble/'
 
 
 file_name_incidence <- dir(dir_results,pattern='incidence.RData',recursive = T,full.names = T)
@@ -63,8 +64,10 @@ foreach(i_file = 1:length(file_name_incidence),
           
           # parse scenario name
           scenario_name <- substr(basename(file_name_incidence[i_file]),16,100)
+          scenario_name <- gsub('_int1_','_int01_',scenario_name)
           scenario_name <- gsub('_data_incidence.RData','',scenario_name)
           scenario_name <- gsub('_int','scen',scenario_name)
+          scenario_name <- gsub('_ensemble','',scenario_name)
           
           # fix single digit numbers
           if(grepl('scen._',scenario_name)){
@@ -345,17 +348,21 @@ get_incidence_reproduction_plot <- function(hosp_adm_data,plot_main,scen_tag,sce
        ylim = y_lim,
        xlim = x_lim,
        main=plot_main)
-  points(hosp_adm_data$date[sim_date_validation],
-       hosp_adm_data$num_adm[sim_date_validation],
-       pch=1,
-       cex=0.6)
+  # points(hosp_adm_data$date[sim_date_validation],
+  #      hosp_adm_data$num_adm[sim_date_validation],
+  #      pch=1,
+  #      cex=0.6)
   sum_scen1 <- add_polygon(scen_tag,'new_hospital_admissions',scen_color,data_incidence)
   add_y_axis(y_lim)
   add_breakpoints()
+  # legend('topright',
+  #        c('Training data',
+  #          'Spare data'),
+  #        pch=c(20,1),
+  #        cex=0.6)
   legend('topright',
-         c('Training data',
-           'Spare data'),
-         pch=c(20,1),
+         c('Training data'),
+         pch=c(20),
          cex=0.6)
   
   par(fig=c(0,1,0,0.34),mar=c(3,5,0,1), new=TRUE)
@@ -791,16 +798,16 @@ dev.off()
 
 
 ## BASELINE ADULT ----
-project_dir_base<- unique(data_incidence$project_dir[data_incidence$scenario == 'scen01_baseline'])
+project_dir_base<- unique(data_incidence$project_dir[grepl('scen01',data_incidence$scenario)])
 # project_dir_base     <- smd_file_path(dir_results,'20200615_175553_int1_baseline')
 project_summary_base <- .rstride$load_project_summary(project_dir_base)
 input_opt_base       <- .rstride$get_variable_model_param(project_summary_base)
 data_incidence_base  <- data_incidence_scenario[grepl('scen01',data_incidence_scenario$scenario),]
 
 # summary statistics
-date_summary_start <- '2020-03-07'
-date_summary_end   <- '2020-03-13'
-num_exp            <- 10
+date_summary_start <- '2020-03-01'
+date_summary_end   <- '2020-03-07'
+num_exp            <- nrow(project_summary_base)
 print(project_dir_base)
 print_transmission_summary(data_incidence_base,date_summary_start,date_summary_end,num_exp)
 
@@ -856,7 +863,7 @@ dev.off()
 
 
 ## BASELINE CHILD ----
-project_dir_base<- unique(data_incidence$project_dir[data_incidence$scenario == 'scen21'])
+project_dir_base<- unique(data_incidence$project_dir[data_incidence$scenario == 'scen21_child_baseline'])
 #project_dir_base     <- smd_file_path(dir_results,'20200615_175609_int21_child_base')
 project_summary_base <- .rstride$load_project_summary(project_dir_base)
 input_opt_base       <- .rstride$get_variable_model_param(project_summary_base)
