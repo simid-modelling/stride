@@ -73,7 +73,7 @@ estimate_parameters <- function(project_dir)
   
   # check for NA's, and replace by 0
   data_incidence_all[is.na(data_incidence_all)] <- 0
-  
+
   ## HOSPITAL REFERENCE DATA COVID-19 ----
   # use (local version of) most recent SCIENSANO data (or backup version)
   ref_data          <- get_observed_incidence_data()
@@ -87,6 +87,7 @@ estimate_parameters <- function(project_dir)
   
   # remove reference data if simulation period is shorter
   flag_compare  <- hosp_adm_data$date %in% data_incidence_all$sim_date
+  #flag_compare  <- flag_compare & hosp_adm_data$date < as.Date("2020-05-15")
   hosp_adm_data <- hosp_adm_data[flag_compare,]
   
   ## SERO-PREVALENCE DATA ----
@@ -195,6 +196,7 @@ estimate_parameters <- function(project_dir)
   }
   q_value <- round(q_value,digits=2)
   table(df_loglike$pareto_front )
+  table(df_loglike$pareto_num[df_loglike$pareto_front])
   
   # get names (without ids)
   param_names <- names(input_opt_design)
@@ -305,25 +307,27 @@ estimate_parameters <- function(project_dir)
   # close pdf
   dev.off()
   
-  ## SINGLE BEST ----
-  order_table   <- data.frame(hosp = order(df_loglike$hospital_pois),
-                              inc = order(df_loglike$incidence_pois),
-                              double = order(df_loglike$doubling_pois))
+  ## BEST CONFIG FOR AT LEAST 2 TARGETS (mean) ----
+  table(df_loglike$pareto_front,df_loglike$pareto_num)
+  df_loglike_mean <- aggregate(.  ~ config_id,data=df_loglike,mean)
+  order_table     <- data.frame(hosp = order(df_loglike_mean$hospital_pois),
+                              inc = order(df_loglike_mean$incidence_pois),
+                              double = order(df_loglike_mean$doubling_pois))
   
   i_row <- 2
   tbl <- table(unlist(order_table[1:i_row,]))
   while(!any(tbl>1)){
     i_row <- i_row+1
-    tbl <- table(unlist(order_table[1:i_row,]))
+    tbl <- table(unlist(order_table[1:i_row,-3]))
     print(i_row)
   }
   
   # select subset
-  i_config <- df_loglike$config_id[as.numeric(names(which(tbl>1)))[1]]
+  i_config <- df_loglike_mean$config_id[as.numeric(names(which(tbl>1)))[1]]
   data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
   data_incidence_sel$cumulative_hospital_cases <- data_incidence_sel$cumulative_hospital_cases - data_incidence_sel$cumulative_hospital_cases[1]
   
-  .rstride$create_pdf(project_dir,'parameter_pareto_incidence_single',width = 6, height = 7)
+  .rstride$create_pdf(project_dir,'parameter_pareto_incidence_single_mean',width = 6, height = 7)
   par(mfrow=c(4,1))
   # plot
   plot_incidence_data(data_incidence_sel,project_summary,
@@ -340,7 +344,10 @@ estimate_parameters <- function(project_dir)
   ## get parameter configuration of the pareto ensemble
   pareto_param <- .rstride$get_variable_model_param(df_loglike_summary[df_loglike_summary$pareto_front,])
   
-  # add paretor number and project_dir as run info
+  # remove duplicates
+  pareto_param <- aggregate(. ~ pareto_num, data=pareto_param,mean)
+  
+  # add pareto number and project_dir as run info
   # note: columns with "num" will be handled as integers in a LHS
   pareto_param$pareto_num <- 1:nrow(pareto_param)
   pareto_param$run_info   <- basename(project_dir)

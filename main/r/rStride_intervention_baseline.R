@@ -97,14 +97,14 @@ get_exp_param_default <- function(bool_child_param = FALSE,
       out$disease_config_file <- 'disease_covid19_lognorm.xml'
       
       
-      ## parameters from 20201001_082953_param5_d73_2k_parameter_pareto_incidence_single
-      out$r0 <- 3.42
-      out$hosp_probability_factor <- 0.19
-      out$num_infected_seeds <- 328
-      out$cnt_reduction_workplace <- 0.92
-      out$cnt_reduction_other     <- 0.83
-      out$compliance_delay_other  <- 7
-      out$compliance_delay_workplace <- 5
+      ## parameters from 20201015_142948_param6_d73_ensemble_parameter_pareto_incidence_single_mean
+      out$r0 <- 3.45
+      out$hosp_probability_factor <- 0.21 
+      out$num_infected_seeds <- 306 
+      out$cnt_reduction_workplace <- 0.85 
+      out$cnt_reduction_other     <- 0.86 
+      out$compliance_delay_other  <- 5
+      out$compliance_delay_workplace <- 6 
       #out$num_seeds <- NA
       
    }

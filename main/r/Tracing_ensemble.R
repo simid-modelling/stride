@@ -87,13 +87,7 @@ foreach(i_file = 1:length(file_name_incidence),
         project_summary <- .rstride$load_project_summary(project_dir)
         input_opt       <- .rstride$get_variable_model_param(project_summary)
         
-        # add config_id 
-        # get variable names of input_opt_design (fix if only one column)
-        if(ncol(input_opt) == 1) {
-                project_summary$config_id  <- project_summary[,colnames(input_opt)]
-        } else{
-                project_summary$config_id  <- apply(project_summary[,names(input_opt)],1,paste, collapse='_')
-        }
+        project_summary$config_id <- .rstride$get_config_id(project_summary)
         
         # to generate contact tracing id
         flag_opt_input_tracing <- !(grepl('cnt_reduction',names(input_opt)) | grepl('config_id',names(input_opt)))
@@ -201,7 +195,7 @@ foreach(i_file = 1:length(file_name_summary),
           project_summary
         } -> project_summary_scenario
 
-project_summary_scenario$tracing
+project_summary_scenario$tracing_id
 
 dim(project_summary_scenario)
 dim(data_incidence)
