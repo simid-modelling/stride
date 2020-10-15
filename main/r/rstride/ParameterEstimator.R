@@ -61,17 +61,11 @@ estimate_parameters <- function(project_dir)
     return(.rstride$no_return_value())
   }
   
-  # add config_id 
-  # get variable names of input_opt_design (fix if only one column)
-  if(ncol(input_opt_design) == 1) {
-    project_summary$config_id  <- project_summary[,colnames(input_opt_design)]
-    input_opt_design           <- data.frame(input_opt_design,config_id = c(input_opt_design))
-  } else{
-    project_summary$config_id  <- apply(project_summary[,names(input_opt_design)],1,paste, collapse='_')
-    input_opt_design$config_id <- apply(input_opt_design,1,paste, collapse='_')
-  }
+  # add config_id (this can be removed in the future)
+  project_summary$config_id <- .rstride$get_config_id(project_summary)
+  input_opt_design$config_id <- .rstride$get_config_id(input_opt_design)
   
-  # add config_id and tracing_id to incidence and participant data
+  # add config_id to incidence data
   data_incidence_all            <- merge(data_incidence_all,project_summary[,c('exp_id','config_id')] )
   
   # remove rows missing sim_date
@@ -158,10 +152,15 @@ estimate_parameters <- function(project_dir)
     doubling_time_observed     <- mean(ref_doubling_time$mean)
     
     flag_exp_doubling   <- flag_exp & data_incidence_all$sim_date %in% ref_dates
-    doubling_time_model <- get_doubling_time(data_incidence_all$new_infections[flag_exp_doubling])
-    df_loglike$doubling_pois[i_exp]  <- get_binom_poisson(doubling_time_observed,doubling_time_model)
-    data_incidence_all$doubling_time[flag_exp_doubling] <- as.numeric(doubling_time_model)
-    
+    if(sum(flag_exp_doubling)>0){
+      doubling_time_model <- get_doubling_time(data_incidence_all$new_infections[flag_exp_doubling])
+      df_loglike$doubling_pois[i_exp]  <- get_binom_poisson(doubling_time_observed,doubling_time_model)
+      data_incidence_all$doubling_time[flag_exp_doubling] <- as.numeric(doubling_time_model)
+    } else{
+      df_loglike$doubling_pois[i_exp]  <- 0
+      data_incidence_all$doubling_time[flag_exp_doubling] <- 0
+    }
+     
     # 4. generation interval
     ref_dates                          <- ref_generation_interval$dates
     generation_interval_observed       <- ref_generation_interval$mean
@@ -195,6 +194,7 @@ estimate_parameters <- function(project_dir)
     #print(length(unique(df_loglike$config_id[df_loglike$pareto_front])))
   }
   q_value <- round(q_value,digits=2)
+  table(df_loglike$pareto_front )
   
   # get names (without ids)
   param_names <- names(input_opt_design)

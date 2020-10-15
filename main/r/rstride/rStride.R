@@ -260,6 +260,16 @@ run_rStride <- function(exp_design               = exp_design,
   smd_start_cluster(timeout = cluster_timeout, num_proc = num_parallel_workers)
   
   ################################## #
+  ## CONFIG ID                    ####
+  ####################################
+  
+  # configuration id
+  exp_design$config_id <- .rstride$get_config_id(exp_design)
+  
+  # contact parameter based id
+  exp_design$contact_id <- .rstride$get_contact_id(exp_design)
+  
+  ################################## #
   ## RUN                          ####
   ################################## #
   

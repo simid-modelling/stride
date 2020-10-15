@@ -96,15 +96,17 @@ foreach(i_file = 1:length(file_name_incidence),
           input_opt       <- .rstride$get_variable_model_param(project_summary)
           
           # add config_id 
-          # get variable names of input_opt_design (fix if only one column)
-          if(ncol(input_opt) == 1) {
-            project_summary$config_id  <- project_summary[,colnames(input_opt)]
-          } else{
-            project_summary$config_id  <- apply(project_summary[,names(input_opt)],1,paste, collapse='_')
-          }
+          project_summary$config_id <- .rstride$get_config_id(project_summary)
           
           # add config_id and tracing_id to incidence data
           data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id')] )
+          
+          # if project summary has 'pareto_num', add to incidence data
+          if(!is.null(project_summary$pareto_num)){
+            data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','pareto_num')] )
+          } else{
+            data_incidence_all$pareto_num <- 1
+          }
           
           # check
           smd_print(i_file,scenario_name)
@@ -116,19 +118,17 @@ foreach(i_file = 1:length(file_name_incidence),
 
 names(data_incidence_scenario)
 table(data_incidence_scenario$config_id)
-# # remove delay of 14 days
-# unique(data_incidence_scenario$config_id)
-# data_incidence_scenario <- data_incidence_scenario[!grepl('_14',data_incidence_scenario$config_id),]
-# data_incidence_scenario$config_id <- gsub('_21','',data_incidence_scenario$config_id)
-# data_incidence_scenario$tracing_id <- gsub('_21','',data_incidence_scenario$tracing_id)
+
+#data_incidence_scenario <- data_incidence_scenario[data_incidence_scenario$pareto_num %in% c(4:6,11,13,16,18),]
+# names(data_incidence_scenario)
+# table(data_incidence_scenario$config_id)
 
 # make copy and add month
 data_incidence <- data_incidence_scenario
 data_incidence$sim_month <- format(data_incidence$sim_date,'%B')
 table(data_incidence$scenario)
 
-
-# remove data before May 
+# remove incidence data before May 2020
 data_incidence <- data_incidence[data_incidence$sim_date > as.Date("2020-05-01"),]
 
 # remove secondary cases from August 15th
@@ -205,8 +205,7 @@ hosp_adm_data$date <- as.Date(hosp_adm_data$sim_date)
 hosp_adm_data$num_adm <- hosp_adm_data$hospital_admissions
 hosp_adm_data$cum_adm <- hosp_adm_data$cumulative_hospital_admissions
 
-## PREVALENCE DATA STOCHASTIC MODEL
-#prevalence_ref <- readRDS('./data/prevalence_stochastic_model_20200604.rds')
+## PREVALENCE DATA
 prevalence_ref <- load_observed_seroprevalence_data()
 head(prevalence_ref)
 pop_size_be <- 11e6  #TODO: use universal variable
@@ -332,7 +331,7 @@ add_polygon <- function(scen_tag,colname_burden, scen_color,data_incidence){
 # scen_color <- 7
 get_incidence_reproduction_plot <- function(hosp_adm_data,plot_main,scen_tag,scen_color,data_incidence)
 {
-  y_lim  <- c(0,750)
+  y_lim  <- c(0,800)
   x_lim  <- range(data_incidence_scenario$sim_date)
   
   sim_date_fitting     <- hosp_adm_data$date < as.Date('2020-05-01')
@@ -405,6 +404,7 @@ print_transmission_summary <- function(data_incidence, date_start_str, date_end_
   print(round(CI(x=rm_na(data_incidence$sec_cases[flag_date]),ci=0.95),digits=2)[c(2,3,1)])
 }
 
+
 ## POLYGONS FULL ----
 
 # reproduction number => remove burn-in and last 2 weeks
@@ -463,16 +463,19 @@ opt_cnt <- c(',15',',20')
 for(i in 1:length(scen_opt)){
 
   flag <- grepl(scen_opt[i],data_incidence_scenario$scenario)
-  data_incidence_scenario[flag,]
-  scenario_id    <- unique(data_incidence_scenario$scenario_id[flag])
-  scenario_label <- unique(data_incidence$scenario_label[data_incidence$scenario_id == scenario_id])
-  
-  get_incidence_reproduction_plot(hosp_adm_data,
-                                  plot_main = scenario_label,
-                                  scen_tag = scen_opt[i],
-                                  scen_color = 4,
-                                  data_incidence = data_incidence_scenario)
+  if(sum(flag)>0){
+    data_incidence_scenario[flag,]
+    scenario_id    <- unique(data_incidence_scenario$scenario_id[flag])
+    scenario_label <- unique(data_incidence$scenario_label[data_incidence$scenario_id == scenario_id])
+    
+    get_incidence_reproduction_plot(hosp_adm_data,
+                                    plot_main = scenario_label,
+                                    scen_tag = scen_opt[i],
+                                    scen_color = 4,
+                                    data_incidence = data_incidence_scenario)
+  }  
 }
+  
 
 dev.off()
 
@@ -781,20 +784,25 @@ dev.off()
 
 
 ## BOXPLOTS CHILD SELECTION ----
-# open pdf stream
-pdf(smd_file_path(dir_results,paste0(output_tag,'_child.pdf')),5,5)
 
 data_incidence_sel <- data_incidence[data_incidence$scenario_id %in% c(21:37),]
-# daily counts... use all results per month
-plot_montly_stats_vertical(data_incidence_sel,'sec_cases',c(0.5,2),'Reproduction number')
-plot_montly_stats_vertical(data_incidence_sel,'new_hospital_admissions',NA,'Daily hospital admissions')
 
-# cumulative counts, use max per experiment
-bxplot_cumulative <- aggregate(cumulative_hospital_cases ~ scenario  + scenario_label + col + exp_id + sim_month + reference_id + scenario_id, data = data_incidence_sel,max)
-plot_montly_stats_vertical(bxplot_cumulative,'cumulative_hospital_cases',NA,'Total hospital admissions')
+if(nrow(data_incidence_sel)>0){
+  # open pdf stream
+  pdf(smd_file_path(dir_results,paste0(output_tag,'_child.pdf')),5,5)
+  
+  # daily counts... use all results per month
+  plot_montly_stats_vertical(data_incidence_sel,'sec_cases',c(0.5,2),'Reproduction number')
+  plot_montly_stats_vertical(data_incidence_sel,'new_hospital_admissions',NA,'Daily hospital admissions')
+  
+  # cumulative counts, use max per experiment
+  bxplot_cumulative <- aggregate(cumulative_hospital_cases ~ scenario  + scenario_label + col + exp_id + sim_month + reference_id + scenario_id, data = data_incidence_sel,max)
+  plot_montly_stats_vertical(bxplot_cumulative,'cumulative_hospital_cases',NA,'Total hospital admissions')
+  
+  # close pdf stream
+  dev.off()
+}
 
-# close pdf stream
-dev.off()
 
 
 ## BASELINE ADULT ----
@@ -804,6 +812,8 @@ project_summary_base <- .rstride$load_project_summary(project_dir_base)
 input_opt_base       <- .rstride$get_variable_model_param(project_summary_base)
 data_incidence_base  <- data_incidence_scenario[grepl('scen01',data_incidence_scenario$scenario),]
 
+table(project_summary_base$r0,project_summary_base$num_infected_seeds)
+
 # summary statistics
 date_summary_start <- '2020-03-01'
 date_summary_end   <- '2020-03-07'
@@ -812,19 +822,6 @@ print(project_dir_base)
 print_transmission_summary(data_incidence_base,date_summary_start,date_summary_end,num_exp)
 
 bool_fitting <- TRUE
-
-# # add config_id 
-# # get variable names of input_opt_design (fix if only one column)
-# if(ncol(input_opt_base) == 1) {
-#   project_summary_base$config_id  <- project_summary_base[,colnames(input_opt_base)]
-#   input_opt_base                  <- data.frame(input_opt_base,config_id = c(input_opt_base))
-# } else{
-#   project_summary_base$config_id  <- apply(project_summary_base[,names(input_opt_base)],1,paste, collapse='_')
-#   input_opt_base$config_id <- apply(input_opt_base,1,paste, collapse='_')
-# }
-# 
-# # add config_id and tracing_id to incidence data
-# data_incidence_base         <- merge(data_incidence_base,project_summary_base[,c('exp_id','config_id')] )
 
 # select period
 if(bool_fitting) data_incidence_base <- data_incidence_base[data_incidence_base$sim_date < as.Date('2020-06-07'),]
@@ -836,7 +833,6 @@ if(bool_fitting) {
     .rstride$create_pdf(project_dir_base,file_name = 'manuscript_scenario',6,4)
   }
 
-
 # plot
 plot_incidence_data(data_incidence_base,project_summary_base,
                     hosp_adm_data,input_opt_base,prevalence_ref,
@@ -858,70 +854,54 @@ add_y_axis(data_incidence_base$sec_cases)
 add_breakpoints()
 
 dev.off()
-
-
 
 
 ## BASELINE CHILD ----
-project_dir_base<- unique(data_incidence$project_dir[data_incidence$scenario == 'scen21_child_baseline'])
-#project_dir_base     <- smd_file_path(dir_results,'20200615_175609_int21_child_base')
-project_summary_base <- .rstride$load_project_summary(project_dir_base)
-input_opt_base       <- .rstride$get_variable_model_param(project_summary_base)
-data_incidence_base  <- data_incidence_scenario[grepl('scen21',data_incidence_scenario$scenario),]
-
-# summary statistics
-print(project_dir_base)
-print_transmission_summary(data_incidence_base,date_summary_start,date_summary_end,num_exp)
-
-bool_fitting <- TRUE
-
-# # add config_id 
-# # get variable names of input_opt_design (fix if only one column)
-# if(ncol(input_opt_base) == 1) {
-#   project_summary_base$config_id  <- project_summary_base[,colnames(input_opt_base)]
-#   input_opt_base           <- data.frame(input_opt_base,config_id = c(input_opt_base))
-# } else{
-#   project_summary_base$config_id  <- apply(project_summary_base[,names(input_opt_base)],1,paste, collapse='_')
-#   input_opt_base$config_id <- apply(input_opt_base,1,paste, collapse='_')
-# }
-# 
-# # add config_id and tracing_id to incidence data
-# data_incidence_base         <- merge(data_incidence_base,project_summary_base[,c('exp_id','config_id')] )
-
-
-# select period
-if(bool_fitting) data_incidence_base <- data_incidence_base[data_incidence_base$sim_date < as.Date('2020-06-07'),]
-data_incidence_base <- data_incidence_base[data_incidence_base$sim_date > as.Date('2020-02-27'),]
-
-if(bool_fitting) {
-  .rstride$create_pdf(project_dir_base,file_name = 'manuscript_child_fitting',6,4)
-} else{
-  .rstride$create_pdf(project_dir_base,file_name = 'manuscript_schild_scenario',6,4)
+project_dir_base     <- unique(data_incidence$project_dir[data_incidence$scenario == 'scen21_child_baseline'])
+if(nchar(project_dir_base)>0){
+  project_summary_base <- .rstride$load_project_summary(project_dir_base)
+  input_opt_base       <- .rstride$get_variable_model_param(project_summary_base)
+  data_incidence_base  <- data_incidence_scenario[grepl('scen21',data_incidence_scenario$scenario),]
+  
+  # summary statistics
+  print(project_dir_base)
+  print_transmission_summary(data_incidence_base,date_summary_start,date_summary_end,num_exp)
+  
+  bool_fitting <- TRUE
+  # select period
+  if(bool_fitting) data_incidence_base <- data_incidence_base[data_incidence_base$sim_date < as.Date('2020-06-07'),]
+  data_incidence_base <- data_incidence_base[data_incidence_base$sim_date > as.Date('2020-02-27'),]
+  
+  if(bool_fitting) {
+    .rstride$create_pdf(project_dir_base,file_name = 'manuscript_child_fitting',6,4)
+  } else{
+    .rstride$create_pdf(project_dir_base,file_name = 'manuscript_schild_scenario',6,4)
+  }
+  
+  
+  # plot
+  plot_incidence_data(data_incidence_base,project_summary_base,
+                      hosp_adm_data,input_opt_base,prevalence_ref,
+                      bool_add_param = FALSE,
+                      bool_only_hospital_adm = FALSE,
+                      bool_add_axis4 = FALSE,
+                      bool_seroprev_limited = TRUE) 
+  
+  data_incidence_base$sec_cases[data_incidence_base$sim_date > as.Date('2020-08-15')] <- NA
+  if(bool_fitting) data_incidence_base$sec_cases[data_incidence_base$sim_date > as.Date('2020-04-25')] <- NA
+  plot(sec_cases ~ sim_date,data=data_incidence_base,type='l',
+       col=alpha(1,0.5),
+       ylim=c(0,4),
+       xaxt='n',yaxt='n',
+       xlab='Time of infection',
+       ylab='Secondary cases\nReproduction number')
+  add_x_axis(data_incidence_base$sim_date)
+  add_y_axis(data_incidence_base$sec_cases)
+  add_breakpoints()
+  
+  dev.off()
+  
 }
-
-
-# plot
-plot_incidence_data(data_incidence_base,project_summary_base,
-                    hosp_adm_data,input_opt_base,prevalence_ref,
-                    bool_add_param = FALSE,
-                    bool_only_hospital_adm = FALSE,
-                    bool_add_axis4 = FALSE,
-                    bool_seroprev_limited = TRUE) 
-
-data_incidence_base$sec_cases[data_incidence_base$sim_date > as.Date('2020-08-15')] <- NA
-if(bool_fitting) data_incidence_base$sec_cases[data_incidence_base$sim_date > as.Date('2020-04-25')] <- NA
-plot(sec_cases ~ sim_date,data=data_incidence_base,type='l',
-     col=alpha(1,0.5),
-     ylim=c(0,4),
-     xaxt='n',yaxt='n',
-     xlab='Time of infection',
-     ylab='Secondary cases\nReproduction number')
-add_x_axis(data_incidence_base$sim_date)
-add_y_axis(data_incidence_base$sec_cases)
-add_breakpoints()
-
-dev.off()
-
 
 
 ### RELATIVE DIFFERENCE ---- 
@@ -938,18 +918,20 @@ names(hosp_adm_comp)[3] <- 'comparator'
 names(hosp_adm_scen)[3] <- 'scenario'
 
 hosp_adm <- merge(hosp_adm_comp,hosp_adm_scen)
-
-plot(hosp_adm$sim_date,
-     hosp_adm$scenario / hosp_adm$comparator,
-     ylim=c(0.5,1.5))
-abline(h=1)
-add_breakpoints()
-
-table(hosp_adm$sim_date == max(hosp_adm$sim_date))
-hosp_adm_sel <- hosp_adm[hosp_adm$sim_date == max(hosp_adm$sim_date),]
-hosp_adm_sel$rel_diff <- hosp_adm_sel$scenario / hosp_adm_sel$comparator
-hosp_adm_sel
-boxplot(hosp_adm_sel$rel_diff)
+if(nrow(hosp_adm)>0){
+  plot(hosp_adm$sim_date,
+       hosp_adm$scenario / hosp_adm$comparator,
+       ylim=c(0.5,1.5))
+  abline(h=1)
+  add_breakpoints()
+  
+  table(hosp_adm$sim_date == max(hosp_adm$sim_date))
+  hosp_adm_sel <- hosp_adm[hosp_adm$sim_date == max(hosp_adm$sim_date),]
+  hosp_adm_sel$rel_diff <- hosp_adm_sel$scenario / hosp_adm_sel$comparator
+  hosp_adm_sel
+  boxplot(hosp_adm_sel$rel_diff)
+  
+}
 
 
 #####
@@ -995,6 +977,11 @@ abline(h=1)
 ## OVERALL
 
 plot_relative_hospital_adm <- function(data_incidence){
+  
+  if(nrow(data_incidence)==0){
+    return(-1)
+  }
+  
   flag_date    <- data_incidence$sim_date == max(data_incidence$sim_date)
   hosp_adm_cum <- aggregate(cumulative_hospital_cases ~ scenario + sim_date + scenario_id, data= data_incidence[flag_date,],mean)
   
@@ -1025,7 +1012,6 @@ plot_relative_hospital_adm <- function(data_incidence){
   # x-axis
   text_x <- bplt
   text_y <- par("usr")[3] * ifelse(par("usr")[3]>0,0.95,1.3)
-  print(text_y)
   text(text_x, text_y,
        srt = 60, adj = 1, xpd = TRUE,
        labels = hosp_adm_cum$scenario_label)

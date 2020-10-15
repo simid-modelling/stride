@@ -53,46 +53,13 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   }
   
   # add config_id 
-  # get variable names of input_opt_design (fix if only one column)
-  if(ncol(input_opt_design) == 1) {
-    project_summary$config_id  <- project_summary[,colnames(input_opt_design)]
-    input_opt_design           <- data.frame(input_opt_design,config_id = c(input_opt_design))
-  } else{
-    project_summary$config_id  <- apply(project_summary[,names(input_opt_design)],1,paste, collapse='_')
-    input_opt_design$config_id <- apply(input_opt_design,1,paste, collapse='_')
-  }
-  
-  # to generate contact tracing id
-  flag_opt_input_tracing <- !(grepl('cnt_reduction',names(input_opt_design)) | grepl('config_id',names(input_opt_design)))
-  colnames_tracing           <- names(input_opt_design)[flag_opt_input_tracing]
-  if(length(colnames_tracing) == 1) {
-    project_summary$tracing_id  <- project_summary[,colnames_tracing]
-    input_opt_design            <- data.frame(input_opt_design, 
-                                              tracing_id = unlist(input_opt_design[colnames_tracing]))
-  } else{
-    project_summary$tracing_id  <- apply(project_summary[,colnames_tracing],1,paste, collapse='_')
-    input_opt_design$tracing_id <- apply(input_opt_design[,colnames_tracing],1,paste, collapse='_')
-  }
+  project_summary$config_id <- .rstride$get_config_id(project_summary)
   
   # add contact id
-  flag_opt_input_tracing <- (grepl('cnt_reduction',names(input_opt_design)) | grepl('exit',names(input_opt_design)))
-  if(any(flag_opt_input_tracing)){
-    colnames_contact           <- names(input_opt_design)[flag_opt_input_tracing]
-    if(length(colnames_contact) == 1) {
-      project_summary$contact_id  <- project_summary[,colnames_contact]
-      input_opt_design            <- data.frame(input_opt_design, 
-                                                contact_id = unlist(input_opt_design[colnames_contact]))
-    } else{
-      project_summary$contact_id  <- apply((1-project_summary[,colnames_contact])*100,1,paste, collapse=',')
-      input_opt_design$contact_id <- apply((1-input_opt_design[,colnames_contact])*100,1,paste, collapse=',')
-    }
-  } else{
-    project_summary$contact_id  <- project_summary$config_id
-    input_opt_design$contact_id <- input_opt_design$config_id
-  }
+  project_summary$contact_id <- .rstride$get_contact_id(project_summary)
   
   # add config_id and tracing_id to incidence data
-  data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id','tracing_id','contact_id')] )
+  data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id','contact_id')] )
 
   # remove rows missing sim_date
   data_incidence_all <- data_incidence_all[!is.na(data_incidence_all$sim_date),]
@@ -144,43 +111,6 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
   #--------------------------#
   
   
-  ## ALL PLOTS (zoom) ####
-  flag_dates <- data_incidence_sel$sim_date %in% (as.Date("2020-05-20"):as.Date("2020-06-20"))
-  if(any(flag_dates)){
-    .rstride$create_pdf(project_dir,'incidence_inspection_zoom',width = 6, height = 7)
-    par(mfrow=c(4,1))
-    
-    # select subset
-    
-    data_incidence_sel <- data_incidence_all[flag_dates,]
-    # data_incidence_sel <- data_incidence_all[data_incidence_sel$sim_date > median(data_incidence_sel$sim_date,na.rm=TRUE),]
-    
-    # plot
-    plot_incidence_data(data_incidence_sel,project_summary,
-                        hosp_adm_data,input_opt_design,prevalence_ref,
-                        bool_add_param)
-    
-    head(data_incidence_all)
-    opt_config_id <- unique(data_incidence_all$config_id)
-    i_config <- opt_config_id[1]
-    for(i_config in opt_config_id){
-      
-      # select subset
-      data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
-      data_incidence_sel <- data_incidence_sel[data_incidence_sel$sim_date > median(data_incidence_sel$sim_date,na.rm=TRUE),]
-      
-      # plot
-      plot_incidence_data(data_incidence_sel,project_summary,
-                          hosp_adm_data,input_opt_design,prevalence_ref,
-                          bool_add_param)
-    }
-    
-    # close pdf
-    dev.off()
-  }
-  
-  #--------------------------#
-  
   ## R0     ####
   # add R0 to input opt design if not present
   if(any(is.null(input_opt_design$r0))){ 
@@ -217,36 +147,6 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     # close pdf
     dev.off()
   }
-  
-  ## PER contact tracing level ####
-    opt_tracing <- unique(input_opt_design$tracing_id)
-    if(length(opt_tracing)>0){
-      .rstride$create_pdf(project_dir,'incidence_contact_trancing',width = 6, height = 7)
-      par(mfrow=c(4,1))
-      
-      
-      i_tracing <- opt_tracing[1]
-      for(i_tracing in opt_tracing){
-        
-        # select config_id
-        opt_config_id <- unique(input_opt_design$config_id[input_opt_design$tracing_id ==  i_tracing])
-        
-        # select subset
-        data_incidence_sel <- data_incidence_all[data_incidence_all$config_id %in% opt_config_id,]
-        dim(data_incidence_sel)
-        
-        # check selection
-        if(nrow(data_incidence_sel)>0){
-          # plot
-          plot_incidence_data(data_incidence_sel,project_summary,
-                              hosp_adm_data,input_opt_design,prevalence_ref,
-                              bool_add_param)
-        }
-      }
-      
-      # close pdf
-      dev.off()
-    }
   
   ## ALL TOGETHER (PDF) ####
   .rstride$create_pdf(project_dir,'incidence_all',width = 6, height = 2.5)

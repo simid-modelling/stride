@@ -160,7 +160,7 @@ inspect_summary <- function(project_dir)
 .rstride$get_unique_param_list <- function(project_summary){
   
   col_output <- c('run_time', 'total_time', 'num_cases', 'AR' )
-  col_extra  <- c('rng_seed','output_prefix','transmission_probability','exp_id') 
+  col_extra  <- c('rng_seed','output_prefix','transmission_probability','exp_id','config_id','contact_id') 
   col_input  <- !(names(project_summary) %in% c(col_output,col_extra))
   
   # get unique values per parameter
@@ -169,3 +169,41 @@ inspect_summary <- function(project_dir)
   # return
   return(input_opt)
 }
+
+## HELP FUNCTION ####
+.rstride$get_config_id <- function(project_matrix){
+    
+  # retrieve all variable model parameters
+  input_opt_design   <- .rstride$get_variable_model_param(project_matrix)
+  
+  # collapse variables of input_opt_design (or just copy if only one column)
+  if(ncol(input_opt_design) == 1) {
+    config_id  <- project_matrix[,colnames(input_opt_design)]
+  } else{
+    config_id  <- apply(project_matrix[,names(input_opt_design)],1,paste, collapse='_')
+  }
+  
+  return(config_id)
+}
+
+.rstride$get_contact_id <- function(project_matrix){
+  
+  # retrieve all variable model parameters
+  input_opt_design   <- .rstride$get_variable_model_param(project_matrix)
+  
+  # add contact id
+  flag_opt_input_tracing <- (grepl('cnt_reduction',names(input_opt_design)) | grepl('exit',names(input_opt_design)))
+  if(any(flag_opt_input_tracing)){
+    colnames_contact           <- names(input_opt_design)[flag_opt_input_tracing]
+    if(length(colnames_contact) == 1) {
+      contact_id  <- project_matrix[,colnames_contact]
+    } else{
+      contact_id  <- apply((1-project_matrix[,colnames_contact])*100,1,paste, collapse='_')
+    }
+  } else{
+    contact_id  <- .rstride$get_config_id(project_matrix)
+  }
+
+  return(contact_id)
+}
+
