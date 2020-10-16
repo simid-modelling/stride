@@ -196,7 +196,6 @@ estimate_parameters <- function(project_dir)
   }
   q_value <- round(q_value,digits=2)
   table(df_loglike$pareto_front )
-  table(df_loglike$pareto_num[df_loglike$pareto_front])
   
   # get names (without ids)
   param_names <- names(input_opt_design)
@@ -308,8 +307,9 @@ estimate_parameters <- function(project_dir)
   dev.off()
   
   ## BEST CONFIG FOR AT LEAST 2 TARGETS (mean) ----
-  table(df_loglike$pareto_front,df_loglike$pareto_num)
-  df_loglike_mean <- aggregate(.  ~ config_id,data=df_loglike,mean)
+  #table(df_loglike$pareto_front,df_loglike$pareto_num)
+  df_loglike_mean <- aggregate( .  ~ config_id,data=df_loglike,mean,na.action=na.pass)
+  #df_loglike_mean <- df_loglike
   order_table     <- data.frame(hosp = order(df_loglike_mean$hospital_pois),
                               inc = order(df_loglike_mean$incidence_pois),
                               double = order(df_loglike_mean$doubling_pois))
@@ -323,8 +323,8 @@ estimate_parameters <- function(project_dir)
   }
   
   # select subset
-  i_config <- df_loglike_mean$config_id[as.numeric(names(which(tbl>1)))[1]]
-  data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config,]
+  i_config_single <- df_loglike_mean$config_id[as.numeric(names(which(tbl>1)))[1]]
+  data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config_single,]
   data_incidence_sel$cumulative_hospital_cases <- data_incidence_sel$cumulative_hospital_cases - data_incidence_sel$cumulative_hospital_cases[1]
   
   .rstride$create_pdf(project_dir,'parameter_pareto_incidence_single_mean',width = 6, height = 7)
@@ -345,12 +345,17 @@ estimate_parameters <- function(project_dir)
   pareto_param <- .rstride$get_variable_model_param(df_loglike_summary[df_loglike_summary$pareto_front,])
   
   # remove duplicates
-  pareto_param <- aggregate(. ~ pareto_num, data=pareto_param,mean)
+  if('pareto_num' %in% names(pareto_param)){
+    pareto_param <- aggregate(. ~ pareto_num, data=pareto_param,mean)
+  }
   
   # add pareto number and project_dir as run info
   # note: columns with "num" will be handled as integers in a LHS
   pareto_param$pareto_num <- 1:nrow(pareto_param)
   pareto_param$run_info   <- basename(project_dir)
+  
+  # # add boolean for "single best"
+  # pareto_param$pareto_selection <- pareto_param$config_id == i_config_single
   
   # save as .RData and csv
   saveRDS(pareto_param,smd_file_path(project_dir,paste0(basename(project_dir),'_config_pareto_ensemble.RData')))
@@ -518,6 +523,11 @@ get_doubling_time <- function(dat, npts=200,bool_confidence=FALSE){
 
 # dat <- summary_infections$new_infections
 get_longitudinal_doubling_time <- function(dat){
+  
+  # if no new infections => doubling time Infinity
+  if(length(unique(dat))==1){
+    return(data.frame(mean=NA,sd=NA))
+  }
   
   npts <- length(dat)
   n_knots <- min(10,length(dat))
