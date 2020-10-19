@@ -425,7 +425,7 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
     # 4. reformat into data.frame with 4 columns
     out <- data.frame(t(as.numeric(unlist(strsplit(x,',')))))
     # 5. add column names
-    names(out) <- paste0('age',1:4)
+    names(out) <- paste0('age',1:length(out))
     # 6. return result
     return(out)
   }
@@ -434,11 +434,9 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
     config_exp$hospital_category_age  = paste(0,19,60,80,sep=',')
   }
   
-  age_cat_breaks    <- parse_hospital_input(config_exp$hospital_category_age)
-  hosp_age <- list(age1 = age_cat_breaks$age1:(age_cat_breaks$age2-1),
-                   age2 = age_cat_breaks$age2:(age_cat_breaks$age3-1),
-                   age3 = age_cat_breaks$age3:(age_cat_breaks$age4-1),
-                   age4 = age_cat_breaks$age4:110)
+  age_cat_breaks    <- (parse_hospital_input(config_exp$hospital_category_age))
+  data_transmission$age_cat_hosp     <- cut(data_transmission$part_age,c(age_cat_breaks,110),right=F)
+  data_transmission$age_cat_hosp_num <- as.numeric(data_transmission$age_cat_hosp)
   
   # # set hospital age groups (age groups for hospital admission)
   # hosp_age <- list(age1 = 0:18,   # 0:16
@@ -448,10 +446,15 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
   
   # create columns for hospital admission start (by age)
   data_transmission[, hospital_admission_start      := as.numeric(NA)]
-  data_transmission[, hospital_admission_start_age1 := as.numeric(NA)]
-  data_transmission[, hospital_admission_start_age2 := as.numeric(NA)]
-  data_transmission[, hospital_admission_start_age3 := as.numeric(NA)]
-  data_transmission[, hospital_admission_start_age4 := as.numeric(NA)]
+  
+  for(i_age_cat in names(age_cat_breaks)){
+    data_transmission[, paste0('hospital_admission_start_',i_age_cat) := as.numeric(NA)]
+  }
+  names(data_transmission)
+  # data_transmission[, hospital_admission_start_age1 := as.numeric(NA)]
+  # data_transmission[, hospital_admission_start_age2 := as.numeric(NA)]
+  # data_transmission[, hospital_admission_start_age3 := as.numeric(NA)]
+  # data_transmission[, hospital_admission_start_age4 := as.numeric(NA)]
   
   # hospital probability
   # hospital_probability <- data.frame(age1 = 0.035,
@@ -491,18 +494,18 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
   # set (uniform) delay  distribution -1, 0, 1
   hosp_delay_variance <- -1:1
   
-  # calculate time between symptom onset and hospital admission (future work)
-  get_hospital_delay <- function(n){
-    round(rtweibull(n, shape=1.112,scale=5.970, max =31))
-  }
+  # # calculate time between symptom onset and hospital admission (future work)
+  # get_hospital_delay <- function(n){
+  #   round(rtweibull(n, shape=1.112,scale=5.970, max =31))
+  # }
 
   # sample hospital admission dates
-  i_hosp <- 4
+  i_hosp <- 1
   for(i_hosp in 1:length(hospital_probability)){
-    flag_part      <- !is.na(data_transmission$start_symptoms) & data_transmission$part_age %in% hosp_age[[i_hosp]]
+    flag_part      <- !is.na(data_transmission$start_symptoms) & data_transmission$age_cat_hosp_num == i_hosp
     flag_admission <- as.logical(rbinom(n = nrow(data_transmission),size = 1,prob = hospital_probability[[i_hosp]]))
     flag_hosp      <- flag_part & flag_admission
-    hosp_start    <- as.numeric(data_transmission$start_symptoms[flag_hosp]) + hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
+    hosp_start     <- as.numeric(data_transmission$start_symptoms[flag_hosp]) + hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
     data_transmission[flag_hosp, hospital_admission_start := hosp_start]
     # data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] +
     #   hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
@@ -519,16 +522,16 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
   # 770/2048 born between 1940-1960 (median=6, mean=6, range= 0-29)
   # 416 born before 1940/2048 (median=3, mean=4, range= 0-29)
   # 147 missing age
-  ref <- c(57,658,770,416) / (2048-147)
-  
-  estim <- c(sum(!is.na(data_transmission$hospital_admission_start_age1)),
-              sum(!is.na(data_transmission$hospital_admission_start_age2)),
-              sum(!is.na(data_transmission$hospital_admission_start_age3)),
-              sum(!is.na(data_transmission$hospital_admission_start_age4)))
-  
-  rbind(estim / sum(estim),
-        ref)
-  
+  # ref <- c(57,658,770,416) / (2048-147)
+  # 
+  # estim <- c(sum(!is.na(data_transmission$hospital_admission_start_age1)),
+  #             sum(!is.na(data_transmission$hospital_admission_start_age2)),
+  #             sum(!is.na(data_transmission$hospital_admission_start_age3)),
+  #             sum(!is.na(data_transmission$hospital_admission_start_age4)))
+  # 
+  # rbind(estim / sum(estim),
+  #       ref)
+  # 
   # smd_print('AVG. HOSPITAL RATE (age specific)',round(mean(approx(c(0,19,60,80),hospital_probability,0:100,method='constant',rule = 2)$y),digits=3))
   # smd_print('AVG. HOSPITAL RATE (cases)',round(sum(!is.na(data_transmission$hospital_admission_start)) / sum(!is.na(data_transmission$start_symptoms)),digits=3))
 

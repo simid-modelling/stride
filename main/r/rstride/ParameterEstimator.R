@@ -62,7 +62,7 @@ estimate_parameters <- function(project_dir)
   }
   
   # add config_id (this can be removed in the future)
-  project_summary$config_id <- .rstride$get_config_id(project_summary)
+  project_summary$config_id  <- .rstride$get_config_id(project_summary)
   input_opt_design$config_id <- .rstride$get_config_id(input_opt_design)
   
   # add config_id to incidence data
@@ -314,7 +314,7 @@ estimate_parameters <- function(project_dir)
                               inc = order(df_loglike_mean$incidence_pois),
                               double = order(df_loglike_mean$doubling_pois))
   
-  i_row <- 2
+  i_row <- 1
   tbl <- table(unlist(order_table[1:i_row,]))
   while(!any(tbl>1)){
     i_row <- i_row+1
@@ -355,7 +355,7 @@ estimate_parameters <- function(project_dir)
   pareto_param$run_info   <- basename(project_dir)
   
   # # add boolean for "single best"
-  # pareto_param$pareto_selection <- pareto_param$config_id == i_config_single
+  pareto_param$config_id_single <- i_config_single
   
   # save as .RData and csv
   saveRDS(pareto_param,smd_file_path(project_dir,paste0(basename(project_dir),'_config_pareto_ensemble.RData')))

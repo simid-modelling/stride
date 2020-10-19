@@ -1,4 +1,4 @@
-#############################################################################
+############################################################################ #
 #  This file is part of the Stride software. 
 #  It is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by 
@@ -13,8 +13,8 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
-#############################################################################
+#  Copyright 2020, Willem L
+############################################################################ #
 
 #############################################################################
 # PROVIDE PUBLIC HEALTH AGENCY DATA                                        ##
@@ -109,6 +109,34 @@ load_observed_seroprevalence_data <- function(subset_serology_samples = 0:2)
   # return
   return(prevalence_ref)
   
+}
+
+# Hospital survey
+# Faes et al 2020 ()
+load_hospital_surge_survey_data <- function(){
+  
+  # average by age for week 11 - 13
+  hosp_adm <- c(1.42034063,    # 00-09
+                0.230950038,   # 10-19
+                1.805459467,   # ...
+                3.855632946,
+                9.641311491,
+                15.22273271,
+                18.45155261,
+                22.6793626,
+                20.5921284+
+                6.100529114)
+  
+  hosp_delay <- c(rep(3,2),  # 0-19 
+                  rep(7,4),  # 20-59
+                  rep(6,2),  # 60-79
+                  rep(1,1))  # 80+
+  
+  out_hosp <- data.frame(age_break_min = seq(0,80,10),
+                         admissions_relative = hosp_adm/100, 
+                         delay = hosp_delay)           
+  
+  return(out_hosp)
 }
 
 

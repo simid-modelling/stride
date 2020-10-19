@@ -203,7 +203,7 @@ inspect_incidence_data <- function(project_dir, num_selection = 4, bool_add_para
     ## PARETO (PDF) ####
     
     # all
-    .rstride$create_pdf(project_dir,'incidence_pareto_all',width = 6, height = 2.5)
+    .rstride$create_pdf(project_dir,'incidence_pareto_all',width = 6, height = 7)
     par(mfrow=c(4,1))
     plot_incidence_data(data_incidence_sel,project_summary,
                         hosp_adm_data,input_opt_design,prevalence_ref,
@@ -306,45 +306,65 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   
   ## CUMULATIVE: HOSPITAL ####
   y_lim <- range(0,pretty(max(hosp_adm_data$cum_adm,na.rm=T)*2,data_incidence_sel$cumulative_hospital_cases),na.rm=T)
-  plot(data_incidence_sel$sim_date,
-       data_incidence_sel$cumulative_hospital_cases,
-       type='l',
-       col=alpha(pcolor$H,pcolor$alpha),
-       ylab='Total admissions',
-       xlab='',
-       yaxt='n',
-       xaxt='n',
-       ylim= range(y_lim))
-  add_x_axis(data_incidence_sel$sim_date)
+  # plot(data_incidence_sel$sim_date,
+  #      data_incidence_sel$cumulative_hospital_cases,
+  #      type='l',
+  #      col=alpha(pcolor$H,pcolor$alpha),
+  #      ylab='Total admissions',
+  #      xlab='',
+  #      yaxt='n',
+  #      xaxt='n',
+  #      ylim= range(y_lim))
+  colnames_hosp_age <- names(data_incidence_sel)[grepl('cumulative_hospital_cases_age',names(data_incidence_sel))]
+  cum_hosp_age     <- aggregate(. ~ sim_date, data = data_incidence_sel[,c('sim_date',colnames_hosp_age)],mean)
+  bplot <- barplot(t(as.matrix(cum_hosp_age[,-1])),
+                   col=rainbow(9),
+                   ylab='Total admissions',
+                   xlab='',
+                   yaxt='n',
+                   xaxt='n',
+                   ylim= range(y_lim))
+  
+  # x axis
+  sim_dates <-data_incidence_sel$sim_date 
+  date_lim  <- range(sim_dates,na.rm=T)
+  bplot_diff <- diff(range(bplot)) / as.numeric(diff(date_lim))
+  x_tick_label <- pretty(sim_dates,5)
+  x_tick_value <- as.numeric((x_tick_label - min(date_lim)))  * bplot_diff
+  axis(1,x_tick_value, format(x_tick_label,'%e %b'),cex.axis=0.9)
   add_y_axis(y_lim)
   add_y_axis_pop(y_lim,pop_size_be)
-  points(hosp_adm_data$date,hosp_adm_data$cum_adm,col=pcolor$D,pch=pcolor$pch)
-  add_breakpoints()
-  add_legend_hosp(pcolor)
-  
-  lines(data_incidence_sel$sim_date,
-       data_incidence_sel$cumulative_hospital_cases_age1,
-       col=5)
-  lines(data_incidence_sel$sim_date,
-        data_incidence_sel$cumulative_hospital_cases_age2,
-        col=6)
-  lines(data_incidence_sel$sim_date,
-        data_incidence_sel$cumulative_hospital_cases_age3,
-        col=7)
-  lines(data_incidence_sel$sim_date,
-        data_incidence_sel$cumulative_hospital_cases_age4,
-        col=8)
+  points(as.numeric((hosp_adm_data$date - min(date_lim)))  * bplot_diff,
+         hosp_adm_data$cum_adm,col=pcolor$D,pch=pcolor$pch)
+  legend('topleft',
+         c('Reported'),
+         col=c(pcolor$D),
+         pch=c(16),
+         lwd=c(NA),
+         bg='white',
+         cex = 0.6,
+         ncol=1)
+  # set date format (character vs numeric)
   
   legend('left',
-         rev(c('0-18',
-           '19-59',
-           '60-79',
-           '+80')),
-         col=c(8:5),
+         rev(paste0(seq(0,80,10),'-',
+               seq(9,90,10))),
+         col=rev(rainbow(9)),
+         ncol=1,
          lwd=2,
          title='Age group',
-         cex=0.5
-  )
+         cex=0.5)
+         
+  # legend('left',
+  #        rev(c('0-18',
+  #          '19-59',
+  #          '60-79',
+  #          '+80')),
+  #        col=c(8:5),
+  #        lwd=2,
+  #        title='Age group',
+  #        cex=0.5
+  # )
   
   ## INCIDENCE: ALL ####
   y_lim <- range(0,pretty(data_incidence_sel$new_infections),na.rm = T)

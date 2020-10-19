@@ -1,4 +1,4 @@
-#############################################################################
+############################################################################ #
 #  This file is part of the Stride software. 
 #  It is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by 
@@ -485,6 +485,59 @@ update_disease_parameters <- function(disease_filename = 'data/disease_covid19_a
   
 }
 
+################################### #
+## HOSPITAL ADMISSIONS BY AGE    ####
+################################### #
+
+analyse_transmission_data_for_hospital_admissions <- function(project_dir){
+  
+  # reference data
+  hosp_surge_data  <- load_hospital_surge_survey_data()
+  tbl_hosp_age_rel <- hosp_surge_data$admissions_relative
+  tbl_hosp_age_rel
+  
+  # load simulation data
+  data_transm <- .rstride$load_aggregated_output(project_dir,'data_transmission')
+  dim(data_transm)
+  names(data_transm)
+  
+  # remove infected seeds
+  table(data_transm$sim_day,useNA = 'ifany')
+  data_transm <- data_transm[data_transm$sim_day != 0,]
+  
+  # select symptomatic cases
+  table(!is.na(data_transm$start_symptoms),useNA = 'ifany')
+  data_transm <- data_transm[!is.na(data_transm$start_symptoms),]
+  dim(data_transm)
+  
+  data_transm$age_cat <- cut(data_transm$part_age,c(hosp_surge_data$age_break_min,110),right=F)
+  tbl_cases_age <- table(data_transm$age_cat,useNA = 'ifany')
+  tbl_cases_age_rel <- tbl_cases_age / sum(tbl_cases_age)
+  tbl_cases_age
+  
+  # get relative probability to be hospitalised by age
+  tbl_rel <- tbl_hosp_age_rel / tbl_cases_age_rel 
+  tbl_rel
+  
+  # standardise
+  tbl_rel <- tbl_rel / max(tbl_rel)
+  print(round(tbl_rel,digits=3))
+  
+  # add to table
+  hosp_surge_data$admission_probability_relative <- tbl_rel
+  
+  # write table to file
+  write.table(hosp_surge_data,
+              file=file.path(project_dir,paste0(basename(project_dir),'_hospital_probabilies.csv')),
+              sep=',',row.names=F)
+}
+
+
+
+################################### #
+## PRE-PROCESSING FILES          ####
+################################### #
+
 if(0==1){
   update_disease_parameters(d_infect_mean= 4)
   update_disease_parameters(d_infect_mean= 5)
@@ -493,5 +546,8 @@ if(0==1){
   update_disease_parameters(disease_filename = 'data/disease_covid19_child.xml',d_infect_mean= 6)
   
 }
+
+
+
 
 

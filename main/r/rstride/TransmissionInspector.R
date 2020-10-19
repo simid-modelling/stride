@@ -279,7 +279,7 @@ get_transmission_statistics <- function(data_transm)
   data_transm[,sim_date := infection_date]
   
   # AGE CATEGORIES     ----
-  age_breaks               <- c(0,18,59,79,110)
+  age_breaks               <- c(seq(0,80,10),110)
   # data_transm$age_cat_num  <- cut(data_transm$part_age,age_breaks,include.lowest = T,right = T)
   # data_transm$age_cat      <- paste0('age',as.numeric(data_transm$age_cat_num))
   data_transm[,age_cat_num := .(cut(part_age,age_breaks,include.lowest = T,right = T)),]
@@ -376,16 +376,19 @@ get_transmission_statistics <- function(data_transm)
   summary_out$exp_id <- unique(data_transm$exp_id)
   
   ## CUMULATIVE STATS
-  summary_out[,cumulative_infections := cumsum_na(new_infections)]
+  #summary_out[,cumulative_infections := cumsum_na(new_infections)]
+  for(i_colname in names(summary_infections)[-1]){
+    summary_out[,(gsub('new_infections','cumulative_infections',i_colname)) := cumsum_na(get(i_colname))]
+  }
+  names(summary_out)
+  
   summary_out[,cumulative_infectious_cases := cumsum_na(new_infectious_cases)]
   summary_out[,cumulative_symptomatic_cases := cumsum_na(new_symptomatic_cases)]
-  summary_out[,cumulative_hospital_cases := cumsum_na(new_hospital_admissions)]
   
-  summary_out[,cumulative_hospital_cases_age1 := cumsum_na(new_hospital_admissions_age1)]
-  summary_out[,cumulative_hospital_cases_age2 := cumsum_na(new_hospital_admissions_age2)]
-  summary_out[,cumulative_hospital_cases_age3 := cumsum_na(new_hospital_admissions_age3)]
-  summary_out[,cumulative_hospital_cases_age4 := cumsum_na(new_hospital_admissions_age4)]
-  
+  for(i_colname in names(summary_hospital)[-1]){
+    summary_out[,(gsub('new_hospital_admissions','cumulative_hospital_cases',i_colname)) := cumsum_na(get(i_colname))]
+  }
+  names(summary_out)
   
   # return
   return(summary_out)

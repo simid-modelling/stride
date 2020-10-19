@@ -89,13 +89,14 @@ get_exp_param_default <- function(bool_child_param = FALSE,
    
     if(bool_revised_model_param){
       # relative proportions
-      # reference: hospital survey data by age (faes et al) / observed sympt cases by age R0 callibration 2020-09-17
-      out$hospital_probability_age      = paste(c(0.5863577,0.6193339,1.1223633,3.1063142)/3.1,collapse=',') # still requires rescaling
-      out$hospital_mean_delay_age       = paste(3,7,6,4,sep=',')
+      # reference: hospital survey data by age (faes et al) 
+      # update on 19/10 : hospital admissions in week 11-13 / simulated sympt cases by age in R0 callibration 2020-09-17
+      out$hospital_category_age         = paste(c(seq(0,80,10)),collapse=',')
+      out$hospital_probability_age      = paste(c(0.091,0.009,0.044,0.033,0.057,0.075,0.143,0.373,1.000 ),collapse=',') # still requires rescaling
+      out$hospital_mean_delay_age       = paste(3,3,7,7,7,7,6,6,1,1,sep=',')
       
       # disease history: literature based distributions
       out$disease_config_file <- 'disease_covid19_lognorm.xml'
-      
       
       ## parameters from 20201016_093933_param6_d73_ensemble_parameter_pareto_incidence_single_mean
       out$r0 <- 3.45
@@ -111,6 +112,12 @@ get_exp_param_default <- function(bool_child_param = FALSE,
    
    # change parameters if childrens infectiousness is 1/2 compared to adults
    if(bool_child_param){ 
+      
+      # update on 19/10 : hospital admissions in week 11-13 / simulated sympt cases by age in R0_child callibration 2020-09-17
+      out$hospital_category_age         = paste(c(seq(0,80,10)),collapse=',')
+      out$hospital_probability_age      = paste(c(0.221,0.018,0.041,0.033,0.056,0.071,0.139,0.367,1.000),collapse=',') # still requires rescaling
+      out$hospital_mean_delay_age       = paste(3,3,7,7,7,7,6,6,1,1,sep=',')
+      
       # parameters from 20201016_010705_param6child_d73_ensemble_parameter_pareto_incidence_single_mean.pdf
       out$disease_config_file <- "disease_covid19_lognorm_child.xml"
       out$r0 <- 3.37

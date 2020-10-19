@@ -88,12 +88,20 @@ inspect_transmission_dynamics(project_dir)
 analyse_transmission_data_for_r0(project_dir)
 
 
+################################### #
+## HOSPITAL ADMISSIONS BY AGE    ####
+#####################################
+
+# covid-19 specific!!
+analyse_transmission_data_for_hospital_admissions(project_dir)
+  
+
 ## TO SELECT A MEAN INFECTIOUS PERIOD
 if(0==1){
   
   output_names <- dir("/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20200916_r0_timeInfectious",full.names = T)
-  
-  d <- 4
+  output_names <- output_names[!grepl('_child',output_names)]
+  d <- 6
   foreach(d = 4:6,
           .combine = 'rbind') %do% {
             
@@ -103,8 +111,13 @@ if(0==1){
             
           } -> r0_all
   
-  
+
+  # create data.frame  
   r0_all <- data.frame(r0_all)
+  
+  # get directory name and open pdf stream
+  dir_name <- unique(dirname(output_names))
+  pdf(file=smd_file_path(dir_name,'stride_doubling_generation.pdf'),6,4)
   
   plot(y = r0_all$doubling_time,
        x = r0_all$gen_interval,
@@ -136,10 +149,13 @@ if(0==1){
          paste(4:6,'days'),
          title="Mean infectious period",
          col=4:6-2,
-         pch=20) 
+         cex=0.8,
+         pch=20,
+         bg='white') 
   
+  # close pdf stream
+  dev.off()
   
-
   }
 
 

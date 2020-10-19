@@ -149,7 +149,8 @@ inspect_summary <- function(project_dir)
   
   # with only identical parameters, use the r0
   if(length(input_opt)==0){
-    input_opt_design <- as.matrix(data.frame(r0=unique(project_summary$r0)))
+    # input_opt_design <- as.matrix(data.frame(r0=unique(project_summary$r0)))
+    input_opt_design <- data.frame(r0=unique(project_summary$r0))
   }
   
   return(input_opt_design)
