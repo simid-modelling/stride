@@ -615,7 +615,7 @@ cumsum_na <- function(x){
   return(exp_design)
 }
   
-.rstride$get_lhs_exp_design <- function(exp_param_list,num_experiments){
+.rstride$get_lhs_exp_design <- function(exp_param_list,num_experiments,num_seeds=1){
   
   # get number of values per parameter
   num_param_values <- unlist(lapply(exp_param_list,length))
@@ -648,6 +648,13 @@ cumsum_na <- function(x){
   i_param = exp_param_names[1]
   for(i_param in exp_param_names){
     exp_design[,i_param] <- exp_param_list[i_param]
+  }
+  
+  # copy lhs design if num_rng_seeds > 1
+  if(num_rng_seeds>1){
+    row_ind <- rep(1:nrow(exp_design),each=num_rng_seeds)
+    exp_design <- exp_design[row_ind,]
+    dim(exp_design)
   }
   
   # add a unique seed for each run

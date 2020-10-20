@@ -43,7 +43,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
     return(NA)
   }
 
-  # count secundary infections
+  # count secondary infections
   tbl_infections  <- table(data_transm$infector_id)
   sec_transm      <- data.frame(local_id = as.numeric(names(tbl_infections)),
                                sec_cases = as.numeric(tbl_infections))
@@ -127,37 +127,68 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # open pdf stream
   .rstride$create_pdf(project_dir,'fit_r0')
   
-  # plot secundary cases vs transmission probability 
+  ################################### #
+  ## APPENDIX FIGURES   ----
+  ################################### # 
+  
+  # plot secondary cases vs transmission probability 
   boxplot(round(sec_transm$sec_cases,digits=3) ~ round(sec_transm$transmission_probability,digits=3), 
           xlab='Transmission probability',
-          ylab='Secundary cases',
+          ylab='Secondary cases',
           at=sort(round(unique(sec_transm$transmission_probability),digits=3)),
           xlim=range(sec_transm$transmission_probability),
           ylim=y_lim,
           boxwex=0.001
-          )
+  )
   
+  # add model
   lines(poly_input,R0_poly_fit,type='l',col=3,lwd=4)
-  # leg_text_model   <- paste0(c(paste0('b',0:2,': '),'R^2: '),round(c(fit_b0,fit_b1,fit_b2,mod$r.squared),digits=2))
-  # leg_text_fitting <- c(leg_text_model,paste0('R0 max:',round(R0_limit,digits=2)),paste0('R0 range: ',fit_r0_range))
-  # legend('topleft',legend=leg_text_fitting,cex=0.8,title='b0+b1*x+b2*x^2',ncol=2)
-  leg_text_model   <- paste0(c(paste0('b',0:1,': '),'R^2: '),round(c(fit_b0,fit_b1,mod$r.squared),digits=2))
-  leg_text_fitting <- c(leg_text_model,paste0('R0 range: ',fit_r0_range))
-  legend('topleft',legend=leg_text_fitting,cex=0.8,title='b0+b1*x',ncol=2)
-  
   
   # add mean
   mean_sec_cases <- aggregate(sec_cases ~ transmission_probability + R0_poly_fit, data=sec_transm,mean)
   points(mean_sec_cases$transmission_probability,mean_sec_cases$sec_cases,col=4,pch=15)
-  legend('top','mean',pch=15,col=4,cex=0.8)
+  
+  # add legend
+  legend('topleft',
+         legend=c('mean',
+                  'linear model'),
+         pch = c(15,NA),
+         col=c(4,3),
+         lwd= c(0,4),
+         cex=0.8)
+  
+# 
+#   # plot secondary cases vs transmission probability 
+#   boxplot(round(sec_transm$sec_cases,digits=3) ~ round(sec_transm$transmission_probability,digits=3), 
+#           xlab='Transmission probability',
+#           ylab='Secondary cases',
+#           at=sort(round(unique(sec_transm$transmission_probability),digits=3)),
+#           xlim=range(sec_transm$transmission_probability),
+#           ylim=y_lim,
+#           boxwex=0.001
+#           )
+#   
+#   lines(poly_input,R0_poly_fit,type='l',col=3,lwd=4)
+#   # leg_text_model   <- paste0(c(paste0('b',0:2,': '),'R^2: '),round(c(fit_b0,fit_b1,fit_b2,mod$r.squared),digits=2))
+#   # leg_text_fitting <- c(leg_text_model,paste0('R0 max:',round(R0_limit,digits=2)),paste0('R0 range: ',fit_r0_range))
+#   # legend('topleft',legend=leg_text_fitting,cex=0.8,title='b0+b1*x+b2*x^2',ncol=2)
+   leg_text_model   <- paste0(c(paste0('b',0:1,': '),'R^2: '),round(c(fit_b0,fit_b1,mod$r.squared),digits=2))
+   leg_text_fitting <- c(leg_text_model,paste0('R0 range: ',fit_r0_range))
+#   legend('topleft',legend=leg_text_fitting,cex=0.8,title='b0+b1*x',ncol=2)
+#   
+#   
+#   # add mean
+#   mean_sec_cases <- aggregate(sec_cases ~ transmission_probability + R0_poly_fit, data=sec_transm,mean)
+#   points(mean_sec_cases$transmission_probability,mean_sec_cases$sec_cases,col=4,pch=15)
+#   legend('top','mean',pch=15,col=4,cex=0.8)
   
   # other x-scale
   boxplot(sec_transm$sec_cases ~ sec_transm$R0_poly_fit,
-          xlab='Predicted R0 (using updated transmission parameters)',ylab='Secundary cases',
+          xlab='Predicted R0 (using updated transmission parameters)',ylab='Secondary cases',
           at=sort(unique(sec_transm$R0_poly_fit)),
           ylim=y_lim,boxwex=0.05)
   abline(0,1,col=2,lwd=2)
-  legend('topleft',legend=leg_text_model,cex=0.8,title='b0+b1*x+b2*x^2')
+  legend('topleft',legend=leg_text_model,cex=0.8,title='b0+b1*x')
   legend('topright',legend='x=y',cex=0.8,title='reference',col=2,lwd=2)
   
   points(mean_sec_cases$R0_poly_fit ,mean_sec_cases$sec_cases,col=4,pch=15)
@@ -190,7 +221,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   plot(poly_input,R0_poly_orig,
        type='l',lwd=2,
        xlab='transmission probability',
-       ylab='secundary cases',
+       ylab='secondary cases',
        ylim=y_lim)
   lines(poly_input,R0_poly_fit,col=3,lwd=2)
   # add grid
@@ -199,6 +230,8 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # add legend
   legend('topleft',c('original fit','new fit'),
          col=c(1,3),lwd=1,bg= "white")
+  
+  
   
   
   
@@ -244,6 +277,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # close pdf stream
   dev.off()
   
+  
   ################################### #
   ## UPDATE DISEASE CONFIG FILE  ----
   ################################### #
@@ -261,7 +295,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
   # add/update meta data
   num_infected_seeds          <- unique(project_summary$num_infected_seeds)
   par_exp_design              <- .rstride$get_variable_model_param(project_summary) # changing parameters in the exp design
-  total_num_index_cases       <- nrow(sec_transm)
+  total_num_index_cases       <- sum(project_summary$num_infected_seeds)
   num_rng_seeds               <- length(unique(project_summary$rng_seed))
   dim_exp_design              <- nrow(expand.grid(par_exp_design))
   num_realisations            <- unique(table(project_summary[,colnames(par_exp_design)]))

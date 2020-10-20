@@ -308,11 +308,13 @@ estimate_parameters <- function(project_dir)
   
   ## BEST CONFIG FOR AT LEAST 2 TARGETS (mean) ----
   #table(df_loglike$pareto_front,df_loglike$pareto_num)
-  df_loglike_mean <- aggregate( .  ~ config_id,data=df_loglike,mean,na.action=na.pass)
+  df_loglike_mean <- aggregate( .  ~ config_id,data=df_loglike[df_loglike$pareto_front>0,],mean,na.action=na.pass)
   #df_loglike_mean <- df_loglike
   order_table     <- data.frame(hosp = order(df_loglike_mean$hospital_pois),
-                              inc = order(df_loglike_mean$incidence_pois),
+                              inc    = order(df_loglike_mean$incidence_pois),
                               double = order(df_loglike_mean$doubling_pois))
+  
+  
   
   i_row <- 1
   tbl <- table(unlist(order_table[1:i_row,]))
