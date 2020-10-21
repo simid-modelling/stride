@@ -123,16 +123,14 @@ load_hospital_surge_survey_data <- function(){
                 9.641311491,
                 15.22273271,
                 18.45155261,
-                22.6793626,
-                20.5921284+
-                6.100529114)
+                22.6793626 +  20.5921284 + 6.100529114) # +70
   
   hosp_delay <- c(rep(3,2),  # 0-19 
                   rep(7,4),  # 20-59
-                  rep(6,2),  # 60-79
-                  rep(1,1))  # 80+
+                  rep(6,2))#  # +70
+                  #rep(1,1))  # +80
   
-  out_hosp <- data.frame(age_break_min = seq(0,80,10),
+  out_hosp <- data.frame(age_break_min = seq(0,70,10),
                          admissions_relative = hosp_adm/100, 
                          delay = hosp_delay)           
   

@@ -615,7 +615,7 @@ cumsum_na <- function(x){
   return(exp_design)
 }
   
-.rstride$get_lhs_exp_design <- function(exp_param_list,num_experiments,num_seeds=1){
+.rstride$get_lhs_exp_design <- function(exp_param_list,num_experiments,num_rng_seeds=1){
   
   # get number of values per parameter
   num_param_values <- unlist(lapply(exp_param_list,length))

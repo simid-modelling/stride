@@ -154,7 +154,7 @@ analyse_transmission_data_for_r0 <- function(project_dir)
                   'linear model'),
          pch = c(15,NA),
          col=c(4,3),
-         lwd= c(0,4),
+         lwd= c(NA,4),
          cex=0.8)
   
 # 
@@ -530,6 +530,7 @@ analyse_transmission_data_for_hospital_admissions <- function(project_dir){
   tbl_hosp_age_rel <- hosp_surge_data$admissions_relative
   tbl_hosp_age_rel
   
+  
   # load simulation data
   data_transm <- .rstride$load_aggregated_output(project_dir,'data_transmission')
   dim(data_transm)
@@ -548,6 +549,9 @@ analyse_transmission_data_for_hospital_admissions <- function(project_dir){
   tbl_cases_age <- table(data_transm$age_cat,useNA = 'ifany')
   tbl_cases_age_rel <- tbl_cases_age / sum(tbl_cases_age)
   tbl_cases_age
+  tbl_cases_age_rel
+  
+  
   
   # get relative probability to be hospitalised by age
   tbl_rel <- tbl_hosp_age_rel / tbl_cases_age_rel 
