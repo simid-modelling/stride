@@ -201,6 +201,8 @@ estimate_parameters <- function(project_dir)
   }
   q_value <- round(q_value,digits=2)
   table(df_loglike$pareto_front )
+  table(table(df_loglike$config_id[df_loglike$pareto_front]))
+  
   
   # get names (without ids)
   param_names <- names(input_opt_design)
@@ -312,16 +314,13 @@ estimate_parameters <- function(project_dir)
   dev.off()
   
   
-  
   ## BEST CONFIG FOR AT LEAST 2 TARGETS (mean) ----
   #table(df_loglike$pareto_front,df_loglike$pareto_num)
   df_loglike_mean <- aggregate( .  ~ config_id,data=df_loglike[df_loglike$pareto_front>0,],mean,na.action=na.pass)
   #df_loglike_mean <- df_loglike
-  order_table     <- data.frame(hosp = order(df_loglike_mean$hospital_pois),
-                              inc    = order(df_loglike_mean$incidence_pois),
-                              double = order(df_loglike_mean$doubling_pois))
-  
-  
+  order_table     <- data.frame(hosp   = order(df_loglike_mean$hospital_pois),
+                                inc    = order(df_loglike_mean$incidence_pois),
+                                double = order(df_loglike_mean$doubling_pois))
   
   i_row <- 1
   tbl <- table(unlist(order_table[1:i_row,]))
@@ -352,6 +351,7 @@ estimate_parameters <- function(project_dir)
   
   ## get parameter configuration of the pareto ensemble
   pareto_param <- .rstride$get_variable_model_param(df_loglike_summary[df_loglike_summary$pareto_front,])
+  dim(pareto_param)
   
   # remove duplicates
   if('pareto_num' %in% names(pareto_param)){

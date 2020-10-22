@@ -52,7 +52,7 @@ get_exp_param_default <- function(bool_child_param = FALSE,
                 cnt_reduction_workplace_exit  = seq(0.6,0.8,0.1),
                 cnt_reduction_other_exit      = c(0.7,0.80,0.85),
                 cnt_reduction_school_exit     = 0.5,
-                cnt_reduction_intergeneration = 0,         #0.9  
+                cnt_reduction_intergeneration = 0.9,  
                 cnt_reduction_intergeneration_cutoff = 65,
                 cnt_intensity_householdCluster = 0,
                 detection_probability          = 0,
@@ -91,26 +91,21 @@ get_exp_param_default <- function(bool_child_param = FALSE,
       # relative proportions
       # reference: hospital survey data by age (faes et al) 
       # update on 19/10 : hospital admissions in week 11-13 / simulated sympt cases by age in R0 callibration 2020-09-17
-      # out$hospital_category_age         = paste(c(seq(0,80,10)),collapse=',')
-      # out$hospital_probability_age      = paste(c(0.091,0.009,0.044,0.033,0.057,0.075,0.143,0.373,1.000 ),collapse=',') # still requires rescaling
-      # out$hospital_mean_delay_age       = paste(3,3,7,7,7,7,6,6,1,1,sep=',')
-      
-      # update 21/10
-      out$hospital_category_age         = paste(c(seq(0,70,10)),collapse=',')
-      out$hospital_probability_age      = paste(c(0.162, 0.016,0.078,0.059, 0.101,0.132,0.254,1.000 ),collapse=',') # still requires rescaling
-      out$hospital_mean_delay_age       = paste(3,3,7,7,7,7,6,6,sep=',')
+      out$hospital_category_age         = paste(c(seq(0,80,10)),collapse=',')
+      out$hospital_probability_age      = paste(c(0.091,0.009,0.044,0.033,0.057,0.075,0.143,0.373,1.000 ),collapse=',') # still requires rescaling
+      out$hospital_mean_delay_age       = paste(3,3,7,7,7,7,6,6,1,sep=',')
       
       # disease history: literature based distributions
       out$disease_config_file <- 'disease_covid19_lognorm.xml'
       
-      ## parameters from 20201016_093933_param6_d73_ensemble_parameter_pareto_incidence_single_mean
-      out$r0 <- 3.45
-      out$hosp_probability_factor <- 0.21 
-      out$num_infected_seeds <- 306 
-      out$cnt_reduction_workplace <- 0.85 
-      out$cnt_reduction_other     <- 0.86 
-      out$compliance_delay_other  <- 5
-      out$compliance_delay_workplace <- 6 
+      ## parameters from 20201021_160145_param4_d73_04k_n10_parameter_pareto_incidence_single_mean
+      out$r0 <- 3.44
+      out$hosp_probability_factor <- 0.51
+      out$num_infected_seeds <- 284 
+      out$cnt_reduction_workplace <- 0.76 
+      out$cnt_reduction_other     <- 0.87 
+      out$compliance_delay_other  <- 7
+      out$compliance_delay_workplace <- 5 
       #out$num_seeds <- NA
       
    }
@@ -119,26 +114,19 @@ get_exp_param_default <- function(bool_child_param = FALSE,
    if(bool_child_param){ 
       
       # update on 19/10 : hospital admissions in week 11-13 / simulated sympt cases by age in R0_child callibration 2020-09-17
-      # out$hospital_category_age         = paste(c(seq(0,80,10)),collapse=',')
-      # out$hospital_probability_age      = paste(c(0.221,0.018,0.041,0.033,0.056,0.071,0.139,0.367,1.000),collapse=',') # still requires rescaling
-      # out$hospital_mean_delay_age       = paste(3,3,7,7,7,7,6,6,1,1,sep=',')
+      out$hospital_category_age         = paste(c(seq(0,80,10)),collapse=',')
+      out$hospital_probability_age      = paste(c(0.221,0.018,0.041,0.033,0.056,0.071,0.139,0.367,1.000),collapse=',') # still requires rescaling
+      out$hospital_mean_delay_age       = paste(3,3,7,7,7,7,6,6,1,sep=',')
       
-      # update 21/10
-      out$hospital_category_age         = paste(c(seq(0,70,10)),collapse=',')
-      out$hospital_probability_age      = paste(c(0.396,0.032,0.074,0.059, 0.101,0.127,0.249,1.000),collapse=',') # still requires rescaling
-      out$hospital_mean_delay_age       = paste(3,3,7,7,7,7,6,6,sep=',')
-      
-      
-      
-      # parameters from 20201016_010705_param6child_d73_ensemble_parameter_pareto_incidence_single_mean.pdf
+      # parameters from 20201020_184744_param4_child_d73_04k_n10_parameter_pareto_incidence_single_mean
       out$disease_config_file <- "disease_covid19_lognorm_child.xml"
-      out$r0 <- 3.37
-      out$hosp_probability_factor <- 0.19
-      out$num_infected_seeds <- 268
-      out$cnt_reduction_workplace <- 0.8
-      out$cnt_reduction_other     <- 0.86
-      out$compliance_delay_other  <- 6
-      out$compliance_delay_workplace <- 6
+      out$r0 <- 3.40
+      out$hosp_probability_factor <- 0.42
+      out$num_infected_seeds <- 274
+      out$cnt_reduction_workplace <- 0.72
+      out$cnt_reduction_other     <- 0.90
+      out$compliance_delay_other  <- 7
+      out$compliance_delay_workplace <- 7
    }
    
    # select least stringent social mixing assumptions
