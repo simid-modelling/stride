@@ -173,6 +173,11 @@ estimate_parameters <- function(project_dir)
   # remove rows with NA's => incidence > threshold
   df_loglike <- df_loglike[!is.na(df_loglike$config_id),]
   
+  # # if multiple realisations, get average  ----
+  # df_loglike_orig <- df_loglike
+  # df_loglike <- aggregate( .  ~ config_id,data=df_loglike,mean,na.action=na.pass)
+  # dim(df_loglike)
+  
   # merge with parameters
   df_loglike <- merge(df_loglike,input_opt_design,by.x='config_id',by.y='config_id')
   
@@ -305,6 +310,8 @@ estimate_parameters <- function(project_dir)
   
   # close pdf
   dev.off()
+  
+  
   
   ## BEST CONFIG FOR AT LEAST 2 TARGETS (mean) ----
   #table(df_loglike$pareto_front,df_loglike$pareto_num)

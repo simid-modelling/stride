@@ -300,7 +300,8 @@ run_rStride <- function(exp_design               = exp_design,
                       
                        # print progress (only slave1)
                        smd_print_progress(i_exp,nrow(exp_design),time_stamp_loop,par_nodes_info)
-
+                       .rstride$print_system_memory_info(par_nodes_info)
+                       
                        # create experiment tag
                        exp_tag <- .rstride$create_exp_tag(i_exp)
                       

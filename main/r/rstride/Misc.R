@@ -44,6 +44,26 @@ if(!(exists('.rstride'))){
   smd_print('!! TERMINATE rSTRIDE CONTROLLER !!',WARNING=T)
 }
 
+# get system memory state
+.rstride$print_system_memory_info <- function(par_nodes_info = NA){
+  
+  if (!is.na("par_nodes_info") && (Sys.getpid() == par_nodes_info$pid_master || 
+                                   Sys.getpid() == par_nodes_info$pid_slave1)) {
+  
+    cmd_macos <- 'top -l 1 -s 0 | grep PhysMem'
+    cmd_linux <- 'grep MemFree /proc/meminfo '
+    
+    if(Sys.info()['sysname'] == 'Darwin'){
+      smd_print(system(cmd_macos,intern = T))
+    }
+    
+    if(Sys.info()['sysname'] == 'Linux'){
+      smd_print(system(cmd_linux,intern = T))
+    }  
+  }
+  
+}
+
 ############################# #
 ## PROJECT SUMMARY         ####
 ############################# #
