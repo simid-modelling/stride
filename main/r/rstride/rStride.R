@@ -98,7 +98,7 @@ create_config_exp <- function(config_default, output_prefix, exp_design, i_exp)
 }
 
 #' Parse log file
-parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission_rdata, project_dir_exp)
+parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission_rdata, get_tracing_rdata, project_dir_exp)
 {
   output_prefix <- config_exp$output_prefix
 
@@ -109,7 +109,7 @@ parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission
   # parse event_log (if present)
   event_log_filename <- smd_file_path(output_prefix,'event_log.txt')
   if(file.exists(event_log_filename)){
-    rstride_out <- parse_event_logfile(event_log_filename,i_exp)
+    rstride_out <- parse_event_logfile(event_log_filename,i_exp,get_tracing_rdata)
     
     # account for non-symptomatic cases
     flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
@@ -185,6 +185,7 @@ run_rStride <- function(exp_design               = exp_design,
                         get_csv_output           = FALSE,
                         remove_run_output        = TRUE,
                         get_transmission_rdata   = FALSE, 
+                        get_tracing_rdata        = TRUE,
                         get_burden_rdata         = FALSE,
                         use_date_prefix          = TRUE,
                         num_parallel_workers     = NA)
@@ -347,7 +348,7 @@ run_rStride <- function(exp_design               = exp_design,
                           run_summary$num_cases < config_exp$logparsing_cases_upperlimit){
                          
                          # parse log output (and save as rds file)
-                         parse_log_file(config_exp, i_exp, get_burden_rdata, get_transmission_rdata, project_dir_exp)
+                         parse_log_file(config_exp, i_exp, get_burden_rdata, get_transmission_rdata, get_tracing_rdata, project_dir_exp)
                        }
   
                        # remove experiment output and config

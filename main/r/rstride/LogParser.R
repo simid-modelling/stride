@@ -34,7 +34,7 @@ if(0==1){
   xx <- parse_event_logfile(event_logfile,2)
   
 }
-parse_event_logfile <- function(event_logfile,exp_id)
+parse_event_logfile <- function(event_logfile,exp_id,bool_parse_tracing=TRUE)
 {
 
   # terminal message
@@ -117,11 +117,14 @@ parse_event_logfile <- function(event_logfile,exp_id)
   header_trace           <- c('local_id', 'part_age', 'is_infected', 'is_symptomatic','pool_type', 
                               'case_id','case_age','sim_day','num_unique_contacts','num_contacts_tested')
 
-  rstride_out$data_tracing <- reformat_log_data(event_logfile = event_logfile,
-                                                data_log_cat  = data_log_cat,
-                                                log_cat       = "TRACE",
-                                                colnames_all  = header_trace,
-                                                exp_id        = exp_id)
+  if(bool_parse_tracing){
+    rstride_out$data_tracing <- reformat_log_data(event_logfile = event_logfile,
+                                                  data_log_cat  = data_log_cat,
+                                                  log_cat       = "TRACE",
+                                                  colnames_all  = header_trace,
+                                                  exp_id        = exp_id)
+  }
+
   
   ########################################## #
   ## UNIVERSAL TESTING: LOG  ####

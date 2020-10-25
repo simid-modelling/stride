@@ -398,13 +398,16 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
     flag_dates <- !is.na(data_incidence_sel$doubling_time)
     y_tick    <- quantile(y_lim,0.7)
     x_centre  <- mean(data_incidence_sel$sim_date[flag_dates])
-    doubling_time <- round(mean(data_incidence_sel$doubling_time,na.rm=T),digits = 2)
+    #doubling_time <- round(mean(data_incidence_sel$doubling_time,na.rm=T),digits = 2)
+    doubling_time <- range(round(data_incidence_sel$doubling_time,digits = 2),na.rm=T)
+    doubling_time <- unique(doubling_time) # remove duplicates if only one value is present
+    
     lines(data_incidence_sel$sim_date[flag_dates],
           rep(y_tick,sum(flag_dates)),
           lty=3)
     text(x_centre,
          y_tick,
-         paste('DT:',doubling_time),
+         paste('DT:',paste0(doubling_time,collapse='-')),
          pos=3,
          cex=0.8)
   }
@@ -463,23 +466,26 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
 add_breakpoints <- function(bool_text=TRUE){
   
   # add start intervention
-  add_vertical_line("2020-03-14",bool_text)
+  add_vertical_line("2020-03-14",bool_text,'Restrictions')
   
   # # add today
   # add_vertical_line(Sys.Date())
   
   # add scenario date (exit wave 1)
-  add_vertical_line("2020-05-04",bool_text)
+  add_vertical_line("2020-05-04",bool_text, "B2B")
   
   # add scenario date (exit wave 2)
-  add_vertical_line("2020-05-18",bool_text)
+  add_vertical_line("2020-05-18",bool_text, 'School')
+  
+  # add scenario date (exit wave 3)
+  add_vertical_line("2020-05-25",bool_text, 'Community')
   
   # add scenario date (summer holiday)
-  add_vertical_line("2020-07-01",bool_text)
+  add_vertical_line("2020-07-01",bool_text,'Holiday')
 }
 
 # add vertical line on given date + label on x-axis
-add_vertical_line <- function(date_string,bool_text){
+add_vertical_line <- function(date_string,bool_text,date_tag = ''){
   
   plot_limits <- par("usr")
   
@@ -487,12 +493,15 @@ add_vertical_line <- function(date_string,bool_text){
   abline(v=v_date,lty=2)
   #axis(1,v_date,format(v_date,'%d/%m'),
        #cex.axis=0.5,padj=-3,tck=-0.005)
+  
   if(bool_text)
   {
-    text(x = v_date,
-       y = mean(plot_limits[3:4]),
-       format(v_date,'%d/%m'),
-       srt=90, pos=3, offset = +1.5,cex=0.6)
+    v_text <- ifelse(nchar(date_tag)>0,date_tag,format(v_date,'%d/%m'))
+    text(x = v_date-1,
+         y = mean(plot_limits[3:4]),
+         #paste(format(v_date,'%d/%m'),date_tag),
+         v_text,
+         srt=90, pos=3, offset = +1.5,cex=0.6)
   }
 }
   
@@ -611,18 +620,18 @@ plot_distancing <- function(project_summary){
 }
 
 #sim_dates <- data_incidence_scenario$sim_date
-add_x_axis <- function(sim_dates,bool_numeric=FALSE,num_ticks = 7){
+add_x_axis <- function(sim_dates,bool_numeric=FALSE,num_ticks = 7,bool_grid = TRUE){
   
   # set date format (character vs numeric)
   date_format <- ifelse(bool_numeric,'%e/%m/%y','%e %b')
   
   x_ticks <- pretty(sim_dates,num_ticks-2)
   axis(1,x_ticks, format(x_ticks,date_format),cex.axis=0.9)
-  abline(v=pretty(sim_dates,num_ticks),lty=3,col='lightgray')
+  if(bool_grid) { abline(v=pretty(sim_dates,num_ticks),lty=3,col='lightgray') }
   #grid(nx=NA,ny=NULL,lty=3,col='lightgray')
 }
 
-add_y_axis <- function(y_lim){
+add_y_axis <- function(y_lim,bool_grid = TRUE){
   
   y_ticks <- pretty(y_lim,5)
   y_labels <- y_ticks # default
@@ -630,7 +639,7 @@ add_y_axis <- function(y_lim){
   if(max(y_ticks)>1e6){ y_labels <- paste0(round(y_ticks/1e6,digits=2),'M')}
   
   axis(2,y_ticks, y_labels,cex.axis=0.9,las=2)
-  abline(h=pretty(y_lim,5),lty=3,col='lightgray')
+  if(bool_grid) {abline(h=pretty(y_lim,5),lty=3,col='lightgray')}
 }
 
 add_y_axis_pop <- function(y_lim,pop_size){

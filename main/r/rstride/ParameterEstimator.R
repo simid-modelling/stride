@@ -118,7 +118,8 @@ estimate_parameters <- function(project_dir)
                            hospital_pois = NA,
                            incidence_pois = NA,
                            doubling_pois = NA,
-                           generation_pois = NA
+                           generation_pois = NA,
+                           doubling_time_baseline = NA
   )
   
   # reset doubling time
@@ -154,12 +155,16 @@ estimate_parameters <- function(project_dir)
     
     flag_exp_doubling   <- flag_exp & data_incidence_all$sim_date %in% ref_dates
     if(sum(flag_exp_doubling)>0){
-      doubling_time_model <- get_doubling_time(data_incidence_all$new_infections[flag_exp_doubling])
-      df_loglike$doubling_pois[i_exp]  <- get_binom_poisson(doubling_time_observed,doubling_time_model)
+      doubling_time_model                      <- get_doubling_time(data_incidence_all$new_infections[flag_exp_doubling])
+      df_loglike$doubling_pois[i_exp]          <- get_binom_poisson(doubling_time_observed,doubling_time_model)
+      df_loglike$doubling_time_baseline[i_exp] <- as.numeric(doubling_time_model)
       data_incidence_all$doubling_time[flag_exp_doubling] <- as.numeric(doubling_time_model)
+
     } else{
-      df_loglike$doubling_pois[i_exp]  <- 0
+      df_loglike$doubling_pois[i_exp]          <- 0
+      df_loglike$doubling_time_baseline[i_exp] <- 0
       data_incidence_all$doubling_time[flag_exp_doubling] <- 0
+
     }
      
     # 4. generation interval
@@ -314,7 +319,7 @@ estimate_parameters <- function(project_dir)
   dev.off()
   
   
-  ## BEST CONFIG FOR AT LEAST 2 TARGETS (mean) ----
+  ## BEST CONFIG FOR 2 TARGETS (mean) ----
   #table(df_loglike$pareto_front,df_loglike$pareto_num)
   df_loglike_mean <- aggregate( .  ~ config_id,data=df_loglike[df_loglike$pareto_front>0,],mean,na.action=na.pass)
   #df_loglike_mean <- df_loglike
@@ -360,8 +365,10 @@ estimate_parameters <- function(project_dir)
   
   # add pareto number and project_dir as run info
   # note: columns with "num" will be handled as integers in a LHS
-  pareto_param$pareto_num <- 1:nrow(pareto_param)
-  pareto_param$run_info   <- basename(project_dir)
+  pareto_param$pareto_num  <- 1:nrow(pareto_param)
+  pareto_param$q_selection <- q_value
+  pareto_param$num_df_loglike <- nrow(df_loglike)
+  pareto_param$run_info    <- basename(project_dir)
   
   # # add boolean for "single best"
   pareto_param$config_id_single <- i_config_single

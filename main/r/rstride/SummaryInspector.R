@@ -136,6 +136,10 @@ inspect_summary <- function(project_dir)
 ## HELP FUNCTION ####
 .rstride$get_variable_model_param <- function(project_summary){
   
+  if(ncol(project_summary) == 1){
+    return(unique(project_summary))
+  }
+  
   input_opt    <- .rstride$get_unique_param_list(project_summary)
   input_opt    <- input_opt[lapply(input_opt,length)>1]
   
@@ -144,7 +148,7 @@ inspect_summary <- function(project_dir)
   
   # with only one parameter, convert vector into matrix
   if(length(input_opt)==1){
-    input_opt_design <- as.matrix(data.frame(input_opt))
+    input_opt_design <- data.frame(as.matrix(data.frame(input_opt)))
   }
   
   # with only identical parameters, use the r0
