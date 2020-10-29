@@ -61,7 +61,8 @@ dim(exp_design)
 ## RUN rSTRIDE                  ####
 ################################## #
 project_dir <- run_rStride(exp_design               = exp_design,
-                           dir_postfix              = dir_postfix)
+                           dir_postfix              = dir_postfix,
+                           num_parallel_workers     = exp_param_list$num_parallel_workers)
 
 
 ############################# #

@@ -134,6 +134,11 @@ get_exp_param_default <- function(bool_child_param = FALSE,
       out$cnt_reduction_workplace_exit <- min(out$cnt_reduction_workplace_exit)
       out$cnt_reduction_other_exit <- min(out$cnt_reduction_other_exit)
    }  
+   
+   
+   # number of paralel workers
+   out$num_parallel_workers <- 50
+   
    # return parameters
    return(out)
 }

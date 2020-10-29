@@ -66,14 +66,16 @@ range(as.Date(exp_param_list$start_date), as.Date(exp_param_list$start_date)+ ex
 ################################################ #
 
 # get LHS design of experiments
-exp_design <- .rstride$get_lhs_exp_design(exp_param_list,num_experiments)
-
+exp_design <- .rstride$get_lhs_exp_design(exp_param_list,
+                                          num_experiments = num_experiments,
+                                          num_rng_seeds    = exp_param_list$num_seeds)
 
 ################################## #
 ## RUN rSTRIDE                  ####
 ################################## #
 project_dir <- run_rStride(exp_design               = exp_design,
-                           dir_postfix              = dir_postfix)
+                           dir_postfix              = dir_postfix,
+                           num_parallel_workers     = exp_design$num_parallel_workers)
 
 
 ############################# #
@@ -85,7 +87,7 @@ inspect_summary(project_dir)
 ############################# #
 ## SURVEY PARTICIPANT DATA ####
 ############################# #
-inspect_participant_data(project_dir)
+# inspect_participant_data(project_dir)
 
 
 

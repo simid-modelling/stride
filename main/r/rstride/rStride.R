@@ -170,10 +170,13 @@ write_exp_design_to_csv <- function(exp_design, csv_fn)
 #' @param exp_design                vector with experimental design with parameter names as column names
 #' @param dir_postfix               add postfix to output directory name (optional)
 #' @param ignore_stdout             hide standard STRIDE terminal output   
-#' @param remove_run_output         remove all run-specific output
+#' @param stdout_fn                 filename to port stdout from the "system" command (optional)
+#' @param sterr_fn                  filename to port sterr from the "system" command (optional)
+#' @param remove_run_output         remove all detailed run-specific output
 #' @param parse_log_data            parse log files and aggregate into RData files
-#' @param get_csv_output            store aggregated log data also in csv format
-#' @param store_transmission_rdata  parse and store transmission data as RData file
+#' @param get_csv_output            store aggregated log data also in csv format (default: FALSE)
+#' @param get_transmission_rdata    parse and store transmission data as RData file (default: FALSE)
+#' @param get_tracing_rdata         parse and store contact tracing data as RData file (default: FALSE)
 #' @param use_date_prefix           add date tag as prefix to output directory and file names
 #' @param num_parallel_workers      number of parallel workers (NA = use default settings)
 run_rStride <- function(exp_design               = exp_design, 
@@ -181,11 +184,11 @@ run_rStride <- function(exp_design               = exp_design,
                         ignore_stdout            = TRUE,
                         stdout_fn                = '', 
                         stderr_fn                = '', 
+                        remove_run_output        = TRUE,
                         parse_log_data           = TRUE,
                         get_csv_output           = FALSE,
-                        remove_run_output        = TRUE,
                         get_transmission_rdata   = FALSE, 
-                        get_tracing_rdata        = TRUE,
+                        get_tracing_rdata        = FALSE,
                         get_burden_rdata         = FALSE,
                         use_date_prefix          = TRUE,
                         num_parallel_workers     = NA)
@@ -210,6 +213,16 @@ run_rStride <- function(exp_design               = exp_design,
   smd_print('STARTING rSTRIDE CONTROLLER')
 
   ################################## #
+  ## RUN TAG                      ####
+  ################################## #
+  
+  # create run tag using the current time if use_date_prefix == TRUE
+  run_tag <- ifelse(use_date_prefix,format(Sys.time(), format="%Y%m%d_%H%M%S"),'')
+  
+  # add dir_postfix
+  run_tag <- paste0(run_tag,dir_postfix)
+  
+  ################################## #
   ## CHECK DESIGN OF EXPERIMENT   ####
   ################################## #
   if(.rstride$data_files_exist(exp_design) == FALSE ||
@@ -232,15 +245,9 @@ run_rStride <- function(exp_design               = exp_design,
   output_dir              <- 'sim_output'
   
   ################################## #
-  ## RUN TAG AND DIRECTORY        ####
+  ## OUTPUT DIRECTORY             ####
   ################################## #
 
-  # create run tag using the current time if use_date_prefix == TRUE
-  run_tag <- ifelse(use_date_prefix,format(Sys.time(), format="%Y%m%d_%H%M%S"),'')
-  
-  # add dir_postfix
-  run_tag <- paste0(run_tag,dir_postfix)
-  
   # create project directory
   project_dir <- smd_file_path(output_dir,run_tag)
 

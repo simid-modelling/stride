@@ -58,7 +58,15 @@ if(!(exists('.rstride'))){
     }
     
     if(Sys.info()['sysname'] == 'Linux'){
-      smd_print(system(cmd_linux,intern = T))
+      # print in kB
+      # smd_print(system(cmd_linux,intern = T)) 
+      
+      # print in GB
+      mem_out <- system(cmd_linux,intern = T)
+      mem_out <- gsub('MemFree:','',mem_out)
+      mem_out <- gsub(' ','',mem_out)
+      mem_out <- gsub('kB','',mem_out)
+      smd_print('MemFree:',round(as.numeric(mem_out)/1e6),'GB')
     }  
   }
   

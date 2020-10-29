@@ -44,10 +44,10 @@ dir_postfix <- '_r0'
 num_seeds  <- 10
 
 # add parameters and values to combine in a full-factorial grid
-exp_design <- expand.grid(r0                            = sort(c(seq(1,6,length=15),3.28)),
+exp_design <- expand.grid(r0                            = sort(c(seq(1,6,length=15))),
                           num_days                      = c(20),
                           rng_seed                      = seq(num_seeds),
-                          start_date                    = '2020-02-01', #c('2020-02-01','2020-02-02','2020-02-03','2020-02-04','2020-02-05','2020-02-06','2020-02-07'),
+                          start_date                    = c('2020-02-01','2020-02-02','2020-02-03','2020-02-04','2020-02-05','2020-02-06','2020-02-07'),
                           num_infected_seeds            = 20,
                           seeding_age_min               = 1,
                           seeding_age_max               = 99,

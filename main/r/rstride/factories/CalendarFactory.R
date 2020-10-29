@@ -226,7 +226,7 @@ data.table(category = "community_distancing",
 
 # household clustering
 data.table(category = "household_clustering",
-           date     = seq(as.Date('2020-05-10'),as.Date('2020-08-31'),1),
+           date     = seq(as.Date('2020-05-11'),as.Date('2020-08-31'),1),
            value    = 1,
            type = 'boolean',
            age = NA_integer_,
