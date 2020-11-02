@@ -8568,7 +8568,6 @@ contact_tracing,2020-08-28,1,boolean,NA
 contact_tracing,2020-08-29,1,boolean,NA
 contact_tracing,2020-08-30,1,boolean,NA
 contact_tracing,2020-08-31,1,boolean,NA
-household_clustering,2020-05-10,1,boolean,NA
 household_clustering,2020-05-11,1,boolean,NA
 household_clustering,2020-05-12,1,boolean,NA
 household_clustering,2020-05-13,1,boolean,NA

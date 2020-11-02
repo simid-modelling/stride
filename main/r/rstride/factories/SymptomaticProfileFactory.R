@@ -84,7 +84,7 @@ create_symptomatic_profile <- function()
              pch=15,
              ylab='Relative susceptibility\nto symptomatic infection',
              xlab='Age (years)',
-             main='Based on Figure 2b from\nWu et al, Nature Medicine, 2020',
+             #main='Based on Figure 2b from\nWu et al, Nature Medicine, 2020',
              ylim=c(0,3.2)
         )
         grid(col=8)
@@ -104,20 +104,20 @@ create_symptomatic_profile <- function()
         plot(0:(length(symptomatic_profile)-1),
              symptomatic_profile,
              ylim=c(0,1.1),type='p',lwd=3,pch=15,
-             ylab='Proportion symptomatic',
+             ylab='Probability symptomatic',
              xlab='Age (years)',
-             main='Calculated proportion symptomatic\n(weighted by age for Belgium)',
-             xlim=c(0,115))
-        abline(h=mean(symptomatic_profile*data_pop_rel_prop),col=4,lwd=3)
+             #main='Probability to be symptomatic',
+             xlim=c(0,90))
+        #abline(h=mean(symptomatic_profile*data_pop_rel_prop),col=4,lwd=3)
         
         #abline(h=0:1)
         grid(col=8)
-        legend('topleft',
-               'Mean (weighted)',
-               col=4,
-               lwd=2,
-               bg='white',
-               cex=0.8)
+        # legend('topleft',
+        #        'Mean (weighted)',
+        #        col=4,
+        #        lwd=2,
+        #        bg='white',
+        #        cex=0.8)
         
         # add numeric values
         text(x = which(diff(c(1,symptomatic_profile)) != 0),
@@ -126,10 +126,10 @@ create_symptomatic_profile <- function()
              pos=3,col=1,cex=0.8)
         
         # add mean value
-        text(x = 0,
-             y = round(mean(symptomatic_profile*data_pop_rel_prop),digits=2),
-             round(mean(symptomatic_profile*data_pop_rel_prop),digits=2),
-             pos=3,col=4,cex=0.8)
+        # text(x = 0,
+        #      y = round(mean(symptomatic_profile*data_pop_rel_prop),digits=2),
+        #      round(mean(symptomatic_profile*data_pop_rel_prop),digits=2),
+        #      pos=3,col=4,cex=0.8)
         
         
         dev.off()

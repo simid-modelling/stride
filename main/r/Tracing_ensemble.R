@@ -28,7 +28,7 @@ source('./bin/rstride/rStride.R')
 # dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200518_results'
 # dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200531_results_cts/'
 #dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200618_cts_optim/'
-dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201027_1_main/'
+dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201027_1_main'
 
 file_name_incidence <- dir(dir_results,pattern='incidence.RData',recursive = T,full.names = T)
 
@@ -36,11 +36,13 @@ select_cts_results <- function(file_names){
         flag_files <- grepl('int1_',file_names) |
                 grepl('int17',file_names) |
                 grepl('int18_cts',file_names) |
-                grepl('int19_cts',file_names)
+                grepl('int19_cts',file_names) |
+                grepl('int20',file_names)
         return(file_names[flag_files])
 }
 
 file_name_incidence <- select_cts_results(file_name_incidence)
+file_name_incidence
 # file_name_incidence <- file_name_incidence[grepl('n40',file_name_incidence)]
 
 
@@ -259,7 +261,7 @@ plot_cts_matrix_avg <- function(mean_hosp_adm_sel,
         col2_values <- mean_hosp_adm_sel[,col2_name]
         col2_opt    <- unique(col2_values)
         col2_labels <- col2_opt
-        if(col2_unit=='%') { col2_labels <- paste(col2_labels*100,'%')}
+        if(col2_unit=='%') { col2_labels <- paste0(col2_labels*100,'%')}
         
         # initiate matrix
         cts_matrix <- matrix(NA, nrow=length(col1_opt), ncol=length(col2_opt))
@@ -275,13 +277,17 @@ plot_cts_matrix_avg <- function(mean_hosp_adm_sel,
         # limit at 1
         cts_matrix[cts_matrix>1] <- 1
         
+        # convert to %
+        cts_matrix <- cts_matrix*100
+        
         # set color space
-        redc <- rev(colorspace::sequential_hcl(10))
+        redc <- rev(colorspace::sequential_hcl(5))
         
         legend_range <- range(pretty(cts_matrix))
-        if(! 0.9 %in% legend_range){
-                   legend_range <- c(0.35,0.65)
-        }
+        # if(max(legend_range)<80){
+        #    legend_range <- c(35,65)
+        #    redc <- rev(colorspace::sequential_hcl(6))
+        # }
         
         # set figure margins
         par(mar=c(5, 6, 2, 7),mgp=c(3,0.5,0))
@@ -311,7 +317,9 @@ plot_cts_matrix_avg <- function(mean_hosp_adm_sel,
         axis(2, at=plt_yticks, labels = col2_labels,cex.axis=1.0,tick = FALSE,las=1)
         
         # set legend label(with adjusted size)
-        mtext(legend_label,side=4,cex=0.5,padj=13)
+        mtext(legend_label,side=4,cex=0.6,padj=2.8)
+        
+        print(cts_matrix)
 }
 
 
@@ -320,41 +328,53 @@ pdf(smd_file_path(dir_results,paste0(output_tag,'_manuscript_CTS_august.pdf')),1
 par(mar=c(5,5,2,1),mfrow=c(1,3))
 #par(mar=c(4,4,1,2))
 
+##################################################################################### #
+## DETECTION ----
 
-
-## GENERAL ----
-flag_scen <- grepl('scen18_',mean_hosp_adm$scenario)
-mean_hosp_adm_scen <- mean_hosp_adm[flag_scen,]
-
-
-# 
-# ## GENERAL ----
-# flag_scen <- grepl('scen181',mean_hosp_adm$scenario)
-# mean_hosp_adm_scen <- mean_hosp_adm[flag_scen,]
-
-
-
-
-####################################################### #
-## TRACING VS FALSE NEGATIVE TEST RATE
-# mean_hosp_adm_sel <- mean_hosp_adm_scen[mean_hosp_adm_scen$tracing_efficiency_household ==  0.9,]
-mean_hosp_adm_sel <- mean_hosp_adm_scen
-
+flag_scen <- grepl('scen20',mean_hosp_adm$scenario)
+mean_hosp_adm_sel <- mean_hosp_adm[flag_scen,]
 
 col1_name   <- 'test_false_negative'
 col1_tag    <- "False negative predictive value"
 col1_unit   <- '%'
 
-col2_name <- 'tracing_efficiency_other'
-col2_tag    <- "CTS success rate for non-household contacts"
+col2_name <- 'detection_probability'
+col2_tag    <- "Symptomatic cases included as index cases"
 col2_unit   <- '%'
 
 ## RELATIVE
 plot_cts_matrix_avg(mean_hosp_adm_sel,
                     col1_name,col1_tag, col1_unit,
                     col2_name,col2_tag, col2_unit,
-                legend_label='Relative hospital admissions')
+                    legend_label='Relative hospital admissions (%)')
 points(0/3,2/3,pch=4)
+points(8.05/5,1.3/5,pch=4,xpd=T)
+
+## GENERAL ----
+flag_scen <- grepl('scen18_',mean_hosp_adm$scenario)
+mean_hosp_adm_scen <- mean_hosp_adm[flag_scen,]
+
+# ####################################################### #
+# ## TRACING VS FALSE NEGATIVE TEST RATE
+# # mean_hosp_adm_sel <- mean_hosp_adm_scen[mean_hosp_adm_scen$tracing_efficiency_household ==  0.9,]
+# mean_hosp_adm_sel <- mean_hosp_adm_scen
+# 
+# 
+# col1_name   <- 'test_false_negative'
+# col1_tag    <- "False negative predictive value"
+# col1_unit   <- '%'
+# 
+# col2_name <- 'tracing_efficiency_other'
+# col2_tag    <- "CTS success rate for non-household contacts"
+# col2_unit   <- '%'
+# 
+# ## RELATIVE
+# plot_cts_matrix_avg(mean_hosp_adm_sel,
+#                     col1_name,col1_tag, col1_unit,
+#                     col2_name,col2_tag, col2_unit,
+#                 legend_label='Relative hospital admissions (%)')
+# points(0/3,2/3,pch=4)
+# points(10.2/5,1/6,pch=4,xpd=T)
 
 ############################################################################@ #
 ## SUCCES RATE
@@ -372,8 +392,10 @@ col2_unit   <- '%'
 plot_cts_matrix_avg(mean_hosp_adm_sel,
                     col1_name, col1_tag, col1_unit,
                     col2_name, col2_tag, col2_unit,
-                    legend_label='Relative hospital admissions')
+                    legend_label='Relative hospital admissions (%)')
 points(3/3,2/3,pch=4)
+points(7.4/5,1.7/5,pch=4,xpd=T)
+
 
 ##################################################################################### #
 ## DELAY ----
@@ -398,13 +420,13 @@ col2_unit   <- 'days'
 plot_cts_matrix_avg(mean_hosp_adm_sel,
                     col1_name,col1_tag, col1_unit,
                     col2_name,col2_tag, col2_unit,
-                    legend_label='Relative hospital admissions')
+                    legend_label='Relative hospital admissions (%)')
 
 points(0,0,pch=4)
+points(6.93/5,0.18/5,pch=4,xpd=T)
 
 # close pdf stream
 dev.off()
-
 
 
 

@@ -1072,6 +1072,7 @@ plot_hosp_curves <- function(data_incidence_scenario,scen_id,scen_color=4,tag_sc
   
   # convert to mixing scenario id (and sort)
   adm_mean_final$config_id_num <- as.numeric(factor(adm_mean_final$config_id,levels=list("0.5_0.7","0.7_0.7","0.5_0.85","0.7_0.85")))
+  adm_mean_final$config_id_num <- c('A','B','C','D')[adm_mean_final$config_id_num]
   adm_mean_final <- adm_mean_final[order(adm_mean_final$new_hospital_admissions),]
   
   # aggregage id's if close to eachother

@@ -178,10 +178,32 @@ estimate_parameters <- function(project_dir)
   # remove rows with NA's => incidence > threshold
   df_loglike <- df_loglike[!is.na(df_loglike$config_id),]
   
-  # # if multiple realisations, get average  ----
-  # df_loglike_orig <- df_loglike
-  # df_loglike <- aggregate( .  ~ config_id,data=df_loglike,mean,na.action=na.pass)
-  # dim(df_loglike)
+  # save as rds file
+  df_loglike_filename <- smd_file_path(project_dir,paste0(basename(project_dir),'_loglike.RData'))
+  saveRDS(df_loglike,df_loglike_filename)
+  #df_loglike <- readRDS(df_loglike_filename)
+  
+  # GET RESULTS ####
+  df_loglike_orig <- df_loglike
+  # all results (including stochastic error)
+  select_ensemble_and_plot(df_loglike_orig,input_opt_design,
+                           data_incidence_all,project_summary)
+  
+  # based on average per parameter sets
+  select_ensemble_and_plot(df_loglike_orig,input_opt_design,
+                           data_incidence_all,project_summary,
+                           bool_average = T)
+  
+}
+
+select_ensemble_and_plot <- function(df_loglike,input_opt_design,data_incidence_all,
+                                     project_summary,bool_average = F) {
+  
+  # if multiple realisations AND bool = TRUE  ==>> get average  
+  if(bool_average) {
+    df_loglike <- aggregate( .  ~ config_id,data=df_loglike,mean,na.action=na.pass)
+  }
+  dim(df_loglike)
   
   # merge with parameters
   df_loglike <- merge(df_loglike,input_opt_design,by.x='config_id',by.y='config_id')
@@ -214,7 +236,7 @@ estimate_parameters <- function(project_dir)
   param_names <- param_names[!grepl('id',param_names)]
   
   # create plot with scores
-  .rstride$create_pdf(project_dir,'parameter_inspection',width = 6, height = 7)
+  .rstride$create_pdf(project_dir,paste0('parameter_inspection',ifelse(bool_average,'_avg','')),width = 6, height = 7)
   
   i_param <- param_names[1]
   par(mfrow=c(3,4))
@@ -286,7 +308,7 @@ estimate_parameters <- function(project_dir)
   data_incidence_ensemble <- data_incidence_all[flag_plot,]
   
   ## PARETO PLOTS ####
-  .rstride$create_pdf(project_dir,'parameter_pareto_incidence',width = 6, height = 7)
+  .rstride$create_pdf(project_dir,paste0('parameter_pareto_incidence',ifelse(bool_average,'_avg','')),width = 6, height = 7)
   par(mfrow=c(4,1))
   
   bool_add_param <- TRUE
@@ -328,7 +350,7 @@ estimate_parameters <- function(project_dir)
                                 double = order(df_loglike_mean$doubling_pois))
   
   i_row <- 1
-  tbl <- table(unlist(order_table[1:i_row,]))
+  tbl <- table(unlist(order_table[1:i_row,-3]))
   while(!any(tbl>1)){
     i_row <- i_row+1
     tbl <- table(unlist(order_table[1:i_row,-3]))
@@ -336,11 +358,26 @@ estimate_parameters <- function(project_dir)
   }
   
   # select subset
-  i_config_single <- df_loglike_mean$config_id[as.numeric(names(which(tbl>1)))[1]]
+  i_config_single    <- df_loglike_mean$config_id[as.numeric(names(which(tbl>1)))[1]]
   data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config_single,]
   data_incidence_sel$cumulative_hospital_cases <- data_incidence_sel$cumulative_hospital_cases - data_incidence_sel$cumulative_hospital_cases[1]
   
-  .rstride$create_pdf(project_dir,'parameter_pareto_incidence_single_mean',width = 6, height = 7)
+  .rstride$create_pdf(project_dir,paste0('parameter_pareto_incidence_single',ifelse(bool_average,'_avg','')),width = 6, height = 7)
+  par(mfrow=c(4,1))
+  # plot
+  plot_incidence_data(data_incidence_sel,project_summary,
+                      hosp_adm_data,input_opt_design,prevalence_ref,
+                      bool_add_param = bool_add_param,
+                      bool_add_doubling_time = TRUE)
+  dev.off()
+  
+  
+  # select subset, best hospital score
+  i_config_single    <- df_loglike_mean$config_id[order_table$hosp[1]]
+  data_incidence_sel <- data_incidence_all[data_incidence_all$config_id == i_config_single,]
+  data_incidence_sel$cumulative_hospital_cases <- data_incidence_sel$cumulative_hospital_cases - data_incidence_sel$cumulative_hospital_cases[1]
+  
+  .rstride$create_pdf(project_dir,paste0('parameter_pareto_incidence_single_hosp',ifelse(bool_average,'_avg','')),width = 6, height = 7)
   par(mfrow=c(4,1))
   # plot
   plot_incidence_data(data_incidence_sel,project_summary,
@@ -352,7 +389,7 @@ estimate_parameters <- function(project_dir)
   
   ## save scores ----
   df_loglike_summary <- merge(project_summary,df_loglike)
-  saveRDS(df_loglike_summary,smd_file_path(project_dir,paste0(basename(project_dir),'_poison_neg_loglikelihood_scores.RData')))
+  saveRDS(df_loglike_summary,smd_file_path(project_dir,paste0(basename(project_dir),paste0('_poison_neg_loglikelihood_scores',ifelse(bool_average,'_avg',''),'.RData'))))
   
   ## get parameter configuration of the pareto ensemble
   pareto_param <- .rstride$get_variable_model_param(df_loglike_summary[df_loglike_summary$pareto_front,])
@@ -374,8 +411,8 @@ estimate_parameters <- function(project_dir)
   pareto_param$config_id_single <- i_config_single
   
   # save as .RData and csv
-  saveRDS(pareto_param,smd_file_path(project_dir,paste0(basename(project_dir),'_config_pareto_ensemble.RData')))
-  write.table(pareto_param,smd_file_path(project_dir,paste0(basename(project_dir),'_config_pareto_ensemble.csv')),sep=',',row.names=F)
+  saveRDS(pareto_param,smd_file_path(project_dir,paste0(basename(project_dir),'_config_pareto_ensemble',ifelse(bool_average,'_avg',''),'.RData')))
+  write.table(pareto_param,smd_file_path(project_dir,paste0(basename(project_dir),'_config_pareto_ensemble',ifelse(bool_average,'_avg',''),'.csv')),sep=',',row.names=F)
   
   # PARETO FRONT PARAMETERS
   param_design <- names(input_opt_design)
@@ -384,7 +421,7 @@ estimate_parameters <- function(project_dir)
   
   ## PARETO PLOTS ####
   if(length(param_design)>1){
-    .rstride$create_pdf(project_dir,'parameter_pareto_config',width = 6, height = 7)
+    .rstride$create_pdf(project_dir,paste0('parameter_pareto_config',ifelse(bool_average,'_avg','')),width = 6, height = 7)
     par(mfrow=c(3,3))
     for(i_param in 1:length(param_design))
       for(j_param in i_param:length(param_design)){
