@@ -49,8 +49,8 @@ get_exp_param_default <- function(bool_child_param = FALSE,
                 compliance_delay_workplace    = 6,
                 compliance_delay_other        = 6,
                 num_daily_imported_cases      = 0,
-                cnt_reduction_workplace_exit  = seq(0.6,0.8,0.2),  
-                cnt_reduction_other_exit      = c(0.60,0.80),
+                cnt_reduction_workplace_exit  = c(0.50,0.75),  
+                cnt_reduction_other_exit      = c(0.70,0.85),
                 cnt_reduction_school_exit     = 0.5,
                 cnt_reduction_intergeneration = 0.9,  
                 cnt_reduction_intergeneration_cutoff = 65,
@@ -98,13 +98,13 @@ get_exp_param_default <- function(bool_child_param = FALSE,
       # disease history: literature based distributions
       out$disease_config_file <- 'disease_covid19_lognorm.xml'
       
-      ## parameters from 20201031_132800_param4_d73_05k_n10_parameter_pareto_incidence_single_hosp_avg.pdf
-      out$r0 <- 3.44
-      out$num_infected_seeds <- 237 
-      out$hosp_probability_factor <- 0.39
-      out$cnt_reduction_workplace <- 0.83 
-      out$cnt_reduction_other     <- 0.83 
-      out$compliance_delay_workplace <- 6 
+      ## parameters from a20201031_132800_param4_d73_05k_n10_parameter_pareto_incidence_single_hosp
+      out$r0 <- 3.42
+      out$num_infected_seeds <- 263 
+      out$hosp_probability_factor <- 0.40
+      out$cnt_reduction_workplace <- 0.86 
+      out$cnt_reduction_other     <- 0.85 
+      out$compliance_delay_workplace <- 7 
       out$compliance_delay_other  <- 7
 
       #out$num_seeds <- NA
@@ -121,15 +121,15 @@ get_exp_param_default <- function(bool_child_param = FALSE,
       out$hospital_probability_age      = paste(c(0.221,0.018,0.041,0.033,0.056,0.071,0.139,0.367,1.000),collapse=',') # still requires rescaling
       out$hospital_mean_delay_age       = paste(3,3,7,7,7,7,6,6,1,sep=',')
       
-      # parameters from 20201031_132751_param4_child_d73_05k_n10_parameter_pareto_incidence_single_hosp_avg
+      # parameters from a20201031_132751_param4_child_d73_05k_n10_parameter_pareto_incidence_single_hosp
       out$disease_config_file <- "disease_covid19_lognorm_child.xml"
-      out$r0 <- 3.40
-      out$num_infected_seeds <- 259
-      out$hosp_probability_factor <- 0.33
-      out$cnt_reduction_workplace <- 0.87
-      out$cnt_reduction_other     <- 0.84
+      out$r0 <- 3.37
+      out$num_infected_seeds <- 255
+      out$hosp_probability_factor <- 0.35
+      out$cnt_reduction_workplace <- 0.76
+      out$cnt_reduction_other     <- 0.86
       out$compliance_delay_workplace <- 6
-      out$compliance_delay_other  <- 6
+      out$compliance_delay_other  <- 7
 
       out$cnt_reduction_intergeneration <- 0
    }

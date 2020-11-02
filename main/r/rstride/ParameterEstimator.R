@@ -186,18 +186,19 @@ estimate_parameters <- function(project_dir)
   # GET RESULTS ####
   df_loglike_orig <- df_loglike
   # all results (including stochastic error)
-  select_ensemble_and_plot(df_loglike_orig,input_opt_design,
+  select_ensemble_and_plot(df_loglike_orig,input_opt_design,hosp_adm_data,
                            data_incidence_all,project_summary)
   
   # based on average per parameter sets
-  select_ensemble_and_plot(df_loglike_orig,input_opt_design,
+  select_ensemble_and_plot(df_loglike_orig,input_opt_design,hosp_adm_data,
                            data_incidence_all,project_summary,
                            bool_average = T)
   
 }
 
-select_ensemble_and_plot <- function(df_loglike,input_opt_design,data_incidence_all,
-                                     project_summary,bool_average = F) {
+select_ensemble_and_plot <- function(df_loglike,input_opt_design,hosp_adm_data,
+                                     data_incidence_all,project_summary,
+                                     bool_average = F) {
   
   # if multiple realisations AND bool = TRUE  ==>> get average  
   if(bool_average) {
