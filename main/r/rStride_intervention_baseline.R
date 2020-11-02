@@ -109,7 +109,7 @@ get_exp_param_default <- function(bool_child_param = FALSE,
 
       #out$num_seeds <- NA
       
-      cnt_reduction_intergeneration <- 0
+      out$cnt_reduction_intergeneration <- 0
       
    }
    
@@ -131,7 +131,7 @@ get_exp_param_default <- function(bool_child_param = FALSE,
       out$compliance_delay_workplace <- 6
       out$compliance_delay_other  <- 6
 
-      cnt_reduction_intergeneration <- 0
+      out$cnt_reduction_intergeneration <- 0
    }
    
    # select least stringent social mixing assumptions
