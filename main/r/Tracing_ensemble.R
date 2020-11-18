@@ -28,16 +28,17 @@ source('./bin/rstride/rStride.R')
 # dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200518_results'
 # dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200531_results_cts/'
 #dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19/20200618_cts_optim/'
-dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201027_1_main'
+dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201102_1_main'
+#dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201102_3_robustness/n40'
 
 file_name_incidence <- dir(dir_results,pattern='incidence.RData',recursive = T,full.names = T)
 
 select_cts_results <- function(file_names){
         flag_files <- grepl('int1_',file_names) |
                 grepl('int17',file_names) |
-                grepl('int18_cts',file_names) |
-                grepl('int19_cts',file_names) |
-                grepl('int20',file_names)
+                grepl('cts1',file_names) |
+                grepl('cts2',file_names) |
+                grepl('cts3',file_names)
         return(file_names[flag_files])
 }
 
@@ -50,7 +51,7 @@ file_name_incidence
 output_tag <- paste0(format(Sys.Date(),'%Y%m%d'),'_results')
 
 ## LOAD DATA ----
-i_file <- 1
+i_file <- 2
 # load and aggregate results
 foreach(i_file = 1:length(file_name_incidence),
 .combine = rbind) %do% {
@@ -64,7 +65,7 @@ foreach(i_file = 1:length(file_name_incidence),
         scenario_name <- substr(basename(file_name_incidence[i_file]),16,100)
         scenario_name <- gsub('_data_incidence.RData','',scenario_name)
         scenario_name <- gsub('_int','scen',scenario_name)
-        
+  
         # fix single digit numbers
         if(grepl('scen._',scenario_name)){
                 scenario_name <- gsub('scen','scen0',scenario_name)
@@ -81,7 +82,7 @@ foreach(i_file = 1:length(file_name_incidence),
         
         # add scenario name
         data_incidence_all$scenario <- scenario_name
-        data_incidence_all$scenario_id <- as.numeric(substr(scenario_name,5,6))
+        # data_incidence_all$scenario_id <- as.numeric(substr(scenario_name,5,6))
         
         # add project_dir
         project_dir <- dirname(file_name_incidence[i_file])
@@ -145,7 +146,7 @@ foreach(i_file = 1:length(file_name_summary),
           scenario_name <- substr(basename(file_name_incidence[i_file]),16,100)
           scenario_name <- gsub('_data_incidence.RData','',scenario_name)
           scenario_name <- gsub('_int','scen',scenario_name)
-          
+
           # fix single digit numbers
           if(grepl('scen._',scenario_name)){
             scenario_name <- gsub('scen','scen0',scenario_name)
@@ -277,6 +278,9 @@ plot_cts_matrix_avg <- function(mean_hosp_adm_sel,
         # limit at 1
         cts_matrix[cts_matrix>1] <- 1
         
+        # calculate reduction
+        cts_matrix <- 1 - cts_matrix
+        
         # convert to %
         cts_matrix <- cts_matrix*100
         
@@ -331,7 +335,7 @@ par(mar=c(5,5,2,1),mfrow=c(1,3))
 ##################################################################################### #
 ## DETECTION ----
 
-flag_scen <- grepl('scen20',mean_hosp_adm$scenario)
+flag_scen <- grepl('cts3',mean_hosp_adm$scenario)
 mean_hosp_adm_sel <- mean_hosp_adm[flag_scen,]
 
 col1_name   <- 'test_false_negative'
@@ -346,61 +350,15 @@ col2_unit   <- '%'
 plot_cts_matrix_avg(mean_hosp_adm_sel,
                     col1_name,col1_tag, col1_unit,
                     col2_name,col2_tag, col2_unit,
-                    legend_label='Relative hospital admissions (%)')
+                    legend_label='Reduction of hospital admissions (%)')
 points(0/3,2/3,pch=4)
-points(8.05/5,1.3/5,pch=4,xpd=T)
-
-## GENERAL ----
-flag_scen <- grepl('scen18_',mean_hosp_adm$scenario)
-mean_hosp_adm_scen <- mean_hosp_adm[flag_scen,]
-
-# ####################################################### #
-# ## TRACING VS FALSE NEGATIVE TEST RATE
-# # mean_hosp_adm_sel <- mean_hosp_adm_scen[mean_hosp_adm_scen$tracing_efficiency_household ==  0.9,]
-# mean_hosp_adm_sel <- mean_hosp_adm_scen
-# 
-# 
-# col1_name   <- 'test_false_negative'
-# col1_tag    <- "False negative predictive value"
-# col1_unit   <- '%'
-# 
-# col2_name <- 'tracing_efficiency_other'
-# col2_tag    <- "CTS success rate for non-household contacts"
-# col2_unit   <- '%'
-# 
-# ## RELATIVE
-# plot_cts_matrix_avg(mean_hosp_adm_sel,
-#                     col1_name,col1_tag, col1_unit,
-#                     col2_name,col2_tag, col2_unit,
-#                 legend_label='Relative hospital admissions (%)')
-# points(0/3,2/3,pch=4)
-# points(10.2/5,1/6,pch=4,xpd=T)
-
-############################################################################@ #
-## SUCCES RATE
-mean_hosp_adm_sel <- mean_hosp_adm_scen[mean_hosp_adm_scen$test_false_negative == 0.1,]
-
-col1_name   <- 'tracing_efficiency_household'
-col1_tag    <- "CTS success rate for household contacts"
-col1_unit   <- '%'
-
-col2_name <- 'tracing_efficiency_other'
-col2_tag    <- "CTS success rate for non-household contacts"
-col2_unit   <- '%'
-
-## RELATIVE
-plot_cts_matrix_avg(mean_hosp_adm_sel,
-                    col1_name, col1_tag, col1_unit,
-                    col2_name, col2_tag, col2_unit,
-                    legend_label='Relative hospital admissions (%)')
-points(3/3,2/3,pch=4)
-points(7.4/5,1.7/5,pch=4,xpd=T)
+points(8.05/5,2.5/3,pch=4,xpd=T)
 
 
 ##################################################################################### #
 ## DELAY ----
 
-flag_scen <- grepl('scen19',mean_hosp_adm$scenario)
+flag_scen <- grepl('cts2',mean_hosp_adm$scenario)
 mean_hosp_adm_sel <- mean_hosp_adm[flag_scen,]
 
 
@@ -420,10 +378,33 @@ col2_unit   <- 'days'
 plot_cts_matrix_avg(mean_hosp_adm_sel,
                     col1_name,col1_tag, col1_unit,
                     col2_name,col2_tag, col2_unit,
-                    legend_label='Relative hospital admissions (%)')
+                    legend_label='Reduction of hospital admissions (%)')
 
 points(0,0,pch=4)
-points(6.93/5,0.18/5,pch=4,xpd=T)
+points(6.93/5,5/5,pch=4,xpd=T)
+
+############################################################################@ #
+## SUCCES RATE
+flag_scen <- grepl('cts1',mean_hosp_adm$scenario)
+mean_hosp_adm_sel <- mean_hosp_adm[flag_scen,]
+
+col1_name   <- 'tracing_efficiency_household'
+col1_tag    <- "CTS success rate for household contacts"
+col1_unit   <- '%'
+
+col2_name <- 'tracing_efficiency_other'
+col2_tag    <- "CTS success rate for non-household contacts"
+col2_unit   <- '%'
+
+## RELATIVE
+plot_cts_matrix_avg(mean_hosp_adm_sel,
+                    col1_name, col1_tag, col1_unit,
+                    col2_name, col2_tag, col2_unit,
+                    legend_label='Reduction of hospital admissions (%)')
+points(3/3,2/3,pch=4)
+points(7.4/5,2.3/3,pch=4,xpd=T)
+
+
 
 # close pdf stream
 dev.off()

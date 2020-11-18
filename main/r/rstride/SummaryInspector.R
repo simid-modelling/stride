@@ -198,7 +198,7 @@ inspect_summary <- function(project_dir)
   input_opt_design   <- .rstride$get_variable_model_param(project_matrix)
   
   # add contact id
-  flag_opt_input_tracing <- (grepl('cnt_reduction',names(input_opt_design)) | grepl('exit',names(input_opt_design)))
+  flag_opt_input_tracing <- (grepl('cnt_reduction',names(input_opt_design)) & grepl('exit',names(input_opt_design)))
   if(any(flag_opt_input_tracing)){
     colnames_contact           <- names(input_opt_design)[flag_opt_input_tracing]
     if(length(colnames_contact) == 1) {

@@ -187,17 +187,17 @@ estimate_parameters <- function(project_dir)
   df_loglike_orig <- df_loglike
   # all results (including stochastic error)
   select_ensemble_and_plot(df_loglike_orig,input_opt_design,hosp_adm_data,
-                           data_incidence_all,project_summary)
+                           data_incidence_all,project_summary,prevalence_ref)
   
   # based on average per parameter sets
   select_ensemble_and_plot(df_loglike_orig,input_opt_design,hosp_adm_data,
-                           data_incidence_all,project_summary,
+                           data_incidence_all,project_summary,prevalence_ref,
                            bool_average = T)
   
 }
 
 select_ensemble_and_plot <- function(df_loglike,input_opt_design,hosp_adm_data,
-                                     data_incidence_all,project_summary,
+                                     data_incidence_all,project_summary,prevalence_ref,
                                      bool_average = F) {
   
   # if multiple realisations AND bool = TRUE  ==>> get average  
@@ -421,7 +421,7 @@ select_ensemble_and_plot <- function(df_loglike,input_opt_design,hosp_adm_data,
   param_design
   
   ## PARETO PLOTS ####
-  if(length(param_design)>1){
+  if(length(param_design)>2){
     .rstride$create_pdf(project_dir,paste0('parameter_pareto_config',ifelse(bool_average,'_avg','')),width = 6, height = 7)
     par(mfrow=c(3,3))
     for(i_param in 1:length(param_design))
@@ -438,8 +438,10 @@ select_ensemble_and_plot <- function(df_loglike,input_opt_design,hosp_adm_data,
     corrplot(df_loglike_cor)  # using function from 'corrplot' library
     
     # add heatmap
-    palette = colorRampPalette(c("green", "white", "red")) (20)
-    heatmap(x = df_loglike_cor, col = palette, symm = TRUE)
+    if(!any(is.na(df_loglike_cor))){
+      palette = colorRampPalette(c("green", "white", "red")) (20)
+      heatmap(x = df_loglike_cor, col = palette, symm = TRUE)
+    }
     
     dev.off()
   }

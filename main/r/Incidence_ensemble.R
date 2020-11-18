@@ -39,8 +39,9 @@ library('Rmisc')
 #  dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201022_2_ensemble_n5'
 # dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201022_3_robustness/n80'
 
-dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201027_1_main'
-#dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201027_2_robustness/n80'
+dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201102_1_main'
+# dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201102_3_robustness/n80'
+#dir_results <- '/Users/lwillem/Documents/university/research/stride/results_covid19_revision/20201102_2_ensemble'
 
 
 file_name_incidence <- dir(dir_results,pattern='incidence.RData',recursive = T,full.names = T)
@@ -51,7 +52,7 @@ output_tag <- paste0(format(Sys.Date(),'%Y%m%d'),'_results')
 
 # remove tracing sensitivity analyses
 file_name_incidence <- file_name_incidence[!grepl('_tracing',file_name_incidence)]
-file_name_incidence <- file_name_incidence[!grepl('18_cts',file_name_incidence)]
+file_name_incidence <- file_name_incidence[!grepl('cts._',file_name_incidence)]
 
 # remove fitting scenarios
 file_name_incidence <- file_name_incidence[!grepl('_fitting',file_name_incidence)]
@@ -102,9 +103,10 @@ foreach(i_file = 1:length(file_name_incidence),
           
           # add config_id 
           project_summary$config_id <- .rstride$get_config_id(project_summary)
+          project_summary$contact_id <- .rstride$get_contact_id(project_summary)
           
           # add config_id and tracing_id to incidence data
-          data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id')] )
+          data_incidence_all         <- merge(data_incidence_all,project_summary[,c('exp_id','config_id','contact_id')] )
           
           # if project summary has 'pareto_num', add to incidence data
           if(!is.null(project_summary$pareto_num)){
@@ -154,15 +156,15 @@ data_incidence$scenario_label[grepl('scen07_',data_incidence$scenario)] <- 'Scho
 data_incidence$scenario_label[grepl('scen09_',data_incidence$scenario)] <- 'School 0-11y w/o PM'
 data_incidence$scenario_label[grepl('scen08_',data_incidence$scenario)] <- 'School 0-17y'
 
-data_incidence$scenario_label[grepl('scen10_',data_incidence$scenario)] <- 'HH bubbles'
-data_incidence$scenario_label[grepl('scen11_',data_incidence$scenario)] <- 'HH bubbles: 7/7d'
-data_incidence$scenario_label[grepl('scen12_',data_incidence$scenario)] <- 'HH bubbles: 2/7d'
-data_incidence$scenario_label[grepl('scen13_',data_incidence$scenario)] <- 'HH bubbles: gap 20y'
-data_incidence$scenario_label[grepl('scen14_',data_incidence$scenario)] <- 'HH bubbles: gap 60y'
-data_incidence$scenario_label[grepl('scen15_',data_incidence$scenario)] <- 'HH bubbles: size 3'
-data_incidence$scenario_label[grepl('scen16_',data_incidence$scenario)] <- 'HH bubbles: size 4'
+data_incidence$scenario_label[grepl('scen10',data_incidence$scenario)] <- 'Household bubbles'
+data_incidence$scenario_label[grepl('scen11',data_incidence$scenario)] <- 'Household bubbles: 7/7d'
+data_incidence$scenario_label[grepl('scen12',data_incidence$scenario)] <- 'Household bubbles: 2/7d'
+data_incidence$scenario_label[grepl('scen13',data_incidence$scenario)] <- 'Household bubbles: gap 20y'
+data_incidence$scenario_label[grepl('scen14',data_incidence$scenario)] <- 'Household bubbles: gap 60y'
+data_incidence$scenario_label[grepl('scen15',data_incidence$scenario)] <- 'Household bubbles: size 3'
+data_incidence$scenario_label[grepl('scen16',data_incidence$scenario)] <- 'Household bubbles: size 4'
 
-data_incidence$scenario_label[grepl('scen17_',data_incidence$scenario)] <- 'Baseline with CTS'
+data_incidence$scenario_label[grepl('scen17',data_incidence$scenario)] <- 'Baseline with CTS'
 
 # create labels and add colors for Children
 data_incidence$scenario_label[grepl('scen21_',data_incidence$scenario)] <- 'Baseline (c)'
@@ -176,11 +178,11 @@ data_incidence$scenario_label[grepl('scen27_',data_incidence$scenario)] <- 'Scho
 data_incidence$scenario_label[grepl('scen29_',data_incidence$scenario)] <- 'School 0-11y w/o PM (c)'
 data_incidence$scenario_label[grepl('scen28_',data_incidence$scenario)] <- 'School 0-17y (c)'
 
-data_incidence$scenario_label[grepl('scen30_',data_incidence$scenario)] <- 'HH bubbles (c)'
+data_incidence$scenario_label[grepl('scen30_',data_incidence$scenario)] <- 'Household bubbles (c)'
 data_incidence$scenario_label[grepl('scen37_',data_incidence$scenario)] <- 'Baseline with CTS (c)'
 
-data_incidence$scenario_label[grepl('scen18_',data_incidence$scenario)] <- 'HH bubbles with CTS'
-data_incidence$scenario_label[grepl('scen38_',data_incidence$scenario)] <- 'HH bubbles with CTS (c)'
+data_incidence$scenario_label[grepl('scen18_',data_incidence$scenario)] <- 'Household bubbles with CTS'
+data_incidence$scenario_label[grepl('scen38_',data_incidence$scenario)] <- 'Household bubbles with CTS (c)'
 
 ## Scenario name and color
 opt_scenario    <- data.frame(unique(data_incidence[,c('scenario','scenario_label','scenario_id')]),
@@ -191,10 +193,10 @@ opt_scenario <- opt_scenario[order(opt_scenario$scenario),]
                               
 #flag_baseline   <- grepl('Baseline',data_incidence$scenario_label)
 opt_scenario$col_value[grepl('School ',opt_scenario$scenario_label)] <- 3
-opt_scenario$col_value[grepl('HH bubbles',opt_scenario$scenario_label)] <- 5
+opt_scenario$col_value[grepl('Household bubbles',opt_scenario$scenario_label)] <- 5
 opt_scenario$col_value[opt_scenario$col_value == 5 & !grepl(':',opt_scenario$scenario_label)] <- 4
 opt_scenario$col_value[grepl('CTS',opt_scenario$scenario_label)] <- 2
-opt_scenario$col_value[grepl('HH bubbles with CTS',opt_scenario$scenario_label)] <- 'darkgoldenrod'
+opt_scenario$col_value[grepl('Household bubbles with CTS',opt_scenario$scenario_label)] <- 'darkgoldenrod'
 
 opt_scenario$col <- alpha(opt_scenario$col_value,0.7)
 
@@ -234,6 +236,7 @@ pop_size_be <- 11e6  #TODO: use universal variable
 #bxplt_data <- bxplt_data[bxplt_data$scenario_id %in% c(1,2,7,8,9,11,14),]
 bxplt_data <- data_incidence;
 # bxplt_data <- data_incidence_sel
+colname_out <-  'sec_cases'; y_limits <- c(0,2); y_label <- 'debug'
 # colname_out <- 'new_hospital_admissions';y_limits <- NA;y_labelcolname_out <- 'Daily hospital admissions'
 colname_out <- 'new_hospital_admissions'; y_limits <- c(0,1400); y_label <- 'debug'
 #colname_out <-  'cumulative_hospital_cases';y_limits <- c(15,90)*1e3; y_label <- 'debug'; bxplt_data <- bxplot_cumulative
@@ -265,6 +268,11 @@ plot_montly_stats_vertical <- function(bxplt_data, colname_out,y_limits,y_label)
   for(i_month in opt_month){
     flag_date <- bxplt_data$sim_month == i_month
     
+    plot_main <- i_month
+    if(grepl('cumulative',colname_out) && opt_month[1] != i_month){
+      plot_main <- paste(opt_month[1],i_month,sep=' - ')
+    }
+    
     y_lim_plot <- y_limits
     if(any(is.na(y_limits))){
       y_lim_plot <- range(1.15*bxplt_data[flag_date,colname_out],na.rm=T)
@@ -276,7 +284,7 @@ plot_montly_stats_vertical <- function(bxplt_data, colname_out,y_limits,y_label)
             ylim = y_lim_plot,
             ylab = y_label,
             col = (opt_scenario_plot$col),
-            main=i_month,
+            main=plot_main,
             yaxt='n',
             xaxt='n')
   
@@ -289,17 +297,18 @@ plot_montly_stats_vertical <- function(bxplt_data, colname_out,y_limits,y_label)
     # y-axis
     y_ticks <- pretty(y_lim_plot)
     y_labels <- y_ticks
-    if(min(y_lim_plot)>1e3){ y_labels <- paste0(y_ticks/1e3,'k') }
+    if(min(y_labels[y_labels>0])>1e3){ y_labels[y_labels>0] <- paste0(y_ticks[y_ticks>0]/1e3,'k') }
     axis(2,y_ticks,y_labels,las=2)
 
     # x-axis
     text_x <- seq(1, nrow(opt_scenario_plot), by = 1)
-    text_y <- par("usr")[3] * ifelse(par("usr")[3]>0,0.95,1.3)
+    text_y <- par("usr")[3] * ifelse(par("usr")[3]>0,0.95,1.5)
     #print(text_y)
     text(text_x, text_y,
-         srt = 60, adj = 1, xpd = TRUE,
+         srt = 50, adj = 1, xpd = TRUE,
          labels = opt_scenario_plot$scenario_label)
-    axis(1,1:nrow(opt_scenario_plot),rep('',nrow(opt_scenario_plot)),tcl=0.5)
+    axis(1,1:nrow(opt_scenario_plot),
+         rep('',nrow(opt_scenario_plot)),tcl=0.1)
 
     # add scenario numbers
     # text(seq(1, nrow(opt_scenario_plot), by = 1), bplt$stats[5,],
@@ -325,7 +334,8 @@ plot_montly_stats_vertical <- function(bxplt_data, colname_out,y_limits,y_label)
     points(seq(1, nrow(out_mean)),out_mean[,colname_out],pch='+',cex=0.7)
     text(seq(1, nrow(opt_scenario_plot), by = 1), bplt$stats[5,],
          xpd = TRUE, pos=3,
-         labels = paste0('[',opt_scenario_plot$scenario_id,']\n',out_mean$relative,'%'),
+         # labels = paste0('[',opt_scenario_plot$scenario_id,']\n',out_mean$relative,'%'),
+         labels = paste0(100-out_mean$relative,'%'),
          #labels = paste0(out_mean$relative,'%'),
          cex=0.5)
     
@@ -341,6 +351,11 @@ plot_montly_stats_vertical <- function(bxplt_data, colname_out,y_limits,y_label)
 polygon_legend_cex <- 0.8
 #colname_burden <- 'sec_cases'
 add_polygon <- function(scen_tag,colname_burden, scen_color,data_incidence){
+  
+  if(!any(grepl(scen_tag,data_incidence$scenario))){
+    return(NA)
+  }
+  
   data_incidence <- data_incidence[grepl(scen_tag,data_incidence$scenario),]
   hosp_min       <- aggregate(formula(paste(colname_burden,'~ sim_date')), data=  data_incidence, min)
   hosp_max       <- aggregate(formula(paste(colname_burden,'~ sim_date')), data=  data_incidence, max)
@@ -828,11 +843,22 @@ legend('topright',
 dev.off()
 
 
+## SET CUMULATIVE CASES SINCE MAY
+# select the starting values for the cumulative number of hospital admissions
+data_incidence_start <- data_incidence[data_incidence$sim_date == min(data_incidence$sim_date),]
+data_incidence_start <- data.frame(scenario_id = data_incidence_start$scenario_id,
+                                   exp_id = data_incidence_start$exp_id,
+                                   cumulative_hospital_cases_start = data_incidence_start$cumulative_hospital_cases)
 
+# merge starting values with the total matrix by scenario_id and exp_id
+data_incidence <- merge(data_incidence,data_incidence_start)
+
+# subtract the starting values from the listed cumulative hospital admissions
+data_incidence$cumulative_hospital_cases  <- data_incidence$cumulative_hospital_cases - data_incidence$cumulative_hospital_cases_start
 
 ## BOXPLOTS ALL ----
 
-total_hosp_range <- c(17,110)*1e3
+total_hosp_range <- c(0,110)*1e3
 
 # open pdf stream
 pdf(smd_file_path(dir_results,paste0(output_tag,'_scenario_analysis_all.pdf')),5,5)
@@ -861,7 +887,7 @@ plot_montly_stats_vertical(data_incidence_sel,'new_hospital_admissions',NA,'Dail
 
 # cumulative counts, use max per experiment
 bxplot_cumulative <- aggregate(cumulative_hospital_cases ~ scenario  + scenario_label + col + exp_id + sim_month + reference_id + scenario_id, data = data_incidence_sel,max)
-plot_montly_stats_vertical(bxplot_cumulative,'cumulative_hospital_cases',c(16,60)*1e3,'Total hospital admissions')
+plot_montly_stats_vertical(bxplot_cumulative,'cumulative_hospital_cases',c(0,60)*1e3,'Total hospital admissions')
 
 # close pdf stream
 dev.off()
@@ -879,7 +905,7 @@ plot_montly_stats_vertical(data_incidence_sel,'new_hospital_admissions',NA,'Dail
 
 # cumulative counts, use max per experiment
 bxplot_cumulative <- aggregate(cumulative_hospital_cases ~ scenario  + scenario_label + col + exp_id + sim_month + reference_id + scenario_id, data = data_incidence_sel,max)
-plot_montly_stats_vertical(bxplot_cumulative,'cumulative_hospital_cases',c(16,60)*1e3,'Total hospital admissions')
+plot_montly_stats_vertical(bxplot_cumulative,'cumulative_hospital_cases',c(0,60)*1e3,'Total hospital admissions')
 
 # close pdf stream
 dev.off()
@@ -897,7 +923,7 @@ plot_montly_stats_vertical(data_incidence_sel,'new_hospital_admissions',NA,'Dail
 
 # cumulative counts, use max per experiment
 bxplot_cumulative <- aggregate(cumulative_hospital_cases ~ scenario  + scenario_label + col + exp_id + sim_month + reference_id + scenario_id, data = data_incidence_sel,max)
-plot_montly_stats_vertical(bxplot_cumulative,'cumulative_hospital_cases',c(16,110)*1e3,'Total hospital admissions')
+plot_montly_stats_vertical(bxplot_cumulative,'cumulative_hospital_cases',c(0,110)*1e3,'Total hospital admissions')
 
 # close pdf stream
 dev.off()
@@ -917,7 +943,7 @@ if(nrow(data_incidence_sel)>0){
   
   # cumulative counts, use max per experiment
   bxplot_cumulative <- aggregate(cumulative_hospital_cases ~ scenario  + scenario_label + col + exp_id + sim_month + reference_id + scenario_id, data = data_incidence_sel,max)
-  plot_montly_stats_vertical(bxplot_cumulative,'cumulative_hospital_cases',c(16,110)*1e3,'Total hospital admissions')
+  plot_montly_stats_vertical(bxplot_cumulative,'cumulative_hospital_cases',c(0,120)*1e3,'Total hospital admissions')
   
   # close pdf stream
   dev.off()
@@ -1029,16 +1055,23 @@ if(length(project_dir_base)>0){
 ## ASSUMPTION vs SCENARIO ----
 
 
-scen_id <- 10;scen_color = 4; tag_scen = NA
-plot_hosp_curves <- function(data_incidence_scenario,scen_id,scen_color=4,tag_scen = NA,bool_re = TRUE){
+scen_id <- 1;scen_color = 4; tag_scen = NA
+plot_hosp_curves <- function(data_incidence_scenario,scen_id,scen_color=4,
+                             tag_scen = NA,
+                             bool_re = TRUE,
+                             bool_reported = TRUE){
   
   data_incidence_sel <- data_incidence_scenario[data_incidence_scenario$scenario_id == scen_id,]
+  
+  if(nrow(data_incidence_sel)==0){
+    return(NA)
+  }
   
   ## FIX FOR PLOTTING: Set all values for the last sim_day to NA
   data_incidence_sel[data_incidence_sel$sim_date %in% max(data_incidence_sel$sim_date,na.rm=T),] <- NA
   
   # set y-lim
-  y_lim <- range(0,pretty(max(hosp_adm_data$num_adm,na.rm=T)*1.1),max(data_incidence_sel$new_hospital_admissions,na.rm=T),na.rm=T)
+  y_lim <- range(0,900,pretty(max(hosp_adm_data$num_adm,na.rm=T)*1.1),pretty(max(data_incidence_sel$new_hospital_admissions,na.rm=T)*1.1),na.rm=T)
   
   if(bool_re){
     par(fig=c(0,1,0.35,1),mar=c(0,5,2,3))
@@ -1059,49 +1092,52 @@ plot_hosp_curves <- function(data_incidence_scenario,scen_id,scen_color=4,tag_sc
   if(!bool_re){add_x_axis(data_incidence_sel$sim_date)}
   add_y_axis(y_lim)
   sel_ref_data <- hosp_adm_data$date < as.Date('2020-09-01')
+  sel_ref_data <- hosp_adm_data$date < as.Date('2020-05-01')
   
   if(any(is.na(tag_scen))){
     add_breakpoints()
+    add_vertical_line("2020-02-24",TRUE,'Holiday')
   } else{
     add_vertical_line(tag_scen$date,TRUE,tag_scen$text)
   }
   
   # add config tag
-  adm_mean_final <- aggregate(new_hospital_admissions ~ sim_date + config_id, data=data_incidence_sel,mean)
+  adm_mean_final <- aggregate(new_hospital_admissions ~ sim_date + contact_id, data=data_incidence_sel,mean)
   adm_mean_final <- adm_mean_final[adm_mean_final$sim_date == max(adm_mean_final$sim_date),]
   
   # convert to mixing scenario id (and sort)
-  adm_mean_final$config_id_num <- as.numeric(factor(adm_mean_final$config_id,levels=list("0.5_0.7","0.7_0.7","0.5_0.85","0.7_0.85")))
-  adm_mean_final$config_id_num <- c('A','B','C','D')[adm_mean_final$config_id_num]
+  #adm_mean_final$contact_id_num <- as.numeric(factor(adm_mean_final$contact_id,levels=list("0.5_0.7","0.75_0.7","0.5_0.85","0.75_0.85")))
+  adm_mean_final$contact_id_num <- as.numeric(factor(adm_mean_final$contact_id,levels=list("50_30","25_30","50_15","25_15")))
+  adm_mean_final$contact_id_num <- c('A','B','C','D')[adm_mean_final$contact_id_num]
+  
   adm_mean_final <- adm_mean_final[order(adm_mean_final$new_hospital_admissions),]
   
   # aggregage id's if close to eachother
   for(i in 2:nrow(adm_mean_final)){
     i_both <- (i-1):i
-    if(diff(adm_mean_final$new_hospital_admissions[i_both])<20){
-      adm_mean_final$config_id_num[i] <- paste(sort(adm_mean_final$config_id_num[i_both]),collapse=',')
-      adm_mean_final$config_id_num[i-1] <- ''
+    if(diff(adm_mean_final$new_hospital_admissions[i_both])<40){
+      adm_mean_final$contact_id_num[i] <- paste(sort(adm_mean_final$contact_id_num[i_both]),collapse=',')
+      adm_mean_final$contact_id_num[i-1] <- ''
     }
   }
   
   # add mixing scenario id
   axis(4,adm_mean_final$new_hospital_admissions,
-       adm_mean_final$config_id_num,
-       las=2,cex.axis=0.7,
+       adm_mean_final$contact_id_num,
+       las=2,cex.axis=0.5,
        lwd.ticks=0.5)
   
-  if(!bool_re){
+  if(!bool_re & !bool_reported){
     data_incidence_baseline <- data_incidence_scenario[data_incidence_scenario$scenario_id == 1,]
     add_polygon(1,'new_hospital_admissions','darkgrey',data_incidence_baseline)
     legend('topright',
-           c('Reported',
-             'Simulations',
+           c('Scenario',
              'Baseline'),
-           col=c(1,scen_color,'darkgrey'),
-           pch=c(16,NA,NA),
-           lwd=c(NA,2,2),
+           col=c(scen_color,'darkgrey'),
+           pch=c(NA,NA),
+           lwd=c(2,2),
            bg='white',
-           cex = 0.6,
+           cex = 0.5,
            ncol=1)
   } else{
     legend('topright',
@@ -1111,7 +1147,7 @@ plot_hosp_curves <- function(data_incidence_scenario,scen_id,scen_color=4,tag_sc
            pch=c(16,NA),
            lwd=c(NA,2),
            bg='white',
-           cex = 0.6,
+           cex = 0.5,
            ncol=1)
   }
   
@@ -1121,9 +1157,12 @@ plot_hosp_curves <- function(data_incidence_scenario,scen_id,scen_color=4,tag_sc
        col=alpha(scen_color,0.5))
        
   # add reported data
-  points(hosp_adm_data$date[sel_ref_data],
-         hosp_adm_data$num_adm[sel_ref_data],
-         col=alpha(1,1),pch=20,cex=0.5)
+  if(bool_reported){
+    points(hosp_adm_data$date[sel_ref_data],
+           hosp_adm_data$num_adm[sel_ref_data],
+           col=alpha(1,1),pch=20,cex=0.5)    
+  }
+
   
   if(bool_re){
     par(fig=c(0,1,0,0.34),mar=c(3,5,0,3), new=TRUE)
@@ -1144,6 +1183,7 @@ plot_hosp_curves <- function(data_incidence_scenario,scen_id,scen_color=4,tag_sc
     abline(h=1,lty=2,col='gray')
     if(any(is.na(tag_scen))){
       add_breakpoints(bool_text = F)
+      add_vertical_line("2020-02-24",FALSE)
     } else{
       add_vertical_line(tag_scen$date,FALSE)
     }
@@ -1163,18 +1203,43 @@ dev.off()
 
 pdf(smd_file_path(dir_results,paste0(output_tag,'_manuscript_hospital_scenario.pdf')),3,3)
 
-date_selection <- data_incidence_scenario$sim_date > as.Date('2020-05-01')
+date_selection <- data_incidence_scenario$sim_date > as.Date('2020-05-1')
 #par(mar=c(3,5,1,3))
 for(bool_re in c(TRUE,FALSE)){
-  plot_hosp_curves(data_incidence_scenario[date_selection,],scen_id=1,scen_color='darkgrey',bool_re=bool_re)
+  plot_hosp_curves(data_incidence_scenario[date_selection,],scen_id=1,scen_color='darkgrey',bool_re=bool_re,bool_reported = F)
   plot_hosp_curves(data_incidence_scenario[date_selection,],scen_id=10,scen_color=4,bool_re=bool_re,
-                   tag_scen = list(date='2020-05-10',text='Household bubbles'))
+                   tag_scen = list(date='2020-05-10',text='Household bubbles'),bool_reported = F)
   plot_hosp_curves(data_incidence_scenario[date_selection,],scen_id=17,scen_color=2,bool_re=bool_re,
-                   tag_scen = list(date='2020-05-10',text='CTS'))
+                   tag_scen = list(date='2020-05-10',text='CTS'),bool_reported=F)
   plot_hosp_curves(data_incidence_scenario[date_selection,],scen_id=18,scen_color='darkgoldenrod',bool_re=bool_re,
-                   tag_scen = list(date='2020-05-10',text='Household bubbles & CTS'))
+                   tag_scen = list(date='2020-05-10',text='Household bubbles & CTS'),bool_reported=F)
 }
 dev.off()
 
+
+if(any(data_incidence_scenario$scenario_id %in% 21)){
+  pdf(smd_file_path(dir_results,paste0(output_tag,'_manuscript_hospital_baseline_child.pdf')),9,4)
+  plot_hosp_curves(data_incidence_scenario,scen_id=21,scen_color='darkgrey',bool_re=TRUE)
+  plot_hosp_curves(data_incidence_scenario,scen_id=21,scen_color='darkgrey',bool_re=FALSE)
+  dev.off()
+}
+
+
+if(any(data_incidence_scenario$scenario_id %in% c(21:38))){
+  pdf(smd_file_path(dir_results,paste0(output_tag,'_manuscript_hospital_scenario_child.pdf')),3,3)
+  
+  date_selection <- data_incidence_scenario$sim_date > as.Date('2020-05-01')
+  #par(mar=c(3,5,1,3))
+  for(bool_re in c(TRUE,FALSE)){
+    plot_hosp_curves(data_incidence_scenario[date_selection,],scen_id=21,scen_color='darkgrey',bool_re=bool_re,bool_reported = F)
+    plot_hosp_curves(data_incidence_scenario[date_selection,],scen_id=30,scen_color=4,bool_re=bool_re,
+                     tag_scen = list(date='2020-05-10',text='Household bubbles'),bool_reported = F)
+    plot_hosp_curves(data_incidence_scenario[date_selection,],scen_id=37,scen_color=2,bool_re=bool_re,
+                     tag_scen = list(date='2020-05-10',text='CTS'),bool_reported = F)
+    plot_hosp_curves(data_incidence_scenario[date_selection,],scen_id=38,scen_color='darkgoldenrod',bool_re=bool_re,
+                     tag_scen = list(date='2020-05-10',text='Household bubbles & CTS'),bool_reported = F)
+  }
+  dev.off()
+}
 
 
