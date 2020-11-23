@@ -394,6 +394,61 @@ get_transmission_statistics <- function(data_transm)
   return(summary_out)
 }
 
+
+# separate function with main statistics
+#TODO: prevent code duplication
+get_main_transmission_statistics <- function(data_transm)
+{
+  # setup data.table
+  data_transm[,ID := 1:nrow(data_transm),]
+  
+  ## RENAME DATE COLUMN
+  data_transm[,sim_date := infection_date]
+  
+  # AGE CATEGORIES     ----
+  age_breaks               <- c(seq(0,80,10),110)
+  data_transm[,age_cat_num := .(cut(part_age,age_breaks,include.lowest = T,right = T)),]
+  data_transm[,age_cat := .(paste0('age',as.numeric(age_cat_num))),]
+  
+  # set all age categories
+  age_cat_all <- paste0('age',1:(length(age_breaks)-1))
+  
+  ## INCIDENCE ----
+  # infections
+  summary_infections   <- get_summary_table(data_transm,'infection_date','age_cat','new_infections',age_cat_all)
+  
+  # hospital admission     
+  data_transm[, date_hosp_adm := infection_date + hospital_admission_start]
+  summary_hospital          <- get_summary_table(data_transm,'date_hosp_adm','age_cat','new_hospital_admissions',age_cat_all)
+  
+  ## AGGREGATE & MERGE ----
+  summary_out    <- summary_infections
+  
+  # set key
+  setkey(summary_out,'sim_date')
+  
+  # average number of secondary cases, upon recovery
+  summary_out    <- merge(summary_out,summary_hospital,all.x = TRUE)
+  
+  # add exp_id
+  summary_out$exp_id <- unique(data_transm$exp_id)
+  
+  ## CUMULATIVE STATS
+  #summary_out[,cumulative_infections := cumsum_na(new_infections)]
+  for(i_colname in names(summary_infections)[-1]){
+    summary_out[,(gsub('new_infections','cumulative_infections',i_colname)) := cumsum_na(get(i_colname))]
+  }
+  names(summary_out)
+  
+  for(i_colname in names(summary_hospital)[-1]){
+    summary_out[,(gsub('new_hospital_admissions','cumulative_hospital_cases',i_colname)) := cumsum_na(get(i_colname))]
+  }
+  names(summary_out)
+  
+  # return
+  return(summary_out)
+}
+
 # Function to generate summary tables
  #colname_date <- 'infection_date'; colname_value <- 'cnt_location'; prefix <- 'location';
 #colname_date <- 'date_hosp_adm'; colname_value <- 'age_cat'; prefix <- 'hosp';

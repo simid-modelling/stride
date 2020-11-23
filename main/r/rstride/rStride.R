@@ -444,9 +444,15 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
     config_exp$hospital_category_age  = paste(0,19,60,80,sep=',')
   }
   
+  names(data_transmission)
   age_cat_breaks    <- (parse_hospital_input(config_exp$hospital_category_age))
-  data_transmission$age_cat_hosp     <- cut(data_transmission$part_age,c(age_cat_breaks,110),right=F)
-  data_transmission$age_cat_hosp_num <- as.numeric(data_transmission$age_cat_hosp)
+  # data_transmission$age_cat_hosp     <- cut(data_transmission$part_age,c(age_cat_breaks,110),right=F)
+  # data_transmission$age_cat_hosp_num <- as.numeric(data_transmission$age_cat_hosp)
+  
+  part_age <- data_transmission$part_age
+  age_cat_hosp <- cut(part_age,c(age_cat_breaks,110),right=F)
+  age_cat_hosp_num <- as.numeric(age_cat_hosp)
+  #data_transmission[,age_cat_hosp_num := age_cat_hosp_num]
   
   # # set hospital age groups (age groups for hospital admission)
   # hosp_age <- list(age1 = 0:18,   # 0:16
@@ -461,32 +467,8 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
     data_transmission[, paste0('hospital_admission_start_',i_age_cat) := as.numeric(NA)]
   }
   names(data_transmission)
-  # data_transmission[, hospital_admission_start_age1 := as.numeric(NA)]
-  # data_transmission[, hospital_admission_start_age2 := as.numeric(NA)]
-  # data_transmission[, hospital_admission_start_age3 := as.numeric(NA)]
-  # data_transmission[, hospital_admission_start_age4 := as.numeric(NA)]
-  
-  # hospital probability
-  # hospital_probability <- data.frame(age1 = 0.035,
-  #                                    age2 = 0.0216,
-  #                                    age3 = 0.0855,
-  #                                    age4 = 0.423)
-  # hospital_probability <- data.frame(age1 = 0.049,
-  #                                    age2 = 0.03024,
-  #                                    age3 = 0.1197,
-  #                                    age4 = 0.5922)
   
   hospital_probability        <- parse_hospital_input(config_exp$hospital_probability_age)
-  
-  # # relative proportions
-  # # reference: hospital survey data by age (faes et al) / observed sympt cases by age R0 callibration 2020-09-17
-  # hospital_probability <- data.frame(age1 = 0.5863577,
-  #                                    age2 = 0.6193339,
-  #                                    age3 = 1.1223633,
-  #                                    age4 = 3.1063142)
-  # 
-  # #rescale 
-  # hospital_probability <- hospital_probability / max(hospital_probability) * 0.6
   
   # adjust probability (for fitting)
   hospital_probability <- hospital_probability * config_exp$hosp_probability_factor
@@ -495,10 +477,6 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
   hospital_probability[hospital_probability>1] <- 1
   
   # # set hospital delay for 4 age groups
-  # hosp_delay_mean <- data.frame(age1 = 3,
-  #                               age2 = 7,
-  #                               age3 = 6,
-  #                               age4 = 4)
   hosp_delay_mean      <- parse_hospital_input(config_exp$hospital_mean_delay_age)
   
   # set (uniform) delay  distribution -1, 0, 1
@@ -509,42 +487,22 @@ add_hospital_admission_time <- function(data_transmission,config_exp){
   #   round(rtweibull(n, shape=1.112,scale=5.970, max =31))
   # }
 
+  age_cat_hosp_num[is.na(data_transmission$start_symptoms)] <- 0
   # sample hospital admission dates
   i_hosp <- 1
   for(i_hosp in 1:length(hospital_probability)){
-    flag_part      <- !is.na(data_transmission$start_symptoms) & data_transmission$age_cat_hosp_num == i_hosp
+    #flag_part      <- !is.na(data_transmission$start_symptoms) & data_transmission$age_cat_hosp_num == i_hosp
+    flag_part      <-  age_cat_hosp_num == i_hosp
     flag_admission <- as.logical(rbinom(n = nrow(data_transmission),size = 1,prob = hospital_probability[[i_hosp]]))
     flag_hosp      <- flag_part & flag_admission
     hosp_start     <- as.numeric(data_transmission$start_symptoms[flag_hosp]) + hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
     data_transmission[flag_hosp, hospital_admission_start := hosp_start]
-    # data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] +
-    #   hosp_delay_mean[[i_hosp]] + sample(hosp_delay_variance,sum(flag_hosp),replace = T)
-    # data_transmission$hospital_admission_start[flag_hosp]        <- data_transmission$start_symptoms[flag_hosp] + get_hospital_delay(sum(flag_hosp))
-    
+ 
     # save age-specific results  
     data_transmission[flag_hosp ,paste0('hospital_admission_start_age',i_hosp) := hosp_start]
 
   }
  
-  # info from Christel on 2048 patients, hospitalised between Feb 29 and March 30
-  # 57/2048 born before 2004 (time to hospitalization: median=1, mean=3, range= 0-13)
-  # 658/2048 born between 1960-2004 (median=7, mean=7, range= 0-23)
-  # 770/2048 born between 1940-1960 (median=6, mean=6, range= 0-29)
-  # 416 born before 1940/2048 (median=3, mean=4, range= 0-29)
-  # 147 missing age
-  # ref <- c(57,658,770,416) / (2048-147)
-  # 
-  # estim <- c(sum(!is.na(data_transmission$hospital_admission_start_age1)),
-  #             sum(!is.na(data_transmission$hospital_admission_start_age2)),
-  #             sum(!is.na(data_transmission$hospital_admission_start_age3)),
-  #             sum(!is.na(data_transmission$hospital_admission_start_age4)))
-  # 
-  # rbind(estim / sum(estim),
-  #       ref)
-  # 
-  # smd_print('AVG. HOSPITAL RATE (age specific)',round(mean(approx(c(0,19,60,80),hospital_probability,0:100,method='constant',rule = 2)$y),digits=3))
-  # smd_print('AVG. HOSPITAL RATE (cases)',round(sum(!is.na(data_transmission$hospital_admission_start)) / sum(!is.na(data_transmission$start_symptoms)),digits=3))
-
   # return
   return(data_transmission) 
 }

@@ -22,6 +22,7 @@
 
 #' Main rStride function for ABC
 # abc_function_param <- c(15,3.4,256,0.4,0.85,7.4,0.85,4.51)
+#abc_function_param <- c(20,4,400,0.4,0.85,7.4,0.85,4.51)
 run_rStride_abc <- function(abc_function_param)
 {
   # define rng seed
@@ -33,10 +34,7 @@ run_rStride_abc <- function(abc_function_param)
   wd_start <- getwd()
   run_tag <- basename(getwd())
   setwd('../..')
-  
-  cat(run_tag,file='./sim_output/abc_out.txt',fill = T,append = T)
-  cat(abc_function_param,file='./sim_output/abc_out.txt',fill = T,append = T)
-  
+
   # load functions within parallel worker  
   source('./bin/rstride/rStride.R')
 
@@ -66,8 +64,6 @@ run_rStride_abc <- function(abc_function_param)
   # add design parameters
   config_exp[names(model_param_update)] <- model_param_update
  
- 
-  
   # use given parameters
   config_exp$rng_seed                    <- rng_seed
   config_exp$r0                          <- abc_function_param[2]
@@ -121,13 +117,35 @@ run_rStride_abc <- function(abc_function_param)
       is.na(config_exp$logparsing_cases_upperlimit) ||
       run_summary$num_cases < config_exp$logparsing_cases_upperlimit){
       
-      # parse log output (and save as rds file)
-      parse_log_file(config_exp, 
-                     i_exp, 
-                     get_burden_rdata=FALSE, 
-                     get_transmission_rdata=FALSE, 
-                     get_tracing_rdata = FALSE, 
-                     project_dir_exp = output_prefix)
+      # # parse log output (and save as rds file)
+      # parse_log_file(config_exp, 
+      #                i_exp, 
+      #                get_burden_rdata=FALSE, 
+      #                get_transmission_rdata=FALSE, 
+      #                get_tracing_rdata = FALSE, 
+      #                project_dir_exp = output_prefix)
+      
+      # parse event_log (if present)
+      event_log_filename <- smd_file_path(config_exp$output_prefix,'event_log.txt')
+      if(file.exists(event_log_filename)){
+         rstride_out <- parse_event_logfile(event_log_filename,
+                                            i_exp,
+                                            bool_parse_tracing     = get_tracing_rdata)
+         
+         # account for non-symptomatic cases
+         flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
+         rstride_out$data_transmission[flag,start_symptoms := NA]
+         rstride_out$data_transmission[flag,end_symptoms := NA]
+         
+         # add estimated hospital admission
+         set.seed(config_exp$rng_seed + 16022018)
+         rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission,config_exp)
+         
+         # get incidence data
+         rstride_out$data_transmission[,infection_date  := as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day]
+         rstride_out$data_incidence <- get_main_transmission_statistics(rstride_out$data_transmission)
+      } 
+         
    } else{
       
       # reset wd
