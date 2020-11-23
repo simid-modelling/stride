@@ -156,6 +156,7 @@ parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission
   rstride_out$data_prevalence_total       <- get_prevalence_data(config_exp,'cases.csv')
   
   # save list with all results
+  exp_tag <- .rstride$create_exp_tag(i_exp)
   saveRDS(rstride_out,file=smd_file_path(project_dir_exp,paste0(exp_tag,'_parsed.rds')))
 }
 

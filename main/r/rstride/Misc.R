@@ -249,8 +249,8 @@ if(!(exists('.rstride'))){
   data_type <- data_type_all[2]
   for(data_type in data_type_all){
 
-    # check cluster
-    smd_check_cluster()
+    # # check cluster
+    # smd_check_cluster()
      
     # loop over all experiments, rbind
     i_file <- 2

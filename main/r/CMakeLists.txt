@@ -29,6 +29,7 @@ INSTALL(DIRECTORY
 
 # rStride analysis scripts
 INSTALL( FILES 			
+            rStride_abc.R
             rStride_all.R
             rStride_contacts.R
             rStride_create_config.R
