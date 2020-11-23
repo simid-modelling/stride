@@ -223,11 +223,13 @@ dev.off()
 if( 'intermediary' %in% names(ABC_stride)){
   
   pdf(file=smd_file_path('./sim_output',run_tag_data,'results_ABC_intermediate.pdf'))
-  par(mfrow=c(3,2))
+
   for(i_seq in 1:length(ABC_stride$intermediary)){
+    par(mfrow=c(3,2))
     ABC_stride_temp <- ABC_stride
-    ABC_stride_temp$param <- ABC_stride$intermediary[[i_seq]]$posterior[,2:3]
-    ABC_stride_temp$stats <- ABC_stride$intermediary[[i_seq]]$posterior[,-(1:3)]
+    num_param <- length(stride_prior)
+    ABC_stride_temp$param <- ABC_stride$intermediary[[i_seq]]$posterior[,2:(num_param+1)]
+    ABC_stride_temp$stats <- ABC_stride$intermediary[[i_seq]]$posterior[,-(0:(num_param+1))]
     plot_abc_results(ABC_stride_temp)
   }
   
