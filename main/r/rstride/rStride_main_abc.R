@@ -130,7 +130,7 @@ run_rStride_abc <- function(abc_function_param)
       if(file.exists(event_log_filename)){
          rstride_out <- parse_event_logfile(event_log_filename,
                                             i_exp,
-                                            bool_parse_tracing     = get_tracing_rdata)
+                                            bool_parse_tracing     = FALSE)
          
          # account for non-symptomatic cases
          flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
@@ -144,6 +144,9 @@ run_rStride_abc <- function(abc_function_param)
          # get incidence data
          rstride_out$data_transmission[,infection_date  := as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day]
          rstride_out$data_incidence <- get_main_transmission_statistics(rstride_out$data_transmission)
+         
+         # save list with all results
+         saveRDS(rstride_out,file=smd_file_path(config_exp$output_prefix,paste0(exp_tag,'_parsed.rds')))
       } 
          
    } else{
