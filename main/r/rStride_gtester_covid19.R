@@ -228,10 +228,17 @@ if(nrow(project_summary) != nrow(ref_project_summary)){
   smd_print("REGRESSION TEST DOES NOT CONTAIN ALL SCENARIOS",WARNING = T)
 }
 
-## COMPARE SUMMARY
-diff_summary    <- setdiff(project_summary,ref_project_summary)
-if(length(diff_summary)>0){ 
+## COMPARE SUMMARY ----
+
+if(!setequal(project_summary,ref_project_summary)){ 
+  
   smd_print("SUMMARY CHANGED",WARNING = T)
+  
+  # check columns
+  col_changed <- which(colSums(project_summary != ref_project_summary) > 0)
+  smd_print('column(s) with changes:', paste(names(col_changed),collapse = ','),WARNING = T)
+
+  diff_summary    <- setdiff(project_summary,ref_project_summary)
   smd_print(names(diff_summary),WARNING = T)
   
   if(length(diff_summary)>1 && all(dim(project_summary) == dim(ref_project_summary))){
@@ -255,37 +262,54 @@ if(length(diff_summary)>0){
 }
 
 
-## COMPARE INCIDENCE
-diff_incidence  <- setdiff(data_incidence,ref_data_incidence)
-if(length(diff_incidence)>0){ 
-  smd_print("INCIDENCE CHANGED",WARNING = T)
-  smd_print(names(diff_incidence),WARNING = T)
-  
-  if(all(dim(data_incidence) == dim(ref_data_incidence))){
-    flag <- rowSums(data_incidence[,names(diff_incidence)] != ref_data_incidence[,names(diff_incidence)],na.rm=T)>0
-    smd_print('EXP_ID with changes:', paste(unique(data_incidence$exp_id[flag]),collapse = ','))
-    # data_incidence[flag,names(diff_incidence)]
-    # ref_data_incidence[flag,names(diff_incidence)]    
-    
-    # bool_colnames <- names(diff_incidence)[names(diff_incidence) %in% names(ref_data_incidence)]
-    # bool_colnames
-    # head(data_incidence[,bool_colnames])
-    # head(ref_data_incidence[,bool_colnames])
-    #head(data_incidence[names(diff_incidence)])
-    
-  }
-  #print(head(diff_incidence))
-} else{
+## COMPARE INCIDENCE ----
+if(setequal(data_incidence, ref_data_incidence)){
   smd_print("INCIDENCE OK")
+} else{
+  
+  missing_colnames_new <- !names(data_incidence) %in% names(ref_data_incidence)
+  if(any(missing_colnames_new)){
+    smd_print('INCIDENCE columns added:', paste(names(data_incidence)[missing_colnames_new],collapse = ','),WARNING = T)
+  }
+  
+  missing_colnames_ref <- !names(ref_data_incidence) %in% names(data_incidence)
+  if(any(missing_colnames_ref)){
+    smd_print('INCIDENCE columns missing:', paste(names(ref_data_incidence)[missing_colnames_ref],collapse = ','),WARNING = T)
+  }
+  
+  
+  diff_incidence  <- setdiff(data_incidence,ref_data_incidence)
+  if(length(diff_incidence)>0){ 
+    smd_print("INCIDENCE CHANGED",WARNING = T)
+    smd_print(names(diff_incidence),WARNING = T)
+    
+    if(all(dim(data_incidence) == dim(ref_data_incidence))){
+      flag <- rowSums(data_incidence[,names(diff_incidence)] != ref_data_incidence[,names(diff_incidence)],na.rm=T)>0
+      smd_print('EXP_ID with changes:', paste(unique(data_incidence$exp_id[flag]),collapse = ','))
+      # data_incidence[flag,names(diff_incidence)]
+      # ref_data_incidence[flag,names(diff_incidence)]    
+      
+      # bool_colnames <- names(diff_incidence)[names(diff_incidence) %in% names(ref_data_incidence)]
+      # bool_colnames
+      # head(data_incidence[,bool_colnames])
+      # head(ref_data_incidence[,bool_colnames])
+      #head(data_incidence[names(diff_incidence)])
+      
+    } else { # dimensions changed!!
+      smd_print('INCIDENCE ISSUE: dimensions changed',WARNING = T)
+
+    }
+  }
 }
 
-## COMPARE PREVALENCE
-diff_prevalence <- setdiff(data_prevalence,ref_data_prevalence)
-if(length(diff_prevalence)>0){ 
-  smd_print("PREVALENCE CHANGED",WARNING = T)
-  #print(head(diff_prevalence))
-} else{
+
+## COMPARE PREVALENCE ----
+if(setequal(data_prevalence,ref_data_prevalence)){ 
   smd_print("PREVALENCE OK")
+} else{
+  smd_print("PREVALENCE CHANGED",WARNING = T)
+  #diff_prevalence <- setdiff(data_prevalence,ref_data_prevalence)
+  #print(head(diff_prevalence))
 }
 
 # terminal message

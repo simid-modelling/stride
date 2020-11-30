@@ -377,7 +377,7 @@ get_transmission_statistics <- function(data_transm)
   
   ## CUMULATIVE STATS
   #summary_out[,cumulative_infections := cumsum_na(new_infections)]
-  for(i_colname in names(summary_infections)[-1]){
+  for(i_colname in names(summary_infections)[grepl('new_infections',names(summary_infections))]){
     summary_out[,(gsub('new_infections','cumulative_infections',i_colname)) := cumsum_na(get(i_colname))]
   }
   names(summary_out)

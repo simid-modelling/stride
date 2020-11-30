@@ -108,7 +108,12 @@ if(!(exists('.rstride'))){
   run_tag           <- basename(project_dir)
   
   # get file name with path
-  file_name_path    <- file.path(project_dir,paste0(run_tag,'_',file_name,'.pdf'))
+  file_name_path    <- file.path(project_dir,paste0(run_tag,'_',file_name))
+  
+  # check extension and add if not present
+  if(!grepl('.pdf',file_name_path)){
+    file_name_path <- paste0(file_name_path,'.pdf')
+  }
   
   # open pdf stream
   pdf(file_name_path,width,height)
@@ -124,7 +129,12 @@ if(!(exists('.rstride'))){
   run_tag           <- basename(project_dir)
   
   # get file name with path
-  file_name_path    <- file.path(project_dir,paste0(run_tag,'_',file_name,'.jpg'))
+  file_name_path    <- file.path(project_dir,paste0(run_tag,'_',file_name))
+  
+  # check extension and add if not present
+  if(!grepl('.jpg',file_name_path)){
+    file_name_path <- paste0(file_name_path,'.jpg')
+  }
   
   # check X11 environment
   if(nchar(Sys.getenv("DISPLAY"))==0){
