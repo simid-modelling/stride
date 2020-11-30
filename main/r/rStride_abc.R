@@ -43,8 +43,16 @@ source('./bin/rStride_intervention_baseline.R')
 # load ABC package
 library(EasyABC)
 
+# set samples and cluster size
+n_sample = 24
+n_cluster = 8
+
+# set acceptance level
+pacc=0.8
+
 # set directory postfix (optional)
-dir_postfix <- '_abc_param'
+dir_postfix <- paste0('_abc_n',n_sample,'_c',n_cluster,'_p',formatC(pacc*100,flag = 0,digits = 2))
+dir_postfix
 
 # create run tag using the current time if use_date_prefix == TRUE
 # use_date_prefix <- TRUE
@@ -64,10 +72,9 @@ model_param_update <- get_exp_param_default(bool_revised_model_param = T,
                                             bool_min_restrictive = T)
 
 # TEMP
-model_param_update$population_file <- "pop_belgium600k_c500_teachers_censushh.csv"
-#model_param_update$population_file <- "pop_belgium3000k_c500_teachers_censushh.csv"
+#model_param_update$population_file <- "pop_belgium600k_c500_teachers_censushh.csv"
 model_param_update$num_days        <- 74
-#model_param_update$logparsing_cases_upperlimit <- 3.0e5
+#model_param_update$logparsing_cases_upperlimit <- 2.5e6
 
 
 ref_period <- seq(as.Date('2020-03-15'),
@@ -126,9 +133,6 @@ stride_prior <- list(r0                         = c("unif",1.0,5.0),
                      compliance_delay_other     = c("unif",4.51,7.49))  # rounded: 5-7
 
 
-# set samples and cluster size
-n_sample = 24
-n_cluster = 8
 
 ## for debugging
 #.rstride$set_wd()                    
@@ -154,7 +158,7 @@ saveRDS(model_param_update,'model_param_update.rds')
 #                            progress_bar=T)
 
 
-pacc=0.5
+#pacc=0.5
 ABC_stride<-ABC_sequential(model=run_rStride_abc,
                            prior=stride_prior,
                            nb_simul=n_sample,
