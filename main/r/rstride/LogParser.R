@@ -30,11 +30,13 @@ if(0==1){
   #f_exp_dir <- file.path(output_dir,output_exp_dirs[i_exp])
   f_exp_dir <- file.path(project_dir,'exp0002')
   event_logfile <- file.path(f_exp_dir,'event_log.txt')
-  exp_id <- 2
+  exp_id <- 2;bool_parse_tracing=TRUE
   xx <- parse_event_logfile(event_logfile,2)
   
 }
-parse_event_logfile <- function(event_logfile,exp_id,bool_parse_tracing=TRUE)
+parse_event_logfile <- function(event_logfile,exp_id,
+                                bool_parse_tracing=TRUE,
+                                bool_transmission_all = TRUE)  # reducted transmission output
 {
 
   # terminal message
@@ -74,17 +76,34 @@ parse_event_logfile <- function(event_logfile,exp_id,bool_parse_tracing=TRUE)
   ####################### #
   ## TRANSMISSION DATA ####
   ####################### #
+  if(bool_transmission_all){
+    
+ 
   header_transm       <- c('local_id', 'infector_id','part_age',
                            'infector_age','pool_type','sim_day','id_index_case',
                            'start_infectiousness','end_infectiousness','start_symptoms','end_symptoms',
                            'infector_is_symptomatic')
+  } else {
+    header_transm       <- c(NA, #'local_id',
+                             NA, #'infector_id',
+                             'part_age',
+                             NA, #'infector_age',
+                             NA, #'pool_type',
+                             'sim_day',
+                             NA, #'id_index_case',
+                             'start_infectiousness',
+                             NA, #'end_infectiousness',
+                             'start_symptoms',
+                             'end_symptoms',
+                             NA #'infector_is_symptomatic'
+                            )
+  }
   
   rstride_out$data_transmission  <- reformat_log_data(event_logfile = event_logfile,
                                                       data_log_cat  = data_log_cat,
                                                       log_cat       = c("PRIM","TRAN"),
                                                       colnames_all  = header_transm,
                                                       exp_id        = exp_id)
-
   
   ###################### #
   ## CONTACT DATA     ####
@@ -179,18 +198,24 @@ reformat_log_data <- function(event_logfile,data_log_cat,log_cat,colnames_all,ex
   # create grep command based on the given log category/categories
   cmd_grep <- paste(c("grep",log_cat),collapse=' -e ')
   
+  # set columns to drop and select final colnames
+  colnames_doc    <- c(NA,colnames_all)
+  columns_select  <- which(!is.na(colnames_doc))
+  colnames_select <- colnames_doc[!is.na(colnames_doc)]
+  
   # read file line by line and select the requested lines
   data_log_subset <- fread(cmd=paste(cmd_grep,event_logfile), sep=' ',
-                           drop = 1,col.names = colnames_all)
+                           select = columns_select,
+                           col.names = colnames_select)
 
   # check
   dim(data_log_subset)
   object.size(data_log_subset) / 1e6
   
   # get columns with numeric and boolean values
-  colnames_char           <- colnames_all[grepl('type',colnames_all)]
-  colnames_boolean        <- colnames_all[grepl('is_',colnames_all)]
-  colnames_numeric        <- colnames_all[!colnames_all %in% c(colnames_char,colnames_boolean)]
+  colnames_char           <- colnames_select[grepl('type',colnames_select)]
+  colnames_boolean        <- colnames_select[grepl('is_',colnames_select)]
+  colnames_numeric        <- colnames_select[!colnames_select %in% c(colnames_char,colnames_boolean)]
   
   # specify help functions for 'lapply'
   set_NAs <- function(x){x[x==-1] <- NA; x}
@@ -203,7 +228,7 @@ reformat_log_data <- function(event_logfile,data_log_cat,log_cat,colnames_all,ex
     data_log_subset[, c(colnames_numeric) := lapply(.SD,remove_tag), .SDcols = colnames_numeric]
   
   # set -1 to NA
-  data_log_subset[, c(colnames_all) := lapply(.SD, set_NAs), .SDcols = colnames_all]
+  data_log_subset[, c(colnames_select) := lapply(.SD, set_NAs), .SDcols = colnames_select]
   
   # make sure that numeric values are stored as integers
   data_log_subset[, c(colnames_numeric) := lapply(.SD, as.numeric), .SDcols = colnames_numeric]

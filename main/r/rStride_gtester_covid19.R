@@ -312,6 +312,32 @@ if(setequal(data_prevalence,ref_data_prevalence)){
   #print(head(diff_prevalence))
 }
 
+
+## TEST ABC METHODS ----
+smd_print("START ABC FUNCTION TEST")
+# get one parameter config, set workdir and save parameter RDS file
+model_param_abc <- exp_design[exp_design$gtester_label %in% c('covid_base'),]
+model_param_abc <- exp_design[1,]
+setwd(project_dir)
+saveRDS(model_param_abc,'model_param_update.rds')
+
+# run rStride_abc
+rstride_out_abc <- run_rStride_abc(c(100,3,400,0.4,0.85,7.4,0.85,4.51))
+
+# restore workdir
+setwd('../..')
+
+# load previous results
+ref_rstride_out_abc <- readRDS(file='tests/regression_rstride_out_abc.rds')
+if(setequal(rstride_out_abc,rstride_out_abc)){
+  smd_print("rSTRIDE ABC OK")
+} else{
+  
+  smd_print("rSTRIDE ABC CHANGED!",WARNING = T)
+  stride_diff <- setdiff(rstride_out_abc,rstride_out_abc)
+  smd_print(names(diff_summary),WARNING = T)
+}
+
 # terminal message
 smd_print('REGRESSION TEST COMPLETE')
 
@@ -320,6 +346,7 @@ rrv <- function(){
   saveRDS(project_summary,file='tests/regression_rstride_summary.rds')
   saveRDS(data_incidence, file='tests/regression_rstride_incidence.rds')
   saveRDS(data_prevalence,file='tests/regression_rstride_prevalence.rds')
+  saveRDS(rstride_out_abc,file='tests/regression_rstride_out_abc.rds')
   smd_print('NEW REFERENCE VALES STORED: LOCAL')
 }
 
@@ -330,6 +357,7 @@ rrv_repo <- function(){
   saveRDS(project_summary,file=file.path(stride_repo_dir,'regression_rstride_summary.rds'))
   saveRDS(data_incidence,file=file.path(stride_repo_dir,'regression_rstride_incidence.rds'))
   saveRDS(data_prevalence,file=file.path(stride_repo_dir,'regression_rstride_prevalence.rds'))
+  saveRDS(rstride_out_abc,file=file.path(stride_repo_dir,'regression_rstride_out_abc.rds'))
   smd_print('NEW REFERENCE VALES STORED: IN STRIDE REPOSITORY')
 }
 

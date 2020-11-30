@@ -98,7 +98,13 @@ create_config_exp <- function(config_default, output_prefix, exp_design, i_exp)
 }
 
 #' Parse log file
-parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission_rdata, get_tracing_rdata, project_dir_exp)
+parse_log_file <- function(config_exp, 
+                           i_exp, 
+                           # get_burden_rdata, 
+                           get_transmission_rdata, 
+                           get_tracing_rdata, 
+                           project_dir_exp,
+                           bool_transmission_all = TRUE)
 {
   output_prefix <- config_exp$output_prefix
 
@@ -109,7 +115,11 @@ parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission
   # parse event_log (if present)
   event_log_filename <- smd_file_path(output_prefix,'event_log.txt')
   if(file.exists(event_log_filename)){
-    rstride_out <- parse_event_logfile(event_log_filename,i_exp,get_tracing_rdata)
+    
+    rstride_out <- parse_event_logfile(event_log_filename,
+                                       i_exp,
+                                       get_tracing_rdata,
+                                       bool_transmission_all)
     
     # account for non-symptomatic cases
     flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
@@ -122,22 +132,23 @@ parse_log_file <- function(config_exp, i_exp, get_burden_rdata, get_transmission
     
     # get incidence data
     rstride_out$data_transmission[,infection_date  := as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day]
-    rstride_out$data_incidence <- get_transmission_statistics(rstride_out$data_transmission)
+    rstride_out$data_incidence <- get_transmission_statistics(rstride_out$data_transmission,
+                                                              bool_transmission_all)
     
-    # store disease burden and hospital admission data (for additional analysis)
-    if(get_burden_rdata){
-      rstride_out$data_burden <- data.frame(day_infection           = rstride_out$data_transmission$sim_day,
-                                            part_age                = rstride_out$data_transmission$part_age,
-                                            start_infectiousness    = rstride_out$data_transmission$start_infectiousness,
-                                            end_infectiousness      = rstride_out$data_transmission$end_infectiousness,
-                                            start_symptoms          = rstride_out$data_transmission$start_symptoms,
-                                            end_symptoms            = rstride_out$data_transmission$end_symptoms,
-                                            hospital_admission      = rstride_out$data_transmission$hospital_admission_start,
-                                            infector_age            = rstride_out$data_transmission$infector_age,
-                                            infector_is_symptomatic = rstride_out$data_transmission$infector_is_symptomatic,
-                                            date_infection          = as.Date(config_exp$start_date,'%Y-%m-%d') + rstride_out$data_transmission$sim_day,
-                                            exp_id                  = rstride_out$data_transmission$exp_id)
-    }
+    # # store disease burden and hospital admission data (for additional analysis)
+    # if(get_burden_rdata){
+    #   rstride_out$data_burden <- data.frame(day_infection           = rstride_out$data_transmission$sim_day,
+    #                                         part_age                = rstride_out$data_transmission$part_age,
+    #                                         start_infectiousness    = rstride_out$data_transmission$start_infectiousness,
+    #                                         end_infectiousness      = rstride_out$data_transmission$end_infectiousness,
+    #                                         start_symptoms          = rstride_out$data_transmission$start_symptoms,
+    #                                         end_symptoms            = rstride_out$data_transmission$end_symptoms,
+    #                                         hospital_admission      = rstride_out$data_transmission$hospital_admission_start,
+    #                                         infector_age            = rstride_out$data_transmission$infector_age,
+    #                                         infector_is_symptomatic = rstride_out$data_transmission$infector_is_symptomatic,
+    #                                         date_infection          = as.Date(config_exp$start_date,'%Y-%m-%d') + rstride_out$data_transmission$sim_day,
+    #                                         exp_id                  = rstride_out$data_transmission$exp_id)
+    # }
     
     # if transmission data should not be stored, replace item by NA
     if(!get_transmission_rdata){
@@ -190,7 +201,7 @@ run_rStride <- function(exp_design               = exp_design,
                         get_csv_output           = FALSE,
                         get_transmission_rdata   = FALSE, 
                         get_tracing_rdata        = FALSE,
-                        get_burden_rdata         = FALSE,
+                        # get_burden_rdata         = FALSE,
                         use_date_prefix          = TRUE,
                         num_parallel_workers     = NA)
 {
@@ -204,7 +215,7 @@ run_rStride <- function(exp_design               = exp_design,
                 get_csv_output           = FALSE,
                 remove_run_output        = TRUE,
                 get_transmission_rdata   = FALSE,
-                get_burden_rdata         = FALSE,
+                # get_burden_rdata         = FALSE,
                 use_date_prefix          = TRUE,
                 num_parallel_workers     = NA))
     run_tag <- basename(project_dir)
@@ -356,7 +367,12 @@ run_rStride <- function(exp_design               = exp_design,
                           run_summary$num_cases < config_exp$logparsing_cases_upperlimit){
                          
                          # parse log output (and save as rds file)
-                         parse_log_file(config_exp, i_exp, get_burden_rdata, get_transmission_rdata, get_tracing_rdata, project_dir_exp)
+                         parse_log_file(config_exp, 
+                                        i_exp, 
+                                        # get_burden_rdata, 
+                                        get_transmission_rdata, 
+                                        get_tracing_rdata, 
+                                        project_dir_exp)
                        }
   
                        # remove experiment output and config

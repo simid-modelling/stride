@@ -52,6 +52,9 @@ use_date_prefix <- job_id ==''
 run_tag <- ifelse(use_date_prefix,format(Sys.time(), format="%Y%m%d_%H%M%S"),job_id)
 run_tag_data <- paste0(run_tag,dir_postfix)
 
+# set project directory
+project_dir <- smd_file_path('./sim_output',run_tag_data)
+
 ################################################ #
 ## DESIGN OF EXPERIMENTS  ----
 ################################################ #
@@ -62,8 +65,9 @@ model_param_update <- get_exp_param_default(bool_revised_model_param = T,
 
 # TEMP
 model_param_update$population_file <- "pop_belgium600k_c500_teachers_censushh.csv"
+#model_param_update$population_file <- "pop_belgium3000k_c500_teachers_censushh.csv"
 model_param_update$num_days        <- 74
-model_param_update$logparsing_cases_upperlimit <- 3.0e5
+#model_param_update$logparsing_cases_upperlimit <- 3.0e5
 
 
 ref_period <- seq(as.Date('2020-03-15'),
@@ -165,22 +169,48 @@ ABC_stride<-ABC_sequential(model=run_rStride_abc,
 # set back workdir
 setwd('../..')
 
+
+
 # par(mfrow=c(3,2))
-saveRDS(ABC_stride,file=smd_file_path('./sim_output',run_tag_data,'ABC_stride.rsd'))
+saveRDS(ABC_stride,file=smd_file_path(project_dir,'ABC_stride.rds'))
+save(list=ls(),file=smd_file_path(project_dir,'ABC_stride_all.RData'))
 
 ############################# #
 ## EXPLORE RESULTS         ####
 ############################# #
 
+# load results
+ABC_stride <- readRDS(smd_file_path(project_dir,'ABC_stride.rds'))
+load(file=smd_file_path(project_dir,'ABC_stride_all.RData'))
+
+print(ABC_stride$computime/3600)
+print(ABC_stride$nsim)
+print(length(ABC_stride$intermediary))
+
 plot_abc_results <- function(ABC_out){
   
+  par(mfrow=c(3,3))
   # parameters
   for(i in 1:ncol(ABC_out$param)){
+    
     hist(ABC_out$param[,i],20,
          xlim = as.numeric(stride_prior[[i]][-1]),
-         xlab = names(stride_prior)[i])
+         xlab = names(stride_prior)[i],
+         main = names(stride_prior)[i])
+    legend('topright',
+           title='mean',
+           paste(round(mean(ABC_out$param[,i]),digits=2)),
+           cex=0.5)
   }
   
+  
+  for(i in grep('compliance_delay',names(stride_prior))){
+    hist(round(ABC_out$param[,i]),
+         xlab = names(stride_prior)[i],
+         main = paste(names(stride_prior)[i],'\n[DISCRETE]'))
+  }
+  
+  par(mfrow=c(2,2))
   # hospital incidence
   plot(hosp_ref_data$sim_date,
        hosp_ref_data$hospital_admissions,ylim=range(0,hosp_ref_data$hospital_admissions),
@@ -189,7 +219,7 @@ plot_abc_results <- function(ABC_out){
   for(i in 1:nrow(ABC_out$stats)){
     lines(hosp_ref_data$sim_date,
           ABC_out$stats[i,grepl('hosp',names(sum_stat_obs))],
-          col=alpha(4,0.5))
+          col=alpha(4,0.8))
   }
   
   # initial doubling time
@@ -210,19 +240,26 @@ plot_abc_results <- function(ABC_out){
 }
 
 # open pdf stream
-pdf(file=smd_file_path('./sim_output',run_tag_data,'results_ABC.pdf'))
+.rstride$create_pdf(project_dir = project_dir,file_name = 'results_ABC')
 
 # plot (final) results
-par(mfrow=c(3,2))
 plot_abc_results(ABC_stride)
 
 # close pdf stream
 dev.off()
 
+
+.rstride$create_pdf(project_dir = project_dir,file_name = 'results_ABC_correlation')
+posterior_param <- ABC_stride$param
+colnames(posterior_param) <- names(stride_prior)
+corrplot(cor(posterior_param))
+dev.off()
+
+
 # if intermediate results present ==>> plot
 if( 'intermediary' %in% names(ABC_stride)){
   
-  pdf(file=smd_file_path('./sim_output',run_tag_data,'results_ABC_intermediate.pdf'))
+  .rstride$create_pdf(project_dir = project_dir,file_name = 'results_ABC_intermediate')
 
   for(i_seq in 1:length(ABC_stride$intermediary)){
     par(mfrow=c(3,2))
@@ -234,7 +271,50 @@ if( 'intermediary' %in% names(ABC_stride)){
   }
   
   dev.off()
+
+  
+  ## check progress
+  .rstride$create_pdf(project_dir = project_dir,file_name = 'results_ABC_posterior')
+  get_stat <- function(x){
+    c(min(x),mean(x),max(x))
+  }
+  
+  foreach(i = 1:length(ABC_stride$intermediary),
+          .combine = 'rbind') %do% {
+            
+            c(iter = i,
+              n_simul_tot = ABC_stride$intermediary[[i]]$n_simul_tot,
+              tol_step = ABC_stride$intermediary[[i]]$tol_step,
+              param1_ = get_stat(ABC_stride$intermediary[[i]]$posterior[,2]),
+              param2_ = get_stat(ABC_stride$intermediary[[i]]$posterior[,3]),
+              param3_ = get_stat(ABC_stride$intermediary[[i]]$posterior[,4]),
+              param4_ = get_stat(ABC_stride$intermediary[[i]]$posterior[,5]),
+              param5_ = get_stat(ABC_stride$intermediary[[i]]$posterior[,6]),
+              param6_ = get_stat(ABC_stride$intermediary[[i]]$posterior[,7]),
+              param7_ = get_stat(ABC_stride$intermediary[[i]]$posterior[,8])
+              )
+            
+          } -> db_abc
+    
+  
+  par(mfrow=c(3,3))
+  db_abc <- data.frame(db_abc)
+  plot(db_abc$iter,(db_abc$n_simul_tot),main='num simulations')
+  plot(db_abc$iter,log(db_abc$tol_step),main='log(tolerance)')
+  
+  
+  for(i in 1:length(stride_prior)){
+    tmp_out <- db_abc[,paste0('param',i,'_',1:3)]
+    plot(db_abc$iter,tmp_out[,2],type='l',
+         ylim=range(tmp_out),main=names(stride_prior)[i],ylab=names(stride_prior)[i])
+    lines(db_abc$iter,tmp_out[,1],lty=2)
+    lines(db_abc$iter,tmp_out[,3],lty=2)
+  }
+ 
+  dev.off() 
 }
+
+
 
 ## debug
 if(0==1){

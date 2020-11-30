@@ -22,8 +22,9 @@
 
 #' Main rStride function for ABC
 # abc_function_param <- c(15,3.4,256,0.4,0.85,7.4,0.85,4.51)
-#abc_function_param <- c(20,4,400,0.4,0.85,7.4,0.85,4.51)
-run_rStride_abc <- function(abc_function_param)
+#abc_function_param <- c(41,4,400,0.4,0.85,7.4,0.85,4.51)
+run_rStride_abc <- function(abc_function_param,
+                            remove_run_output     = TRUE)
 {
   # define rng seed
   rng_seed <- abc_function_param[1]
@@ -38,8 +39,6 @@ run_rStride_abc <- function(abc_function_param)
   # load functions within parallel worker  
   source('./bin/rstride/rStride.R')
 
-  remove_run_output = TRUE
-  
   ################################## #
   ## GENERAL OPTIONS              ####
   ################################## #
@@ -112,53 +111,15 @@ run_rStride_abc <- function(abc_function_param)
    write.table(run_summary,file=file.path(project_dir=output_prefix,
                                           paste0(run_tag,'_summary.csv')),sep=',',row.names=F)
    
-   # parse log file if there is no log threshold (NULL or NA) OR if simulated cases < threshold 
-   if(is.null(config_exp$logparsing_cases_upperlimit) ||
-      is.na(config_exp$logparsing_cases_upperlimit) ||
-      run_summary$num_cases < config_exp$logparsing_cases_upperlimit){
-      
-      # # parse log output (and save as rds file)
-      # parse_log_file(config_exp, 
-      #                i_exp, 
-      #                get_burden_rdata=FALSE, 
-      #                get_transmission_rdata=FALSE, 
-      #                get_tracing_rdata = FALSE, 
-      #                project_dir_exp = output_prefix)
-      
-      # parse event_log (if present)
-      event_log_filename <- smd_file_path(config_exp$output_prefix,'event_log.txt')
-      if(file.exists(event_log_filename)){
-         rstride_out <- parse_event_logfile(event_log_filename,
-                                            i_exp,
-                                            bool_parse_tracing     = FALSE)
-         
-         # account for non-symptomatic cases
-         flag <- rstride_out$data_transmission$start_symptoms == rstride_out$data_transmission$end_symptoms
-         rstride_out$data_transmission[flag,start_symptoms := NA]
-         rstride_out$data_transmission[flag,end_symptoms := NA]
-         
-         # add estimated hospital admission
-         set.seed(config_exp$rng_seed + 16022018)
-         rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission,config_exp)
-         
-         # get incidence data
-         rstride_out$data_transmission[,infection_date  := as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day]
-         rstride_out$data_incidence <- get_main_transmission_statistics(rstride_out$data_transmission)
-         
-         # save list with all results
-         saveRDS(rstride_out,file=smd_file_path(config_exp$output_prefix,paste0(exp_tag,'_parsed.rds')))
-      } 
-         
-   } else{
-      
-      # reset wd
-      setwd(wd_start)
-      
-      return(rep(0,(47+46+46)))
-      #return(0)
-   }
+   # parse event_log and process model output
+   parse_log_file(config_exp, 
+                  i_exp, 
+                  # get_burden_rdata, 
+                  get_transmission_rdata = FALSE, 
+                  get_tracing_rdata = FALSE, 
+                  project_dir_exp = config_exp$output_prefix,
+                  bool_transmission_all = FALSE)
    
-   print(120)  
    # ref data (temp)
    ## SERO-PREVALENCE DATA ----
    prevalence_ref <- load_observed_seroprevalence_data()
@@ -174,10 +135,8 @@ run_rStride_abc <- function(abc_function_param)
    
    # get transmission output
    parsed_logfile <- dir(output_prefix,pattern = 'rds',full.names = T)
-   parsed_logdata <- readRDS(parsed_logfile)
-   names(parsed_logdata)
-   data_incidence_all <- parsed_logdata$data_incidence
-   print(139)
+   data_incidence_all <- readRDS(parsed_logfile)$data_incidence
+   
    # hospital admissions
    data_incidence <- data_incidence_all[data_incidence_all$sim_date >= as.Date('2020-03-15'),]
    
@@ -191,11 +150,10 @@ run_rStride_abc <- function(abc_function_param)
    new_hospital_admissions <- data_incidence$new_hospital_admissions
    new_hospital_admissions[is.na(new_hospital_admissions)] <- 0
    
-   # doubling time
+   # doubling time for reference period
    ref_dates                  <- ref_doubling_time$dates
    doubling_time_observed     <- mean(ref_doubling_time$mean)
-print(146)
-   data_incidence_all$doubling_time <- NA
+   
    flag_exp_doubling   <- data_incidence_all$sim_date %in% ref_dates
    if(sum(flag_exp_doubling)>0){
      doubling_time_model     <- get_doubling_time(data_incidence_all$new_infections[flag_exp_doubling])
@@ -220,19 +178,19 @@ print(146)
    total_prevalence_model     <- total_incidence_model #/ 1e11
    
    # set output
-   abc_out <- c(new_hospital_admissions,   # length = 47
-                rep(total_prevalence_model,23),    # length = 2
-                rep(doubling_time_model,46))       # length = 1
+   abc_out <- c(hosp_adm_ = new_hospital_admissions,   # length = 47
+                incidence_ = rep(total_prevalence_model,23),    # length = 2
+                init_doubling_time_ = rep(doubling_time_model,46))       # length = 1
    length(abc_out)
    
-   # write.table(length(abc_out),paste0(output_prefix,'.csv'),sep=',',row.names=F)
-   write.table((abc_out),paste0(output_prefix,'.csv'),sep=',',row.names=F)
+   # tmp debug code
+   #write.table((abc_out),paste0(output_prefix,'.csv'),sep=',',row.names=F)
    
    # remove experiment output and config
    if(remove_run_output){
      unlink(config_exp$output_prefix,recursive=TRUE)
      unlink(config_exp_filename,recursive = TRUE)
-     unlink(paste0(output_prefix,'.csv'),recursive = T)
+     #unlink(paste0(output_prefix,'.csv'),recursive = T) # tmp debug code
    }
   
    # reset wd
