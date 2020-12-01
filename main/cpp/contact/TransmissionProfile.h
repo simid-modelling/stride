@@ -21,6 +21,8 @@
 #pragma once
 
 #include <boost/property_tree/ptree.hpp>
+#include <vector>
+#include <numeric>
 
 namespace stride {
 
@@ -31,16 +33,31 @@ class TransmissionProfile
 {
 public:
         /// Initialize.
-        TransmissionProfile() : m_transmission_probability(0.0) {}
+        TransmissionProfile() : m_transmission_probability_age(100) {
+        }
 
-        /// Return transmission probability.
-        double GetProbability() const { return m_transmission_probability; }
+        /// Return average transmission probability (not weighted).
+        double GetProbability() const {
+        	double transmission_probability_mean = accumulate(m_transmission_probability_age.begin(),
+        													  m_transmission_probability_age.end(),
+															  0.0) / m_transmission_probability_age.size();
+        	return transmission_probability_mean;
+        }
+
+        /// Return age-specific transmission probability.
+        double GetProbability(unsigned int age) const {
+          	if(age < m_transmission_probability_age.size()){
+        		return m_transmission_probability_age[age];
+        	} else{
+        		return m_transmission_probability_age[m_transmission_probability_age.size()-1];
+        	}
+        }
 
         /// Initialize.
         void Initialize(const boost::property_tree::ptree& configPt, const boost::property_tree::ptree& diseasePt);
 
 private:
-        double m_transmission_probability;
+        std::vector<double> m_transmission_probability_age;
 };
 
 } // namespace stride
