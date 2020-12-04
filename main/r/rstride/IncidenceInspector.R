@@ -247,9 +247,6 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
     par(mar=c(3,5,1,5))
   }
   
-  # set Belgian population
-  pop_size_be <- 11e6
-  
   # set color definitions and other layout definitions
   pcolor <- data.frame(E = "black",  # exposed (or total infections)
                        I = "darkgoldenrod3",  # infectious
@@ -333,7 +330,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   x_tick_value <- as.numeric((x_tick_label - min(date_lim)))  * bplot_diff
   axis(1,x_tick_value, format(x_tick_label,'%e %b'),cex.axis=0.9)
   add_y_axis(y_lim)
-  add_y_axis_pop(y_lim,pop_size_be)
+  add_y_axis_pop(y_lim)
   points(as.numeric((hosp_adm_data$date - min(date_lim)))  * bplot_diff,
          hosp_adm_data$cum_adm,col=pcolor$D,pch=pcolor$pch)
   legend('topleft',
@@ -426,7 +423,7 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
        xaxt='n')
   add_x_axis(data_incidence_sel$sim_date)
   add_y_axis(y_lim)
-  add_y_axis_pop(y_lim,pop_size_be)
+  add_y_axis_pop(y_lim)
   lines(data_incidence_sel$sim_date,
         data_incidence_sel$cumulative_infectious_cases,
         col=alpha(pcolor$I,pcolor$alpha))
@@ -448,14 +445,14 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   
 
   ## add reference
-  arrows(prevalence_ref$seroprevalence_date,prevalence_ref$seroprevalence_low*pop_size_be,
-         prevalence_ref$seroprevalence_date,prevalence_ref$seroprevalence_high*pop_size_be,
+  arrows(prevalence_ref$seroprevalence_date,prevalence_ref$point_incidence_low,
+         prevalence_ref$seroprevalence_date,prevalence_ref$point_incidence_high,
          angle=90,length=0.05)
-  arrows(prevalence_ref$seroprevalence_date,prevalence_ref$seroprevalence_high*pop_size_be,
-         prevalence_ref$seroprevalence_date,prevalence_ref$seroprevalence_low*pop_size_be,
+  arrows(prevalence_ref$seroprevalence_date,prevalence_ref$point_incidence_high,
+         prevalence_ref$seroprevalence_date,prevalence_ref$point_incidence_low,
          angle=90,length=0.05)
   points(prevalence_ref$seroprevalence_date,
-         prevalence_ref$seroprevalence_mean*pop_size_be,
+         prevalence_ref$point_incidence_mean,
          pch=8)
   
 
@@ -642,7 +639,7 @@ add_y_axis <- function(y_lim,bool_grid = TRUE){
   if(bool_grid) {abline(h=pretty(y_lim,5),lty=3,col='lightgray')}
 }
 
-add_y_axis_pop <- function(y_lim,pop_size){
+add_y_axis_pop <- function(y_lim,pop_size = 11e6){
   
   # add axis
   axis(4,pretty(y_lim),paste0(round(pretty(y_lim)/pop_size*100,digits=1),'%'),las=2,cex.axis=0.9)

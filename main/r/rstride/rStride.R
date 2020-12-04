@@ -39,7 +39,8 @@ smd_load_packages(c('XML',           # to parse and write XML files
                     'scales',        # to plot ensembles with transparant colors
                     'tidyr',         # to easily replace na's by 0 (replace_na)
                     'lhs',           # to sample from a latin hypercube design (instead of using a full factorial grid)
-                    'corrplot'       # to visualise the parameter correlations in the paretor front selection
+                    'corrplot',      # to visualise the parameter correlations in the paretor front selection
+                    'wpp2019'        # to derive population data
                     ))
 
 # load general help functions
@@ -53,6 +54,9 @@ rStride_files <- rStride_files[! grepl('\\.Rmd',rStride_files)]
 
 # load all (remaining files)
 sapply(rStride_files,source)
+
+# patch for the wpp_age function of socialmixr 
+source('bin/rstride/lib/socrates/wpp_age.r')
 
 #' Create a default config
 create_default_config <- function(config_default_filename, run_tag)

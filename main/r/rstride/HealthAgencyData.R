@@ -85,26 +85,50 @@ download_ref_file <- function(cases_ref_url,data_dir = 'data'){
   return(ifelse(exit_status==0,case_ref_file,NA))
 }
 
-load_observed_seroprevalence_data <- function(subset_serology_samples = 0:2)
+load_observed_seroprevalence_data <- function(collection_period = 0:2,
+                                              analysis = "overall")
 {
   
   ## SERO-PREVALENCE DATA ----
-  prevalence_ref <- read.table('./data/covid19_serology_BE_reference.csv',sep=',',header=T)
+  prevalence_ref <- read.table('./data/covid19_serology_BE_reference_age.csv',sep=',',header=T)
   
   # reformat
-  prevalence_ref$collection_date_start <- as.Date(prevalence_ref$collection_date_start)
-  prevalence_ref$collection_date_end   <- as.Date(prevalence_ref$collection_date_end)
+  prevalence_ref$collection_date_start <- as.Date(prevalence_ref$collection_date_start,format='%d/%m/%Y')
+  prevalence_ref$collection_date_end   <- as.Date(prevalence_ref$collection_date_end,format='%d/%m/%Y')
   prevalence_ref$collection_days       <- prevalence_ref$collection_date_end - prevalence_ref$collection_date_start
   prevalence_ref$seroprevalence_date   <- prevalence_ref$collection_date_start - prevalence_ref$days_seroconversion + (prevalence_ref$collection_days/2)
   
-  # calculate total incidence
-  pop_size_be <- 11e6  
-  prevalence_ref$point_incidence_mean  <- prevalence_ref$seroprevalence_mean * pop_size_be
-  prevalence_ref$point_incidence_low   <- prevalence_ref$seroprevalence_low  * pop_size_be
-  prevalence_ref$point_incidence_high  <- prevalence_ref$seroprevalence_high * pop_size_be
+  # calculate total incidence (age-specific demography is taken into account later)
+  # pop_size_be <- 11e6
+  # prevalence_ref$point_incidence_mean  <- prevalence_ref$seroprevalence_weighted * pop_size_be
+  # prevalence_ref$point_incidence_low   <- prevalence_ref$seroprevalence_2p5  * pop_size_be
+  # prevalence_ref$point_incidence_high  <- prevalence_ref$seroprevalence_97p5 * pop_size_be
+  prevalence_ref$point_incidence_mean  <- NA  # add columns
+  prevalence_ref$point_incidence_low   <- NA  # add columns
+  prevalence_ref$point_incidence_high  <- NA  # add columns
+
+  
+  # NEW get age-specific demography data
+  popdata <- get_population_data('belgium',2020,unique(prevalence_ref$age_min))
+  prevalence_pop <- merge(prevalence_ref,popdata,by='age_min')
+
+  # copy the (Stride-based) total popsize for non-age-specific analysis
+  pop_size_be <- 11e6                        # stride population
+  # pop_size_be <- sum(popdata$population)   # actual population
+  prevalence_pop$population[prevalence_pop$analysis != 'age'] <- pop_size_be
+  
+  prevalence_pop$point_incidence_mean  <- prevalence_pop$seroprevalence_weighted * prevalence_pop$population
+  prevalence_pop$point_incidence_low   <- prevalence_pop$seroprevalence_2p5  * prevalence_pop$population
+  prevalence_pop$point_incidence_high  <- prevalence_pop$seroprevalence_97p5 * prevalence_pop$population
+  
+  # select columns
+  prevalence_ref <- prevalence_pop[,names(prevalence_ref)]
   
   # select 'X' sample rounds
-  prevalence_ref <- prevalence_ref[subset_serology_samples,]
+  prevalence_ref <- prevalence_ref[prevalence_ref$collection_period %in% collection_period &
+                                   prevalence_ref$analysis %in% analysis,]
+
+  prevalence_ref
   
   # return
   return(prevalence_ref)
@@ -138,4 +162,49 @@ load_hospital_surge_survey_data <- function(){
 }
 
 
+
+get_population_data <- function(country,year,age_breaks=NA){
+  
+  popdata_agecat <- wpp_age('belgium',2020)
+
+  agecat_size <- unique(diff(sort(popdata_agecat$lower.age.limit)))
+
+  # add final age group
+  popdata_age <- approx(x = popdata_agecat$lower.age.limit,
+                        y = popdata_agecat$population / agecat_size,
+                        # method = 'linear',
+                        method = 'constant',
+                        
+                        xout = seq(min(popdata_agecat$lower.age.limit),
+                                 max(popdata_agecat$lower.age.limit+agecat_size-1),
+                                 1),
+                        rule=2
+                        )
+
+  pop_out  <- data.frame(country     = country,
+                         year        = year,
+                         age_min     = popdata_age$x,
+                         population  = popdata_age$y)
+  
+
+  # if no age breaks given, use one year age groups  
+  if(any(is.na(age_breaks))){
+    age_breaks <- pop_out$age_min
+  }
+  
+  # cut ages
+  pop_out$age_cat <- cut(pop_out$age_min,
+                         breaks=unique(c(age_breaks,max(pop_out$age_min+1))),
+                         include.lowest = T,right=F)
+  
+  # aggregate by age group
+  pop_out <- aggregate(. ~ country + year + age_cat, data = pop_out, sum)
+  
+  # add minimum age per group
+  pop_out$age_min <- age_breaks
+  
+  # return result
+  return(pop_out)
+  
+}
 
