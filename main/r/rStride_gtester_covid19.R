@@ -116,6 +116,9 @@ exp_design_hhcl$holidays_file         <- 'calendar_belgium_2020_covid19_exit_sch
 exp_design_hhcl$start_date            <- '2020-06-01'
 exp_design_hhcl$gtester_label         <- 'covid_hhcl'
 
+# unitesting ----
+# TODO
+
 # contact tracing ----
 exp_design_cts <- exp_design
 exp_design_cts$detection_probability        <- 0.5
@@ -141,14 +144,14 @@ exp_design_transm$gtester_label            <- 'covid_transm_base'
 b0 <- 0.14743616688954;  b1 <- 43.9598287259418              # from: disease_covid19_age  
 tmp_transmission <- rep((exp_design_transm$r0 - b0) / b1,100)
 exp_design_transm$disease_transmission_age <- paste(tmp_transmission,collapse=',')
-exp_design_transm$r0 <- 0  
+exp_design_transm$r0 <- -1  
 
 # age-specific transmission: adapted
 exp_design_transm_adapt <- exp_design
 exp_design_transm_adapt$gtester_label            <- 'covid_transm_adapt'
 tmp_transmission[seq(1,91,9)] <- 0.057
 exp_design_transm_adapt$disease_transmission_age <- paste(tmp_transmission,collapse=',')
-exp_design_transm_adapt$r0 <- 0  
+exp_design_transm_adapt$r0 <- -1  
 
 # rbind all designs
 exp_design <- rbind(exp_design, exp_design_all,
@@ -279,7 +282,7 @@ if(!setequal(project_summary,ref_project_summary)){
   smd_print("SUMMARY CHANGED",WARNING = T)
   
   # check columns
-  if(dim(project_summary) == dim(ref_project_summary)){
+  if(all(dim(project_summary) == dim(ref_project_summary))){
     col_changed <- which(colSums(project_summary != ref_project_summary) > 0)
     smd_print('column(s) with changes:', paste(names(col_changed),collapse = ','),WARNING = T)
   } else{

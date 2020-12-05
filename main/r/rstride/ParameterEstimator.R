@@ -557,8 +557,13 @@ get_normal_negloglike <- function(num_obs,vpois_negloglike){
 }
 
 # based on https://github.com/thomasallanhouse/covid19-growth
-# dat <- new_cases;npts=200; plt=TRUE; figtitle="db"
+# dat <- new_cases;npts=200; plt=TRUE; figtitle="db";bool_confidence=FALSE
 get_doubling_time <- function(dat, npts=200,bool_confidence=FALSE){
+  
+  # if no new infections => doubling time is infinity, so return NA
+  if(length(unique(dat))==1 || sum(!is.na(dat))==1){
+    return(data.frame(mean=NA,sd=NA))
+  }
   
   res<- data.frame(sdt=rep(0,npts),sdtup=rep(0,npts),sdtlow=rep(0,npts))#,expdt=rep(0,3))
   Tv <- seq(1,length(dat),1)
@@ -580,8 +585,8 @@ get_doubling_time <- function(dat, npts=200,bool_confidence=FALSE){
 # dat <- summary_infections$new_infections
 get_longitudinal_doubling_time <- function(dat){
   
-  # if no new infections => doubling time Infinity
-  if(length(unique(dat))==1){
+  # if no new infections => doubling time is infinity, so return NA
+  if(length(unique(dat))==1 || sum(!is.na(dat))==1){
     return(data.frame(mean=NA,sd=NA))
   }
   

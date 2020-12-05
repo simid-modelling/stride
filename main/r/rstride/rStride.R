@@ -134,10 +134,14 @@ parse_log_file <- function(config_exp,
     set.seed(config_exp$rng_seed + 16022018)
     rstride_out$data_transmission <- add_hospital_admission_time(rstride_out$data_transmission,config_exp)
     
+    # get start and end of simulation period
+    sim_date_range<- as.Date(config_exp$start_date,'%Y-%m-%d') + c(0,config_exp$num_days-1)  #note: start on day 0
+    
     # get incidence data
     rstride_out$data_transmission[,infection_date  := as.Date(config_exp$start_date,'%Y-%m-%d') + sim_day]
     rstride_out$data_incidence <- get_transmission_statistics(rstride_out$data_transmission,
-                                                              bool_transmission_all)
+                                                              bool_transmission_all,
+                                                              sim_date_range)
     
     # # store disease burden and hospital admission data (for additional analysis)
     # if(get_burden_rdata){
@@ -221,6 +225,8 @@ run_rStride <- function(exp_design               = exp_design,
                 get_transmission_rdata   = FALSE,
                 # get_burden_rdata         = FALSE,
                 use_date_prefix          = TRUE,
+                get_tracing_rdata        = FALSE,
+                bool_transmission_all    = TRUE,
                 num_parallel_workers     = NA))
     run_tag <- basename(project_dir)
   }

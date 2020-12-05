@@ -227,11 +227,12 @@ inspect_transmission_data <- function(project_dir,save_pdf = TRUE){
 # data_transm_all      <- .rstride$load_aggregated_output(project_dir,'data_transmission')
 # data_transm <- data_transm_all[data_transm_all$exp_id == 1,]
 get_transmission_statistics <- function(data_transm,
-                                        bool_transmission_all = TRUE)
+                                        bool_transmission_all = TRUE,
+                                        sim_date_range)
 {
   
   # 1. Get main statistics (and return?)
-  summary_out <- get_main_transmission_statistics(data_transm)
+  summary_out <- get_main_transmission_statistics(data_transm,sim_date_range)
   if(!bool_transmission_all){
     return(summary_out)
   }
@@ -368,8 +369,8 @@ get_transmission_statistics <- function(data_transm,
 
 
 # separate function with main statistics
-#TODO: prevent code duplication
-get_main_transmission_statistics <- function(data_transm)
+get_main_transmission_statistics <- function(data_transm,
+                                             sim_date_range)
 {
   # setup data.table
   data_transm[,ID := 1:nrow(data_transm),]
@@ -385,6 +386,10 @@ get_main_transmission_statistics <- function(data_transm)
   # set all age categories
   age_cat_all <- paste0('age',1:(length(age_breaks)-1))
   
+  # set all dates
+  summary_date <- data.table(sim_date = seq(min(sim_date_range),max(sim_date_range),1))
+  setkey(summary_date,'sim_date')
+  
   ## INCIDENCE ----
   # infections
   summary_infections   <- get_summary_table(data_transm,'infection_date','age_cat','new_infections',age_cat_all)
@@ -394,10 +399,7 @@ get_main_transmission_statistics <- function(data_transm)
   summary_hospital          <- get_summary_table(data_transm,'date_hosp_adm','age_cat','new_hospital_admissions',age_cat_all)
   
   ## AGGREGATE & MERGE ----
-  summary_out    <- summary_infections
-  
-  # set key
-  setkey(summary_out,'sim_date')
+  summary_out    <- merge(summary_date,summary_infections,all.x = TRUE)
   
   # average number of secondary cases, upon recovery
   summary_out    <- merge(summary_out,summary_hospital,all.x = TRUE)
@@ -422,7 +424,7 @@ get_main_transmission_statistics <- function(data_transm)
 }
 
 # Function to generate summary tables
- #colname_date <- 'infection_date'; colname_value <- 'cnt_location'; prefix <- 'location';
+# colname_date <- 'infection_date'; colname_value <- 'cnt_location'; prefix <- 'location';
 #colname_date <- 'date_hosp_adm'; colname_value <- 'age_cat'; prefix <- 'hosp';
 # colname_date <- 'infection_date'; colname_value <-'age_cat';prefix <- 'new_infections'
 # data_transm <- ref_case_data_table; colname_date="DATE";colname_value='AGEGROUP';prefix='d'

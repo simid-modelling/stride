@@ -90,7 +90,7 @@ load_observed_seroprevalence_data <- function(collection_period = 0:2,
 {
   
   ## SERO-PREVALENCE DATA ----
-  prevalence_ref <- read.table('./data/covid19_serology_BE_reference_age.csv',sep=',',header=T)
+  prevalence_ref <- read.table('./data/covid19_serology_BE_reference.csv',sep=',',header=T)
   
   # reformat
   prevalence_ref$collection_date_start <- as.Date(prevalence_ref$collection_date_start,format='%d/%m/%Y')
