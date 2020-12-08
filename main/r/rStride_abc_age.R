@@ -31,10 +31,6 @@ if(length(args)>0){
   job_id <-''
 }
 
-# lw's developing option
-if(any(grepl('lwillem',dir('~',full.names=T)))){
-  .rstride$set_wd()
-}
 
 # Clear work environment
 rm(list=ls()[ls() != 'job_id'])
@@ -77,7 +73,7 @@ model_param_update <- get_exp_param_default(bool_revised_model_param = T,
                                             bool_min_restrictive = T)
 
 # TEMP
-model_param_update$population_file <- "pop_belgium600k_c500_teachers_censushh.csv"
+#model_param_update$population_file <- "pop_belgium600k_c500_teachers_censushh.csv"
 model_param_update$num_days        <- 74
 #model_param_update$logparsing_cases_upperlimit <- 2.5e6
 model_param_update$hospital_category_age <- "0,10,20,30,40,50,60,70,80,90"
@@ -93,17 +89,6 @@ ref_period <- seq(as.Date('2020-03-15'),
 sum_stat_obs <- get_abc_reference_data(ref_period,
                                        bool_age = TRUE,
                                        bool_doubling_time = FALSE)
-
-
-# names(sum_stat_obs) <- c(paste0('hosp_adm',1:length(hosp_ref_data$hospital_admissions)),
-#                          paste0('incidence',1:2),
-#                          rep('inc_duplicate',44),
-#                          'init_doubling_time',
-#                          rep('dtime_duplicate',45))
-# names(sum_stat_obs) <- c(names(abc_hosp_stat),
-#                          names(abc_sero_stat),
-#                          rep('inc_duplicate',(sero_rep_factor-1) * length(abc_sero_stat)))
-
 
 
 ################################## #
