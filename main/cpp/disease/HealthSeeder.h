@@ -59,8 +59,6 @@ private:
 
         double             m_sympt_cnt_reduction_work_school;  ///< Proportional reduction of days in work/school pool when symptomatic
         double             m_sympt_cnt_reduction_community;    ///< Proportional reduction of days in the community pools when symptomatic
-        double             m_rel_transmission_asymptomatic;	   ///< Relative reduction of transmission for asymptomatic cases
-        double             m_rel_susceptibility_children;	   ///< Relative reduction of susceptibility for children vs. adults
 
 };
 

@@ -45,8 +45,8 @@ source('./bin/rStride_intervention_baseline.R')
 library(EasyABC)
 
 # set samples and cluster size
-n_sample = 24
 n_cluster = 8
+n_sample = n_cluster * 3 #24
 
 # set acceptance level
 pacc=0.8

@@ -234,7 +234,6 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                 if (!p1->IsInPool(pType)) {
                         continue;
                 }
-                const auto  tProb1    = transProfile.GetProbability(p1->GetAge());
                 // loop over possible contacts (contacts can be initiated by each member)
                 for (size_t i_person2 = i_person1 + 1; i_person2 < pSize; i_person2++) {
                         // check if not the same person
@@ -251,11 +250,13 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
                         		cnt_reduction_work, cnt_reduction_other,cnt_reduction_school,cnt_reduction_intergeneration,
 								cnt_reduction_intergeneration_cutoff,population,m_cnt_intensity_householdCluster);
                         if (cHandler.HasContact(cProb)) {
-								const auto  tProb2    = transProfile.GetProbability(p2->GetAge());
+								const auto  tProb_p1_p2    = transProfile.GetProbability(p1,p2);
+								const auto  tProb_p2_p1    = transProfile.GetProbability(p2,p1);
+
                                 // log contact if person 1 is participating in survey
-                                LP::Contact(eventLogger, p1, p2, pType, simDay, cProb, tProb1 * p1->GetHealth().GetRelativeTransmission(p2->GetAge()));
+                                LP::Contact(eventLogger, p1, p2, pType, simDay, cProb, tProb_p1_p2);
                                 // log contact if person 2 is participating in survey
-                                LP::Contact(eventLogger, p2, p1, pType, simDay, cProb, tProb2 * p2->GetHealth().GetRelativeTransmission(p1->GetAge()));
+                                LP::Contact(eventLogger, p2, p1, pType, simDay, cProb, tProb_p2_p1);
 
                                 // if track&trace is in place, option to register (both) contact(s)
                                 p1->RegisterContact(p2);
@@ -268,7 +269,7 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
 
 								// if h1 infectious, account for susceptibility of p2
 								if (h1.IsInfectious() && h2.IsSusceptible() &&
-									cHandler.HasTransmission(tProb1 * p1->GetHealth().GetRelativeTransmission(p2->GetAge()))) {
+									cHandler.HasTransmission(tProb_p1_p2)) {
 										h2.StartInfection(h1.GetIdIndexCase(),p1->GetId());
 										if (TIC)
 												h2.StopInfection();
@@ -277,7 +278,7 @@ void Infector<LL, TIC, TO>::Exec(ContactPool& pool, const AgeContactProfile& pro
 
 								// if h2 infectious, account for susceptibility of p1
 								if (h2.IsInfectious() && h1.IsSusceptible() &&
-									cHandler.HasTransmission(tProb2 * p2->GetHealth().GetRelativeTransmission(p1->GetAge()))) {
+									cHandler.HasTransmission(tProb_p2_p1)) {
 										h1.StartInfection(h2.GetIdIndexCase(),p2->GetId());
 										if (TIC)
 												h1.StopInfection();
@@ -326,7 +327,6 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                 }
                 auto& h1 = p1->GetHealth();
                 if (h1.IsInfectious()) {
-                		const auto  tProb1    = transProfile.GetProbability(p1->GetAge());
                         // loop over possible susceptible contacts
                         for (size_t i_contact = num_cases; i_contact < pImmune; i_contact++) {
                                 // check if member is present today
@@ -337,7 +337,8 @@ void Infector<LL, TIC, true>::Exec(ContactPool& pool, const AgeContactProfile& p
                                 const double cProb_p1 = GetContactProbability(profile, p1, p2, pSize, pType,
                                 		cnt_reduction_work, cnt_reduction_other,cnt_reduction_school, cnt_reduction_intergeneration,
 										cnt_reduction_intergeneration_cutoff,population,m_cnt_intensity_householdCluster);
-                                if (cHandler.HasContactAndTransmission(cProb_p1, tProb1 * p1->GetHealth().GetRelativeTransmission(p2->GetAge()))) {
+                                const auto  tProb_p1_p2   = transProfile.GetProbability(p1,p2);
+                                if (cHandler.HasContactAndTransmission(cProb_p1, tProb_p1_p2)) {
                                         auto& h2 = p2->GetHealth();
                                         if (h1.IsInfectious() && h2.IsSusceptible()) {
                                                 h2.StartInfection(h1.GetIdIndexCase(),p1->GetId());

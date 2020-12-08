@@ -461,11 +461,13 @@ get_abc_reference_data <- function(ref_period ,
    }
    dim(sum_stat_obs); table(sum_stat_obs$bool_orig)
    
-   sero_dtime_factor   <- floor(nrow(abc_hosp_stat) / nrow(abc_dtime_stat))
-   for(i in 2:sero_dtime_factor){
-      sum_stat_obs <- rbind(sum_stat_obs,abc_dtime_stat[,bool_orig := FALSE])
+   if(!is.null(abc_dtime_stat)){
+      sero_dtime_factor   <- floor(nrow(abc_hosp_stat) / nrow(abc_dtime_stat))
+      for(i in 2:sero_dtime_factor){
+         sum_stat_obs <- rbind(sum_stat_obs,abc_dtime_stat[,bool_orig := FALSE])
+      }
+      dim(sum_stat_obs); table(sum_stat_obs$bool_orig)
    }
-   dim(sum_stat_obs); table(sum_stat_obs$bool_orig)
    
    return(sum_stat_obs)
    
