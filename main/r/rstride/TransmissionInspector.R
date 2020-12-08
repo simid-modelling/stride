@@ -322,7 +322,7 @@ get_transmission_statistics <- function(data_transm,
   # add average pre-lockdown doubling time
   ref_dates <- seq(as.Date('2020-02-24'),as.Date('2020-03-08'),1)
   summary_out[,doubling_time_march:=NA_real_]
-  summary_out[sim_date %in% ref_dates, doubling_time_march :=  get_doubling_time(new_infections)$mean]
+  summary_out[sim_date %in% ref_dates, doubling_time_march :=  get_doubling_time(new_infections)]
   summary_out[,doubling_time_march]
 
   ## (A)SYMPTOMATIC TRANSMISSION    ----

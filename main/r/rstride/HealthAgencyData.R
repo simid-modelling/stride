@@ -20,10 +20,10 @@
 # PROVIDE PUBLIC HEALTH AGENCY DATA                                        ##
 #############################################################################
 
-get_observed_incidence_data <- function(num_samples = 1)
+get_observed_incidence_data <- function()
 {
   
-  ## REFERENCE DATA COVID-19: new hospital admissions ----
+  ## new hospital admissions ----
   # use (local version of) most recent SCIENSANO data (or local backup version)
   ref_data_file_name <- smd_file_path('data',paste0('covid19_reference_data_',gsub('-','',Sys.Date()),'.csv'))
   backup_file        <- smd_file_path('data',paste0('covid19_reference_data.csv'))
@@ -85,11 +85,11 @@ download_ref_file <- function(cases_ref_url,data_dir = 'data'){
   return(ifelse(exit_status==0,case_ref_file,NA))
 }
 
-load_observed_seroprevalence_data <- function(collection_period = 0:2,
+load_observed_seroprevalence_data <- function(ref_period = NA,
                                               analysis = "overall")
 {
   
-  ## SERO-PREVALENCE DATA ----
+  ## sero-prevalence data ----
   prevalence_ref <- read.table('./data/covid19_serology_BE_reference.csv',sep=',',header=T)
   
   # reformat
@@ -111,6 +111,10 @@ load_observed_seroprevalence_data <- function(collection_period = 0:2,
   # NEW get age-specific demography data
   popdata <- get_population_data('belgium',2020,unique(prevalence_ref$age_min))
   prevalence_pop <- merge(prevalence_ref,popdata,by='age_min')
+  
+  # sort by collection period
+  prevalence_pop <- prevalence_pop[order(prevalence_pop$collection_period),]
+  
 
   # copy the (Stride-based) total popsize for non-age-specific analysis
   pop_size_be <- 11e6                        # stride population
@@ -124,8 +128,12 @@ load_observed_seroprevalence_data <- function(collection_period = 0:2,
   # select columns
   prevalence_ref <- prevalence_pop[,names(prevalence_ref)]
   
-  # select 'X' sample rounds
-  prevalence_ref <- prevalence_ref[prevalence_ref$collection_period %in% collection_period &
+  if(any(is.na(ref_period))){
+    ref_period <- unique(prevalence_ref$seroprevalence_date)
+  }
+  
+  # select 'X' sample rounds and type
+  prevalence_ref <- prevalence_ref[prevalence_ref$seroprevalence_date %in% ref_period &
                                    prevalence_ref$analysis %in% analysis,]
 
   prevalence_ref
@@ -207,4 +215,72 @@ get_population_data <- function(country,year,age_breaks=NA){
   return(pop_out)
   
 }
+
+
+# function to combine the reported hospital admissions and age-specific proportions over time
+get_hospital_incidence_age <- function(age_breaks_str){
+  
+  ## hospital admissions by age----
+  # note: we cannot include this data in the public repository (yet)
+  # solution: use local version of real data or "dummy" backup to prevent fatal errors
+  ref_data_file_name <- smd_file_path('data',paste0('covid19_hospital_age_2020.csv'))      
+  backup_file        <- smd_file_path('data',paste0('covid19_hospital_age_dummy.csv'))
+  
+  if(file.exists(ref_data_file_name)){
+    ref_data <- read.csv(ref_data_file_name,header = T)
+  } else{
+    ref_data <- read.csv(backup_file,header = T)
+  }
+  
+  # reformat
+  ref_data   <- t(ref_data[,-1])
+  
+  # select age groups with 80+ 
+  #TODO: make flexible
+  ref_data[,9] <- ref_data[,9] + ref_data[,10]
+  ref_data     <- ref_data[,-10]
+  
+  # get ages and dates
+  age_min    <- seq(0,80,10)
+  date_start <- as.Date('2020-03-09')
+  date_end   <- date_start + (nrow(ref_data)-1)*7
+  date_weeks <- seq(date_start,date_end,7)
+  date_all   <- seq(date_start,date_end+6,1)
+  
+  hosp_age_full <- matrix(NA,ncol=length(age_min),nrow=length(date_all))
+  
+  i_age <- 1
+  for(i_age in 1:length(age_min)){
+    hosp_age_full[,i_age] <- approx(date_weeks,
+                                    ref_data[,i_age],
+                                    method = 'constant',
+                                    xout = date_all,
+                                    rule = 2)$y
+  }
+  
+  # convert percentage into fraction
+  hosp_age_full <- hosp_age_full/100
+  
+  # get reported hospital admissions over time
+  hosp_incidence <- get_observed_incidence_data()
+  hosp_incidence$sim_date <- as.Date(hosp_incidence$sim_date)
+  
+  # calculate age-specific hospital admissions over time
+  names(hosp_incidence)
+  for(i_age in 1:length(age_min)){
+    
+    age_range <- c(age_min,110)
+    
+    col_name <- paste0(c('hospital_admissions',age_range[i_age],age_range[i_age+1]),collapse='_')
+    hosp_incidence[,col_name] <- NA
+    
+    flag_date <- hosp_incidence$sim_date %in% date_all
+    hosp_incidence[flag_date,col_name] <- ceiling(hosp_incidence$hospital_admissions[flag_date] * hosp_age_full[,i_age])
+  }
+  
+  # return age-specific hospital admissions over time
+  return(hosp_incidence)
+
+}
+
 

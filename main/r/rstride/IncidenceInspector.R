@@ -445,15 +445,12 @@ plot_incidence_data <- function(data_incidence_sel,project_summary,
   
 
   ## add reference
-  arrows(prevalence_ref$seroprevalence_date,prevalence_ref$point_incidence_low,
-         prevalence_ref$seroprevalence_date,prevalence_ref$point_incidence_high,
-         angle=90,length=0.05)
-  arrows(prevalence_ref$seroprevalence_date,prevalence_ref$point_incidence_high,
-         prevalence_ref$seroprevalence_date,prevalence_ref$point_incidence_low,
-         angle=90,length=0.05)
   points(prevalence_ref$seroprevalence_date,
          prevalence_ref$point_incidence_mean,
          pch=8)
+  add_interval(prevalence_ref$seroprevalence_date,
+               y1 = prevalence_ref$point_incidence_low,
+               y2 = prevalence_ref$point_incidence_high)
   
 
 } # end function to plot figure
@@ -502,6 +499,35 @@ add_vertical_line <- function(date_string,bool_text,date_tag = ''){
   }
 }
   
+add_interval <- function(x,y1,y2){
+  ## add reference
+  arrows(x,y1,
+         x,y2,
+         angle=90,length=0.05)
+  arrows(x,y2,
+         x,y1,
+         angle=90,length=0.05)
+}
+
+add_interval_hor <- function(x1,x2,x_mean,...){
+  
+  # get mean y-axis
+  #y_mean <- mean(par("usr")[3:4])
+  y_mean <- par("usr")[4]*3/4
+  
+  points(x=x_mean,y = y_mean,
+         pch = 8,
+         ...)
+  
+  ## add reference
+  arrows(x1,y_mean,
+         x2,y_mean,
+         angle=90,length=0.05,...)
+  arrows(x2,y_mean,
+         x1,y_mean,
+         angle=90,length=0.05,...)
+}
+
 
 # define the legend for hospital(-only) plots
 add_legend_hosp <- function(pcolor){

@@ -169,7 +169,7 @@ dim(exp_design)
 # align rng seeds for "base" and "transm_base"
 exp_design$rng_seed[grepl('covid_transm',exp_design$gtester_label)] <- exp_design$rng_seed[exp_design$gtester_label %in% c('covid_base')]
 
-# # selection?
+# # selection? ----
 # exp_design <- exp_design[exp_design$gtester_label %in% c('covid_base'),]
 # exp_design <- exp_design[exp_design$gtester_label %in% c('covid_base','covid_transm_base','covid_transm_adapt'),]
 

@@ -53,10 +53,10 @@ n_sample = 24
 n_cluster = 8
 
 # set acceptance level
-pacc=0.5
+pacc=0.8
 
 # set directory postfix (optional)
-dir_postfix <- paste0('_abc_n',n_sample,'_c',n_cluster,'_p',formatC(pacc*100,flag = 0,digits = 2))
+dir_postfix <- paste0('_abc_age_n',n_sample,'_c',n_cluster,'_p',formatC(pacc*100,flag = 0,digits = 2))
 dir_postfix
 
 # create run tag using the current time if use_date_prefix == TRUE
@@ -80,20 +80,30 @@ model_param_update <- get_exp_param_default(bool_revised_model_param = T,
 model_param_update$population_file <- "pop_belgium600k_c500_teachers_censushh.csv"
 model_param_update$num_days        <- 74
 #model_param_update$logparsing_cases_upperlimit <- 2.5e6
-
+model_param_update$hospital_category_age <- "0,10,20,30,40,50,60,70,80,90"
 
 ref_period <- seq(as.Date('2020-03-15'),
                   as.Date(model_param_update$start_date) + model_param_update$num_days-1,
                   1)
 
-# ################################################ #
-# ## REFERENCE DATA  ----
-# ################################################ #
-
+################################################ #
+## REFERENCE DATA  ----
+################################################ #
 
 sum_stat_obs <- get_abc_reference_data(ref_period,
-                                       bool_age = FALSE,
-                                       bool_doubling_time = TRUE)
+                                       bool_age = TRUE,
+                                       bool_doubling_time = FALSE)
+
+
+# names(sum_stat_obs) <- c(paste0('hosp_adm',1:length(hosp_ref_data$hospital_admissions)),
+#                          paste0('incidence',1:2),
+#                          rep('inc_duplicate',44),
+#                          'init_doubling_time',
+#                          rep('dtime_duplicate',45))
+# names(sum_stat_obs) <- c(names(abc_hosp_stat),
+#                          names(abc_sero_stat),
+#                          rep('inc_duplicate',(sero_rep_factor-1) * length(abc_sero_stat)))
+
 
 
 ################################## #
@@ -101,14 +111,29 @@ sum_stat_obs <- get_abc_reference_data(ref_period,
 ################################## #
 
 # set priors
-stride_prior <- list(r0                         = c("unif",1.0,5.0),   
-                     num_infected_seeds         = c("unif",200,600),
-                     hosp_probability_factor    = c("unif",0.05,0.95),
-                     cnt_reduction_workplace    = c("unif",0.60,0.95),
+stride_prior <- list(r0                         = c("unif",3.0,4.0),
+                     num_infected_seeds         = c("unif",200,300),
+                     hosp_probability_factor    = c("unif",0.3,0.5),
+                     cnt_reduction_workplace    = c("unif",0.70,0.85),
                      compliance_delay_workplace = c("unif",4.51,7.49),  # rounded: 5-7
-                     cnt_reduction_other        = c("unif",0.60,0.95),
+                     cnt_reduction_other        = c("unif",0.70,0.85),
                      compliance_delay_other     = c("unif",4.51,7.49))  # rounded: 5-7
 
+# p_trans_min <- 0.07;p_trans_max <- 0.09
+# stride_prior <- list(#r0                         = c("unif",1.0,5.0),    
+#                      num_infected_seeds         = c("unif",200,300),
+#                      #hosp_probability_factor    = c("unif",0.05,0.95),
+#                      cnt_reduction_workplace    = c("unif",0.60,0.95),
+#                      compliance_delay_workplace = c("unif",4.51,7.49),  # rounded: 5-7
+#                      cnt_reduction_other        = c("unif",0.60,0.95),
+#                      compliance_delay_other     = c("unif",4.51,7.49))  # rounded: 5-7
+# 
+# i_age <- 2
+# for(i_age in 1:10){
+#   stride_prior[[paste0('transm_age_',i_age)]] <- c("unif",0.07,0.09) # 0.0831236
+#   stride_prior[[paste0('hosp_age_',i_age)]]   <- c("unif",0.1,0.8)   # various levels  
+# }
+# length(stride_prior)
 
 
 ## for debugging
@@ -120,9 +145,9 @@ setwd(run_file_path)
 saveRDS(model_param_update,'model_param_update.rds')
 saveRDS(sum_stat_obs,'sum_stat_obs.rds')
 
-# stride_out <- run_rStride_abc(c(20,4,400,0.4,0.85,7.4,0.85,4.51))
-# length(stride_out)
-# dim(sum_stat_obs)
+ # stride_out <- run_rStride_abc(c(20,4,400,0.4,0.85,7.4,0.85,4.51))
+ # length(stride_out)
+ # dim(sum_stat_obs)
 
 # p = 0.2
 # ABC_stride<-ABC_rejection(model     = run_rStride_abc,
@@ -172,7 +197,6 @@ print(ABC_stride$computime/3600)
 print(ABC_stride$nsim)
 print(length(ABC_stride$intermediary))
 
-
 # plot (final) results
 plot_abc_results(ABC_stride,project_dir)
 
@@ -182,5 +206,20 @@ plot_abc_correlation(ABC_stride,project_dir)
 # intermediate results
 plot_abc_intermediate(ABC_stride,project_dir)
 
+
+## debug
+if(0==1){
+  
+  abc_out <- read.table(smd_file_path('./sim_output',run_tag_data,'output'),sep=' ')
+  dim(abc_out)
+  length(sum_stat_obs)
+  
+  abc_out[,1]
+  head(abc_out)
+  abc_out$V55
+  abc_out$V54
+  abc_out$V146
+  
+}
 
 
