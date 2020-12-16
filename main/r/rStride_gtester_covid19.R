@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L
 ############################################################################ #
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -53,8 +53,7 @@ exp_design <- expand.grid(r0                            = 2.5,
                           population_file               = 'pop_belgium600k_c500_teachers_censushh.csv',
                           age_contact_matrix_file       = 'contact_matrix_flanders_conditional_teachers.xml',
                           start_date                    = '2020-03-05',
-                          holidays_file                 = 'holidays_flanders_2020.json',
-                          school_system_adjusted        = 0,
+                          holidays_file                 = 'holidays_belgium_2019_2021.csv',
                           telework_probability          = 0,
                           cnt_reduction_workplace       = 0,
                           cnt_reduction_other           = 0,
@@ -72,19 +71,30 @@ exp_design <- expand.grid(r0                            = 2.5,
                           tracing_efficiency_other       = 0,
                           case_finding_capacity          = 0,
                           test_false_negative            = 0,
-                          gtester_label                  = 'covid_all',
+                          gtester_label                  = 'covid_base',
                           event_log_level                = 'Transmissions',
+                          
+                          hospital_category_age         = paste(0,19,60,80,sep=','),
+                          hospital_probability_age      = paste(0.049,0.03024,0.1197,0.5922,sep=','),
+                          hospital_mean_delay_age       = paste(3,7,7,6,sep=','),
+                          
+                          disease_transmission_age      = 0,
+
                           stringsAsFactors = F)
 
+# all contacts ----
+exp_design_all <- exp_design
+exp_design_all$event_log_level            <- 'All'
+exp_design_all$gtester_label              <- 'covid_all'
  
-# daily seeding
+# daily seeding ----
 exp_design_daily <- exp_design
 exp_design_daily$num_daily_imported_cases <- 10
 exp_design_daily$gtester_label            <- 'covid_daily'
 
-# distancing
+# distancing ----
 exp_design_dist <- exp_design
-exp_design_dist$holidays_file              <- 'calendar_belgium_2020_covid19_april.json'
+exp_design_dist$holidays_file              <- 'calendar_belgium_2020_covid19_exit_school_adjusted.csv'
 exp_design_dist$cnt_reduction_workplace    <- 0.3;
 exp_design_dist$cnt_reduction_other        <- 0.4;
 exp_design_dist$compliance_delay_workplace <- 3;
@@ -92,24 +102,27 @@ exp_design_dist$compliance_delay_other     <- 4;
 exp_design_dist$gtester_label              <- 'covid_distancing'
 
 
-# age_15min
+# age_15min ----
 exp_design_15min <- exp_design
 exp_design_15min$disease_config_file     <- 'disease_covid19_age_15min.xml'
 exp_design_15min$age_contact_matrix_file <- 'contact_matrix_flanders_conditional_teachers_15min.xml'
 exp_design_15min$gtester_label           <- 'covid_15min'
 
-# householdCluster
+# householdCluster ----
 exp_design_hhcl <- exp_design
 exp_design_hhcl$population_file       <- 'pop_belgium600k_c500_teachers_censushh_extended3_size2.csv'
 exp_design_hhcl$cnt_intensity_householdCluster <- 4/7
-exp_design_hhcl$holidays_file         <- 'calendar_belgium_2020_covid19_exit_school_adjusted.json'
+exp_design_hhcl$holidays_file         <- 'calendar_belgium_2020_covid19_exit_schoolcategory_adjusted.csv'
 exp_design_hhcl$start_date            <- '2020-06-01'
 exp_design_hhcl$gtester_label         <- 'covid_hhcl'
 
-# contact tracing
+# unitesting ----
+# TODO
+
+# contact tracing ----
 exp_design_cts <- exp_design
 exp_design_cts$detection_probability        <- 0.5
-exp_design_cts$holidays_file                <- 'calendar_belgium_2020_covid19_exit_school_adjusted.json'
+exp_design_cts$holidays_file                <- 'calendar_belgium_2020_covid19_exit_schoolcategory_adjusted.csv'
 exp_design_cts$start_date                   <- '2020-06-01'
 exp_design_cts$tracing_efficiency_household <- 1.0
 exp_design_cts$tracing_efficiency_other     <- 0.7
@@ -120,25 +133,71 @@ exp_design_cts$gtester_label                <- 'covid_tracing'
 
 # contact tracing all
 exp_design_cts_all <- exp_design_cts
-exp_design_cts_all$event_log_level              <- 'ContactTracing'
-exp_design_cts_all$gtester_label                <- 'covid_tracing_optim'
+exp_design_cts_all$event_log_level          <- 'ContactTracing'
+exp_design_cts_all$gtester_label            <- 'covid_tracing_all'
+
+# age-specific transmission: baseline ----
+# note: this should provide exact the same results as 'covid_base'
+exp_design_transm <- exp_design
+exp_design_transm$gtester_label            <- 'covid_transm_base'
+# b0 <- 0.124492138353664; b1 <- 39.6458896077442            # from: disease_covid19_lognormal 
+b0 <- 0.14743616688954;  b1 <- 43.9598287259418              # from: disease_covid19_age  
+tmp_transmission <- rep((exp_design_transm$r0 - b0) / b1,100)
+exp_design_transm$disease_transmission_age <- paste(tmp_transmission,collapse=',')
+exp_design_transm$r0 <- -1  
+
+# age-specific transmission: adapted
+exp_design_transm_adapt <- exp_design
+exp_design_transm_adapt$gtester_label            <- 'covid_transm_adapt'
+tmp_transmission[seq(1,91,9)] <- 0.057
+exp_design_transm_adapt$disease_transmission_age <- paste(tmp_transmission,collapse=',')
+exp_design_transm_adapt$r0 <- -1  
 
 # rbind all designs
-exp_design <- rbind(exp_design, exp_design_cts, exp_design_cts_all,
+exp_design <- rbind(exp_design, exp_design_all,
+                    exp_design_cts_all, exp_design_cts,
                     exp_design_daily, exp_design_dist,
-                    exp_design_15min, exp_design_hhcl)
+                    exp_design_15min, exp_design_hhcl,
+                    exp_design_transm,exp_design_transm_adapt)
+
 
 # add a unique seed for each run
-set.seed(125)
-exp_design$rng_seed <- sample(nrow(exp_design))
+# note: the rng seeds don't change (anymore) with additional tests
+exp_design$rng_seed <- 1:nrow(exp_design)
 dim(exp_design)
+
+# align rng seeds for "base" and "transm_base"
+exp_design$rng_seed[grepl('covid_transm',exp_design$gtester_label)] <- exp_design$rng_seed[exp_design$gtester_label %in% c('covid_base')]
+
+# # selection? ----
+# exp_design <- exp_design[exp_design$gtester_label %in% c('covid_base'),]
+# exp_design <- exp_design[exp_design$gtester_label %in% c('covid_base','covid_transm_base','covid_transm_adapt'),]
 
 
 ################################## #
 ## RUN rSTRIDE                  ####
 ################################## #
 project_dir <- run_rStride(exp_design               = exp_design,
-                           dir_postfix              = dir_postfix)
+                           dir_postfix              = dir_postfix,
+                           ignore_stdout            = TRUE,
+                           remove_run_output        = TRUE )
+
+
+##################################### #
+## RUN ABC METHODS ----
+##################################### #
+smd_print("START ABC FUNCTION TEST")
+# get one parameter config, set workdir and save parameter RDS file
+model_param_abc <- exp_design[exp_design$gtester_label %in% c('covid_base'),]
+model_param_abc <- exp_design[1,]
+setwd(project_dir)
+saveRDS(model_param_abc,'model_param_update.rds')
+
+# run rStride_abc
+rstride_out_abc <- run_rStride_abc(c(100,3,400,0.4,0.85,7.4,0.85,4.51))
+
+# restore workdir
+setwd('../..')
 
 
 ##################################### #
@@ -151,6 +210,7 @@ inspect_prevalence_data(project_dir)
 inspect_transmission_dynamics(project_dir)
 inspect_tracing_data(project_dir)
 #inspect_contact_data(project_dir)
+
 
 
 ##################################### #
@@ -167,6 +227,33 @@ project_summary$run_tag        <- NULL
 project_summary$run_time       <- NULL
 project_summary$total_time     <- NULL
 
+# CHECK summary: plot number of cases
+y_lim     <- range(pretty(c(project_summary$num_cases*0.9,project_summary$num_cases*1.1)))
+bplt_mean <- aggregate(num_cases ~ gtester_label,data=project_summary,mean)
+bplt_mean$num_cases <- round(bplt_mean$num_cases)
+bplt <- boxplot(num_cases ~ gtester_label,data=project_summary,las=2,ylim=y_lim)
+x_ticks_mean <- (1:ncol(bplt$stats))+0.2
+points(x = x_ticks_mean,
+       y = bplt_mean$num_cases,
+       pch = 8,
+       col = 4)
+arrows(x0 = x_ticks_mean,
+       y0 = bplt_mean$num_cases * 0.9,
+       y1 = bplt_mean$num_cases * 1.1,
+       col = 4, lwd = 2,length = 0
+       )
+text(x = 1:ncol(bplt$stats),
+     y = bplt_mean$num_cases*1.1,
+     labels = bplt_mean$num_cases,
+     pos = 3,
+     col=4)
+legend('topright',
+       c('mean',
+         'mean ± 10%'),
+       pch=c('*','I'),
+       col=4)
+grid()
+
 # load the incidence output
 data_incidence     <- .rstride$load_aggregated_output(project_dir,'data_incidence')
 dim(data_incidence)
@@ -180,17 +267,30 @@ ref_project_summary  <- readRDS(file='tests/regression_rstride_summary.rds')
 ref_data_incidence   <- readRDS(file='tests/regression_rstride_incidence.rds')
 ref_data_prevalence  <- readRDS(file='tests/regression_rstride_prevalence.rds')
 
-# plot number of cases
-bplt <- boxplot(num_cases ~ gtester_label,data=project_summary,las=2)
-text(x = 1:ncol(bplt$stats),
-     y = bplt$stats[5,],
-     labels = bplt$stats[3,],
-     pos = 3)
+# Do we have to select reference scenarios?
+if(nrow(project_summary) != nrow(ref_project_summary)){
+  ref_project_summary <- ref_project_summary[ref_project_summary$gtester_label %in% unique(project_summary$gtester_label),]
+  ref_data_incidence  <- ref_data_incidence[ref_data_incidence$exp_id %in% unique(ref_project_summary$exp_id),]
+  ref_data_prevalence <- ref_data_prevalence[ref_data_prevalence$exp_id %in% unique(ref_project_summary$exp_id),]
+  smd_print("REGRESSION TEST DOES NOT CONTAIN ALL SCENARIOS",WARNING = T)
+}
 
-## COMPARE SUMMARY
-diff_summary    <- setdiff(project_summary,ref_project_summary)
-if(length(diff_summary)>0){ 
+## COMPARE SUMMARY ----
+
+if(!setequal(project_summary,ref_project_summary)){ 
+  
   smd_print("SUMMARY CHANGED",WARNING = T)
+  
+  # check columns
+  if(all(dim(project_summary) == dim(ref_project_summary))){
+    col_changed <- which(colSums(project_summary != ref_project_summary) > 0)
+    smd_print('column(s) with changes:', paste(names(col_changed),collapse = ','),WARNING = T)
+  } else{
+    smd_print('Summary dimensions changed!',WARNING = T)
+    
+  }
+  
+  diff_summary    <- setdiff(project_summary,ref_project_summary)
   smd_print(names(diff_summary),WARNING = T)
   
   if(length(diff_summary)>1 && all(dim(project_summary) == dim(ref_project_summary))){
@@ -199,9 +299,18 @@ if(length(diff_summary)>0){
     project_summary[flag,names(diff_summary)]
     ref_project_summary[flag,names(diff_summary)]
     
-    par(mfrow=c(1,2))
-    boxplot(num_cases ~ gtester_label,data=ref_project_summary)
-    boxplot(num_cases ~ gtester_label,data=project_summary,add=F,col=alpha(2,0.4))   
+    par(mfrow=c(1,2),mar=c(8,4,4,2))
+    y_lim <- range(pretty(c(ref_project_summary$num_cases,project_summary$num_cases)))
+    boxplot(num_cases ~ gtester_label,
+            data=ref_project_summary,main='REFERENCE',ylim=y_lim, las=2);grid()
+    boxplot(num_cases ~ gtester_label,
+            data=ref_project_summary,main='BOTH',ylim=y_lim, las=2);grid()
+    boxplot(num_cases ~ gtester_label,
+            data=project_summary,add=T,
+            col=alpha(2,0.4),main='',ylim=y_lim,las=2)  ;
+    legend('topleft',c('reference','new'),fill=c(1,alpha(2,0.4)) ,cex=0.8)
+    grid() 
+    par(mfrow=c(1,1),mar=c(8,4,4,2))
 
   }
   #print(head(diff_summary))
@@ -210,30 +319,66 @@ if(length(diff_summary)>0){
 }
 
 
-## COMPARE INCIDENCE
-diff_incidence  <- setdiff(data_incidence,ref_data_incidence)
-if(length(diff_incidence)>0){ 
-  smd_print("INCIDENCE CHANGED",WARNING = T)
-  smd_print(names(diff_incidence),WARNING = T)
-  
-  if(all(dim(data_incidence) == dim(ref_data_incidence))){
-    flag <- rowSums(data_incidence[,names(diff_incidence)] != ref_data_incidence[,names(diff_incidence)],na.rm=T)>0
-    smd_print('EXP_ID with changes:', paste(unique(data_incidence$exp_id[flag]),collapse = ','))
-    # data_incidence[flag,names(diff_incidence)]
-    # ref_data_incidence[flag,names(diff_incidence)]    
-  }
-  #print(head(diff_incidence))
-} else{
+## COMPARE INCIDENCE ----
+if(setequal(data_incidence, ref_data_incidence)){
   smd_print("INCIDENCE OK")
+} else{
+  
+  missing_colnames_new <- !names(data_incidence) %in% names(ref_data_incidence)
+  if(any(missing_colnames_new)){
+    smd_print('INCIDENCE columns added:', paste(names(data_incidence)[missing_colnames_new],collapse = ','),WARNING = T)
+  }
+  
+  missing_colnames_ref <- !names(ref_data_incidence) %in% names(data_incidence)
+  if(any(missing_colnames_ref)){
+    smd_print('INCIDENCE columns missing:', paste(names(ref_data_incidence)[missing_colnames_ref],collapse = ','),WARNING = T)
+  }
+  
+  
+  diff_incidence  <- setdiff(data_incidence,ref_data_incidence)
+  if(length(diff_incidence)>0){ 
+    smd_print("INCIDENCE CHANGED",WARNING = T)
+    smd_print(names(diff_incidence),WARNING = T)
+    
+    if(all(dim(data_incidence) == dim(ref_data_incidence))){
+      flag <- rowSums(data_incidence[,names(diff_incidence)] != ref_data_incidence[,names(diff_incidence)],na.rm=T)>0
+      smd_print('EXP_ID with changes:', paste(unique(data_incidence$exp_id[flag]),collapse = ','))
+      # data_incidence[flag,names(diff_incidence)]
+      # ref_data_incidence[flag,names(diff_incidence)]    
+      
+      # bool_colnames <- names(diff_incidence)[names(diff_incidence) %in% names(ref_data_incidence)]
+      # bool_colnames
+      # head(data_incidence[,bool_colnames])
+      # head(ref_data_incidence[,bool_colnames])
+      #head(data_incidence[names(diff_incidence)])
+      
+    } else { # dimensions changed!!
+      smd_print('INCIDENCE ISSUE: dimensions changed',WARNING = T)
+
+    }
+  }
 }
 
-## COMPARE PREVALENCE
-diff_prevalence <- setdiff(data_prevalence,ref_data_prevalence)
-if(length(diff_prevalence)>0){ 
-  smd_print("PREVALENCE CHANGED",WARNING = T)
-  #print(head(diff_prevalence))
-} else{
+
+## COMPARE PREVALENCE ----
+if(setequal(data_prevalence,ref_data_prevalence)){ 
   smd_print("PREVALENCE OK")
+} else{
+  smd_print("PREVALENCE CHANGED",WARNING = T)
+  #diff_prevalence <- setdiff(data_prevalence,ref_data_prevalence)
+  #print(head(diff_prevalence))
+}
+
+
+## COMPARE ABC ----
+ref_rstride_out_abc <- readRDS(file='tests/regression_rstride_out_abc.rds')
+if(setequal(rstride_out_abc,rstride_out_abc)){
+  smd_print("rSTRIDE ABC OK")
+} else{
+  
+  smd_print("rSTRIDE ABC CHANGED!",WARNING = T)
+  stride_diff <- setdiff(rstride_out_abc,rstride_out_abc)
+  smd_print(names(diff_summary),WARNING = T)
 }
 
 # terminal message
@@ -244,6 +389,7 @@ rrv <- function(){
   saveRDS(project_summary,file='tests/regression_rstride_summary.rds')
   saveRDS(data_incidence, file='tests/regression_rstride_incidence.rds')
   saveRDS(data_prevalence,file='tests/regression_rstride_prevalence.rds')
+  saveRDS(rstride_out_abc,file='tests/regression_rstride_out_abc.rds')
   smd_print('NEW REFERENCE VALES STORED: LOCAL')
 }
 
@@ -254,9 +400,8 @@ rrv_repo <- function(){
   saveRDS(project_summary,file=file.path(stride_repo_dir,'regression_rstride_summary.rds'))
   saveRDS(data_incidence,file=file.path(stride_repo_dir,'regression_rstride_incidence.rds'))
   saveRDS(data_prevalence,file=file.path(stride_repo_dir,'regression_rstride_prevalence.rds'))
+  saveRDS(rstride_out_abc,file=file.path(stride_repo_dir,'regression_rstride_out_abc.rds'))
   smd_print('NEW REFERENCE VALES STORED: IN STRIDE REPOSITORY')
+  rrv()
 }
-
-
-
 

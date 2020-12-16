@@ -110,3 +110,5 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 rsconnect/
+README.html
+main/r/rstride/rmarkdown/covid19_stride_disease_files/figure-latex

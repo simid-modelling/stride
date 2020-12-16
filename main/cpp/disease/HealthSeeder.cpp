@@ -35,8 +35,7 @@ namespace stride {
 
 HealthSeeder::HealthSeeder(const boost::property_tree::ptree& diseasePt)
     : m_start_symptomatic(), m_time_asymptomatic(), m_time_infectious(), m_time_symptomatic(), m_probability_symptomatic(),
-	  m_sympt_cnt_reduction_work_school(), m_sympt_cnt_reduction_community(),m_rel_transmission_asymptomatic(),
-	  m_rel_susceptibility_children()
+	  m_sympt_cnt_reduction_work_school(), m_sympt_cnt_reduction_community()
 {
         GetDistribution(m_start_symptomatic, diseasePt, "disease.start_symptomatic");
         GetDistribution(m_time_asymptomatic, diseasePt, "disease.time_asymptomatic");
@@ -59,8 +58,6 @@ HealthSeeder::HealthSeeder(const boost::property_tree::ptree& diseasePt)
 
         m_sympt_cnt_reduction_work_school = diseasePt.get<double>("disease.sympt_cnt_reduction_work_school",1.0);
         m_sympt_cnt_reduction_community   = diseasePt.get<double>("disease.sympt_cnt_reduction_community",1.0);
-        m_rel_transmission_asymptomatic   = diseasePt.get<double>("disease.rel_transmission_asymptomatic",1);
-        m_rel_susceptibility_children     = diseasePt.get<double>("disease.m_rel_susceptibility_children",1);
 
 }
 
@@ -93,10 +90,20 @@ void HealthSeeder::Seed(const std::shared_ptr<stride::Population>& pop, vector<C
                 auto& gen01 = handlers[static_cast<size_t>(omp_get_thread_num())];
 #pragma omp for
                 for (size_t i = 0; i < population.size(); ++i) {
-                        const auto startSymptomatic    = Sample(m_start_symptomatic, gen01());
-                        const auto startInfectiousness = startSymptomatic - Sample(m_time_asymptomatic, gen01());
+
+                		// initiate start for symptomatic and infectious period
+                		auto startSymptomatic          = 0;
+                        auto startInfectiousness       = 0;
+
+                        // sample from given distribution, but limit "start infectiousness" to day 1 (= one day after infection)
+						while(startInfectiousness < 1){
+							startSymptomatic          = Sample(m_start_symptomatic, gen01());
+							startInfectiousness       = startSymptomatic - Sample(m_time_asymptomatic, gen01());
+						}
+
                         const auto timeInfectious      = Sample(m_time_infectious, gen01());
                         auto timeSymptomatic           = Sample(m_time_symptomatic, gen01());
+
 
                         const bool isSymptomatic = gen01() <= m_probability_symptomatic[population[i].GetAge()];
                         if(!isSymptomatic){
@@ -105,8 +112,7 @@ void HealthSeeder::Seed(const std::shared_ptr<stride::Population>& pop, vector<C
 
                         population[i].GetHealth() =
                             Health(startInfectiousness, startSymptomatic, timeInfectious, timeSymptomatic,
-                            		m_sympt_cnt_reduction_work_school,m_sympt_cnt_reduction_community,
-									m_rel_transmission_asymptomatic,m_rel_susceptibility_children);
+                            		m_sympt_cnt_reduction_work_school,m_sympt_cnt_reduction_community);
                 }
         }
 }

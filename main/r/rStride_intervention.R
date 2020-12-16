@@ -14,7 +14,7 @@
 #  see http://www.gnu.org/licenses/.
 #
 #
-#  Copyright 2020, Willem L, Kuylen E & Broeckhove J
+#  Copyright 2020, Willem L, Libin P
 ############################################################################ #
 #
 # Call this script from the main project folder (containing bin, config, lib, ...)
@@ -41,36 +41,28 @@ dir_postfix <- '_int'
 ################################## #
 
 # add default parameters and values to combine in a full-factorial grid
-exp_param_list <- get_exp_param_default()
+exp_param_list <- get_exp_param_default(bool_revised_model_param = T)
 
 # change parameters and values to combine in a full-factorial grid
 
+# check period
+range(as.Date(exp_param_list$start_date), as.Date(exp_param_list$start_date)+ exp_param_list$num_days)
 
 ################################################ #
 ## GENERATE DESIGN OF EXPERIMENT GRID         ####
 ################################################ #
 
-# add sequence with all rng seeds
-exp_param_list$rng_seed = seq(exp_param_list$num_seeds)
-
-# generate grid
-exp_design <- expand.grid(exp_param_list,
-                          stringsAsFactors = F)
-
-# add a unique seed for each run
-set.seed(125)
-exp_design$rng_seed <- sample(nrow(exp_design))
+# get grid-based design of experiments
+exp_design <- .rstride$get_full_grid_exp_design(exp_param_list = exp_param_list,
+                                                num_seeds      = exp_param_list$num_seeds)
 dim(exp_design)
-
-# check period
-range(as.Date(exp_design$start_date), as.Date(exp_design$start_date)+ exp_design$num_days)
-
 
 ################################## #
 ## RUN rSTRIDE                  ####
 ################################## #
 project_dir <- run_rStride(exp_design               = exp_design,
-                           dir_postfix              = dir_postfix)
+                           dir_postfix              = dir_postfix,
+                           num_parallel_workers     = exp_param_list$num_parallel_workers)
 
 
 ############################# #
@@ -83,6 +75,12 @@ inspect_summary(project_dir)
 ## SURVEY PARTICIPANT DATA ####
 ############################# #
 inspect_participant_data(project_dir)
+
+
+########################################### #
+## PARAMETER ESTIMATION (optional)       ####
+########################################### #
+estimate_parameters(project_dir)
 
 
 ############################# #
@@ -107,6 +105,8 @@ inspect_transmission_dynamics(project_dir)
 ## CONTACT TRACING         ####
 ############################# #
 inspect_tracing_data(project_dir)
+
+
 
 
 

@@ -10,7 +10,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with the software. If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright 2017, Kuylen E, Willem L, Broeckhove J
+ *  Copyright 2020, Kuylen E, Willem L, Broeckhove J
  */
 
 /**
@@ -41,8 +41,7 @@ public:
         ///
         explicit Health(unsigned short int start_infectiousness = 0U, unsigned int short start_symptomatic = 0U,
                         unsigned short int time_infectious = 0U, unsigned short int time_symptomatic = 0U,
-						double sympt_cnt_reduction_work_school = 0U, double sympt_cnt_reduction_community=0U,
-						double rel_transmission_asymptomatic = 0U, double m_rel_susceptibility_children = 0U);
+						double sympt_cnt_reduction_work_school = 0U, double sympt_cnt_reduction_community=0U);
 
         ///
         unsigned short int GetEndInfectiousness() const { return m_end_infectiousness; }
@@ -117,18 +116,6 @@ public:
         /// Stop the infection.
         void StopInfection();
 
-        /// Start self-isolation in X days
-        // void StartIsolation(unsigned int delay_isolation){ m_start_isolation = GetDiseaseCounter() + delay_isolation;};
-        // void StartIsolation(unsigned int delay_isolation){ m_is_isolated = true;};
-        void StartIsolation(unsigned int delay_isolation);
-
-
-        /// End self-isolation
-        void EndIsolation() { m_is_isolated = false; };
-
-        /// Is this person in self-isolation?
-        bool IsInIsolation() { return m_is_isolated; };
-
         /// Update progress of the disease.
         void Update();
 
@@ -138,17 +125,8 @@ public:
         /// Get contact reduction in community pools when symptomatic infected
         double GetSymptomaticCntReductionCommunity() const { return m_sympt_cnt_reduction_community; };
 
-        /// Get relative transmission based on health state and age of contact
-        double GetRelativeTransmission(unsigned int age_contact) {
-
-        	//if(!IsInfectious()) {return 0;}
-
-        	double rel_transmission = 1;
-        	if(age_contact < 18) { rel_transmission *= m_rel_susceptibility_children;}
-        	if(!IsSymptomatic()) { rel_transmission *= m_rel_transmission_asymptomatic;}
-
-        	return rel_transmission;
-        }
+		/// Is this individual PCR detectable?
+		bool IsPcrDetectable(unsigned int detectable_delay) const { return GetDiseaseCounter() >= detectable_delay; }
 
 private:
         /// Get the disease counter.
@@ -174,11 +152,6 @@ private:
 
         double             m_sympt_cnt_reduction_work_school;  ///< Proportional reduction of presence in work/school pool when symptomatic
         double             m_sympt_cnt_reduction_community;    ///< Proportional reduction of presence in the community pools when symptomatic
-        double             m_rel_transmission_asymptomatic;	   ///< Relative reduction of transmission for asymptomatic cases
-        double             m_rel_susceptibility_children;	   ///< Relative reduction in susceptibility for children vs. adults
-
-        bool               m_is_isolated;             ///< Boolean to indicate whether this person is in self-isolation
-        unsigned short int m_start_isolation;         ///< Days after infection to start self-isolation
 };
 
 } // namespace stride
